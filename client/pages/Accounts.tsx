@@ -755,7 +755,7 @@ export default function Accounts() {
                   </SelectTrigger>
                   <SelectContent>
                     {filteredInstitutions.length === 0 ? (
-                      <div className="p-2 text-sm text-muted-foreground">
+                      <div key="no-institutions" className="p-2 text-sm text-muted-foreground">
                         No institutions found for this account type
                       </div>
                     ) : (

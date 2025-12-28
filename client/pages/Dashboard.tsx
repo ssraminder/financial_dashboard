@@ -75,8 +75,8 @@ export default function Dashboard() {
         netIncome,
         pendingReviews,
       });
-    } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
+    } catch (error: any) {
+      console.error("Error fetching dashboard stats:", error?.message || error);
     } finally {
       setLoading(false);
     }
