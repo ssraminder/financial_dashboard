@@ -328,7 +328,7 @@ export default function Clients() {
 
   // Handle add client
   const handleAddClient = async () => {
-    if (!user || !formData.name) {
+    if (!formData.name) {
       toast({
         title: "Error",
         description: "Name is required",
@@ -341,7 +341,6 @@ export default function Clients() {
       const xtrfId = formData.xtrf_id || (await generateLocalId());
 
       const { error } = await supabase.from("clients").insert({
-        user_id: user.id,
         ...formData,
         xtrf_id: xtrfId,
         is_active: formData.status === "Active",

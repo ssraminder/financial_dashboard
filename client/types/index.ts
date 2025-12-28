@@ -55,7 +55,6 @@ export interface DashboardStats {
 
 export interface Client {
   id: string;
-  user_id: string;
   xtrf_id: string | null;
   name: string;
   email: string | null;
