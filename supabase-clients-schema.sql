@@ -1,8 +1,9 @@
 -- ============================================================================
--- CLIENTS TABLE SCHEMA
+-- CLIENTS TABLE SCHEMA (SHARED BUSINESS DATABASE)
 -- ============================================================================
 -- This migration creates the clients table for managing customer data
 -- Compatible with XTRF CSV imports and manual entry
+-- This is a SHARED database - all authenticated users can access all clients
 -- 
 -- Run this in your Supabase SQL Editor
 
@@ -12,7 +13,6 @@
 -- Create clients table
 CREATE TABLE IF NOT EXISTS clients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   
   -- XTRF Integration
   xtrf_id TEXT UNIQUE,
@@ -46,7 +46,6 @@ CREATE TABLE IF NOT EXISTS clients (
 );
 
 -- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_clients_user_id ON clients(user_id);
 CREATE INDEX IF NOT EXISTS idx_clients_xtrf_id ON clients(xtrf_id);
 CREATE INDEX IF NOT EXISTS idx_clients_status ON clients(status);
 CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);
@@ -55,35 +54,35 @@ CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
 -- Enable Row Level Security
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
--- Allow authenticated users to view their own clients
-CREATE POLICY "Users can view their own clients"
+-- RLS Policies - Shared Business Database
+-- All authenticated users can view all clients
+CREATE POLICY "Authenticated users can view all clients"
   ON clients
   FOR SELECT
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (true);
 
--- Allow authenticated users to insert their own clients
-CREATE POLICY "Users can insert their own clients"
+-- All authenticated users can insert clients
+CREATE POLICY "Authenticated users can insert clients"
   ON clients
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (true);
 
--- Allow authenticated users to update their own clients
-CREATE POLICY "Users can update their own clients"
+-- All authenticated users can update clients
+CREATE POLICY "Authenticated users can update all clients"
   ON clients
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING (true)
+  WITH CHECK (true);
 
--- Allow authenticated users to delete their own clients
-CREATE POLICY "Users can delete their own clients"
+-- All authenticated users can delete clients
+CREATE POLICY "Authenticated users can delete clients"
   ON clients
   FOR DELETE
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (true);
 
 -- Create function to auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_clients_updated_at()
@@ -111,12 +110,12 @@ CREATE TRIGGER update_clients_timestamp
 -- ============================================================================
 -- Uncomment to insert sample clients:
 /*
-INSERT INTO clients (user_id, xtrf_id, name, email, country, status, gst_rate, preferred_currency)
+INSERT INTO clients (xtrf_id, name, email, country, status, gst_rate, preferred_currency)
 VALUES 
-  (auth.uid(), 'C001372', 'Amandine BOIS', 'meca.et.wheels@gmail.com', NULL, 'Active', 5.00, 'CAD'),
-  (auth.uid(), 'C001371', 'Tetiana Puhach', 'tanyajano@gmail.com', NULL, 'Active', 5.00, 'CAD'),
-  (auth.uid(), 'C001370', 'Hassan Cheaib', 'hassan_cheaib@hotmail.com', NULL, 'Active', 5.00, 'CAD'),
-  (auth.uid(), 'C000135', 'Old Strathcona Farmers Market', 'edmontonalberta@gmail.com', 'Canada', 'Active', 5.00, 'CAD'),
-  (auth.uid(), 'C000121', 'Stephanie Mills', 'berthmills@yahoo.com', NULL, 'Potential', 5.00, 'CAD'),
-  (auth.uid(), 'C000005', 'Erased 9016734457', NULL, 'Canada', 'Inactive', 5.00, 'CAD');
+  ('C001372', 'Amandine BOIS', 'meca.et.wheels@gmail.com', NULL, 'Active', 5.00, 'CAD'),
+  ('C001371', 'Tetiana Puhach', 'tanyajano@gmail.com', NULL, 'Active', 5.00, 'CAD'),
+  ('C001370', 'Hassan Cheaib', 'hassan_cheaib@hotmail.com', NULL, 'Active', 5.00, 'CAD'),
+  ('C000135', 'Old Strathcona Farmers Market', 'edmontonalberta@gmail.com', 'Canada', 'Active', 5.00, 'CAD'),
+  ('C000121', 'Stephanie Mills', 'berthmills@yahoo.com', NULL, 'Potential', 5.00, 'CAD'),
+  ('C000005', 'Erased 9016734457', NULL, 'Canada', 'Inactive', 5.00, 'CAD');
 */
