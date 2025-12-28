@@ -74,3 +74,31 @@ export interface Client {
   created_at: string;
   updated_at: string;
 }
+
+export interface Vendor {
+  id: string;
+  legal_name: string;
+  status: "Active" | "Inactive";
+  is_active: boolean;
+  country: string | null;
+  city: string | null;
+  email: string | null;
+  email_3: string | null;
+  phone: string | null;
+  phone_2: string | null;
+  phone_3: string | null;
+  overall_evaluation: number | null;
+  availability: string | null;
+  language_combinations: string | null;
+  gst_registered: boolean;
+  gst_rate: number;
+  gst_number: string | null;
+  category: "Contractor" | "Agency" | "Freelancer" | "Employee";
+  payment_terms: string;
+  preferred_currency: string;
+  is_preferred: boolean;
+  notes: string | null;
+  last_synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
