@@ -27,6 +27,9 @@ interface BankAccount {
   name: string;
   account_number: string;
   company_id: string;
+  bank_name: string;
+  currency: string;
+  is_active?: boolean;
 }
 
 export default function Upload() {
@@ -56,10 +59,12 @@ export default function Upload() {
       try {
         const { data, error } = await supabase
           .from("bank_accounts")
-          .select("id, name, account_number, company_id")
+          .select("id, name, account_number, company_id, bank_name, currency, is_active")
+          .eq("is_active", true)
           .order("name");
 
         if (error) throw error;
+        console.log("Bank accounts data:", data);
         setBankAccounts(data || []);
       } catch (err) {
         console.error("Error fetching bank accounts:", err);
@@ -285,7 +290,7 @@ export default function Upload() {
                     ) : (
                       bankAccounts.map((account) => (
                         <SelectItem key={account.id} value={account.id}>
-                          {account.name} ({account.account_number})
+                          {account.name} ({account.bank_name} - {account.currency})
                         </SelectItem>
                       ))
                     )}
