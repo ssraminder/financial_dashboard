@@ -11,6 +11,8 @@ The Clients page allows you to manage your customer database with features inclu
 - ✅ Status management (Active, Potential, Inactive)
 - ✅ Financial settings (GST, currency, payment terms)
 
+**Note:** This is a **shared business database**. All authenticated users can view and manage all clients (not filtered by user).
+
 ---
 
 ## 🔴 REQUIRED: Run Database Migration
@@ -150,7 +152,6 @@ C001370;Hassan Cheaib;Active;;+1122334455;hassan_cheaib@hotmail.com
 | Column               | Type      | Description                                      |
 | -------------------- | --------- | ------------------------------------------------ |
 | `id`                 | UUID      | Primary key (auto-generated)                     |
-| `user_id`            | UUID      | Foreign key to `auth.users` (for RLS)            |
 | `xtrf_id`            | TEXT      | Unique XTRF client ID (or LOCAL001, LOCAL002...) |
 | `name`               | TEXT      | Client name (required)                           |
 | `email`              | TEXT      | Email address                                    |
@@ -176,10 +177,12 @@ C001370;Hassan Cheaib;Active;;+1122334455;hassan_cheaib@hotmail.com
 
 The `clients` table has RLS enabled with policies that:
 
-- ✅ Allow users to view only their own clients (`user_id = auth.uid()`)
-- ✅ Allow users to insert their own clients
-- ✅ Allow users to update their own clients
-- ✅ Allow users to delete their own clients
+- ✅ Allow all authenticated users to view all clients (shared business database)
+- ✅ Allow all authenticated users to insert clients
+- ✅ Allow all authenticated users to update clients
+- ✅ Allow all authenticated users to delete clients
+
+**Note:** This is a shared database. All team members can access and manage all clients.
 
 ---
 
@@ -230,11 +233,11 @@ The `clients` table has RLS enabled with policies that:
 To test the feature, you can insert sample clients by uncommenting the section at the bottom of `supabase-clients-schema.sql`:
 
 ```sql
-INSERT INTO clients (user_id, xtrf_id, name, email, country, status, gst_rate, preferred_currency)
+INSERT INTO clients (xtrf_id, name, email, country, status, gst_rate, preferred_currency)
 VALUES
-  (auth.uid(), 'C001372', 'Amandine BOIS', 'meca.et.wheels@gmail.com', NULL, 'Active', 5.00, 'CAD'),
-  (auth.uid(), 'C001371', 'Tetiana Puhach', 'tanyajano@gmail.com', NULL, 'Active', 5.00, 'CAD'),
-  (auth.uid(), 'C001370', 'Hassan Cheaib', 'hassan_cheaib@hotmail.com', NULL, 'Active', 5.00, 'CAD');
+  ('C001372', 'Amandine BOIS', 'meca.et.wheels@gmail.com', NULL, 'Active', 5.00, 'CAD'),
+  ('C001371', 'Tetiana Puhach', 'tanyajano@gmail.com', NULL, 'Active', 5.00, 'CAD'),
+  ('C001370', 'Hassan Cheaib', 'hassan_cheaib@hotmail.com', NULL, 'Active', 5.00, 'CAD');
 ```
 
 ---
