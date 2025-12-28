@@ -37,14 +37,20 @@ const App = () => (
 );
 
 // Prevent double root creation in development HMR
-declare global {
-  interface Window {
-    __root?: ReturnType<typeof createRoot>;
+const rootElement = document.getElementById("root")!;
+
+// Check if we're in development mode and use a module-level variable
+let root: ReturnType<typeof createRoot>;
+
+if (import.meta.hot) {
+  // Development mode with HMR
+  if (!import.meta.hot.data.root) {
+    import.meta.hot.data.root = createRoot(rootElement);
   }
+  root = import.meta.hot.data.root;
+} else {
+  // Production mode
+  root = createRoot(rootElement);
 }
 
-const rootElement = document.getElementById("root")!;
-if (!window.__root) {
-  window.__root = createRoot(rootElement);
-}
-window.__root.render(<App />);
+root.render(<App />);

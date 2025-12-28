@@ -195,7 +195,17 @@ export default function Accounts() {
         ]);
 
       if (typesRes.error) {
-        console.error("Error fetching account types:", typesRes.error);
+        console.error("Error fetching account types:", typesRes.error.message || typesRes.error);
+        console.error("Full error:", JSON.stringify(typesRes.error, null, 2));
+      }
+      if (institutionsRes.error) {
+        console.error("Error fetching institutions:", institutionsRes.error.message || institutionsRes.error);
+      }
+      if (companiesRes.error) {
+        console.error("Error fetching companies:", companiesRes.error.message || companiesRes.error);
+      }
+      if (accountsRes.error) {
+        console.error("Error fetching accounts:", accountsRes.error.message || accountsRes.error);
       }
 
       if (accountsRes.data) setAccounts(accountsRes.data);
@@ -205,9 +215,16 @@ export default function Accounts() {
       }
       if (institutionsRes.data) setInstitutions(institutionsRes.data);
       if (companiesRes.data) setCompanies(companiesRes.data);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to load accounts");
+
+      // Check if critical tables are missing
+      if (typesRes.error || institutionsRes.error || companiesRes.error) {
+        setError(
+          "Database tables are missing. Please run the database migrations in Supabase. See ACCOUNTS_PAGE_SETUP.md for instructions."
+        );
+      }
+    } catch (err: any) {
+      console.error("Error fetching data:", err?.message || err);
+      setError("Failed to load accounts: " + (err?.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
