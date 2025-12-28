@@ -40,12 +40,59 @@ export default function Dashboard() {
     try {
       setLoading(true);
 
-      // Fetch transactions
+      // Check if tables exist first
+      const { data: categoriesCheck, error: categoriesError } = await supabase
+        .from("categories")
+        .select("id")
+        .limit(1);
+
+      if (categoriesError) {
+        console.error(
+          "Database setup required:",
+          categoriesError.message || categoriesError
+        );
+
+        // Check if it's a missing table error
+        if (
+          categoriesError.message?.includes("does not exist") ||
+          categoriesError.code === "42P01"
+        ) {
+          console.error(
+            "⚠️ DATABASE NOT SET UP: Please run supabase-schema.sql in your Supabase SQL Editor"
+          );
+          // Set all stats to 0 and return
+          setStats({
+            revenue: 0,
+            expenses: 0,
+            netIncome: 0,
+            pendingReviews: 0,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Fetch transactions with categories
       const { data: transactions, error: transactionsError } = await supabase
         .from("transactions")
         .select("amount, category_id, needs_review, categories(type)");
 
-      if (transactionsError) throw transactionsError;
+      if (transactionsError) {
+        console.error(
+          "Error fetching transactions:",
+          transactionsError.message || transactionsError
+        );
+
+        // Set default stats on error
+        setStats({
+          revenue: 0,
+          expenses: 0,
+          netIncome: 0,
+          pendingReviews: 0,
+        });
+        setLoading(false);
+        return;
+      }
 
       // Calculate stats
       let revenue = 0;
@@ -77,6 +124,13 @@ export default function Dashboard() {
       });
     } catch (error: any) {
       console.error("Error fetching dashboard stats:", error?.message || error);
+      // Set default stats on error
+      setStats({
+        revenue: 0,
+        expenses: 0,
+        netIncome: 0,
+        pendingReviews: 0,
+      });
     } finally {
       setLoading(false);
     }
