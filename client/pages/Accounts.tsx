@@ -359,19 +359,34 @@ export default function Accounts() {
 
     try {
       if (editingAccount) {
-        const { error } = await supabase
+        console.log("Updating account ID:", editingAccount.id);
+        console.log("Update data:", accountData);
+
+        const { data, error } = await supabase
           .from("bank_accounts")
           .update(accountData)
-          .eq("id", editingAccount.id);
+          .eq("id", editingAccount.id)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Update error:", error);
+          throw error;
+        }
+        console.log("Update successful:", data);
         setSuccess("Account updated successfully");
       } else {
-        const { error } = await supabase
-          .from("bank_accounts")
-          .insert(accountData);
+        console.log("Inserting new account:", accountData);
 
-        if (error) throw error;
+        const { data, error } = await supabase
+          .from("bank_accounts")
+          .insert(accountData)
+          .select();
+
+        if (error) {
+          console.error("Insert error:", error);
+          throw error;
+        }
+        console.log("Insert successful:", data);
         setSuccess("Account added successfully");
       }
 
@@ -382,9 +397,10 @@ export default function Accounts() {
         resetForm();
         setSuccess(null);
       }, 1500);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error saving account:", err);
-      setError("Failed to save account. Please try again.");
+      const errorMessage = err?.message || "Failed to save account. Please try again.";
+      setError(`Failed to save account: ${errorMessage}`);
     } finally {
       setSubmitting(false);
     }
