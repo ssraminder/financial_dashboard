@@ -103,7 +103,7 @@ CREATE POLICY "Authenticated users can view institutions"
 -- Comments for documentation
 COMMENT ON TABLE account_types IS 'Types of bank accounts and cards supported by the system';
 COMMENT ON TABLE institutions IS 'Financial institutions (banks, payment processors, etc.)';
-COMMENT ON COLUMN bank_accounts.account_type IS 'Type of account (references account_types.name)';
+COMMENT ON COLUMN bank_accounts.account_type IS 'Type of account (references account_types.code)';
 COMMENT ON COLUMN bank_accounts.is_personal IS 'True if personal card used for business expenses';
 COMMENT ON COLUMN bank_accounts.last4_physical IS 'Last 4 digits of physical card/account number';
 COMMENT ON COLUMN bank_accounts.last4_wallet IS 'Last 4 digits of digital wallet version (Apple/Google Pay)';
