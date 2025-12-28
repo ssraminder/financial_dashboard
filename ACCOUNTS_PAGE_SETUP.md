@@ -5,6 +5,7 @@
 The comprehensive Accounts page has been fully implemented with all requested features:
 
 ### 1. **Database Schema** (`supabase-accounts-schema.sql`)
+
 - `account_types` table with 7 account types (Chequing, Savings, Credit Card, Cash Card, Payment Processor, Forex, Line of Credit)
 - `institutions` table with 21 pre-populated financial institutions
 - Enhanced `bank_accounts` table with new columns:
@@ -16,6 +17,7 @@ The comprehensive Accounts page has been fully implemented with all requested fe
 - `bank_accounts_view` - Database view for accounts with type display names
 
 ### 2. **Accounts Page** (`client/pages/Accounts.tsx`)
+
 - Full CRUD operations (Create, Read, Update, Delete)
 - Account grouping by type:
   - Business: Bank Accounts, Credit Cards, Payment Processors & Forex
@@ -29,6 +31,7 @@ The comprehensive Accounts page has been fully implemented with all requested fe
 ### 3. **Features Implemented**
 
 #### Add/Edit Account Modal
+
 - Ownership selection (Business/Personal)
 - Account type dropdown (filtered by institution support)
 - Institution dropdown (filtered by account type)
@@ -41,6 +44,7 @@ The comprehensive Accounts page has been fully implemented with all requested fe
 - Full form validation
 
 #### Account Card Display
+
 - Icon based on account type (Building2, CreditCard, Wallet, Globe)
 - Color-coded type badges:
   - Blue: Chequing
@@ -56,16 +60,20 @@ The comprehensive Accounts page has been fully implemented with all requested fe
 - Edit, Deactivate, Delete actions
 
 #### Empty States
+
 - No accounts: Full-page empty state with call-to-action
 - No personal cards: Informative card with benefits explanation
 
 ### 4. **Navigation**
+
 - Added "Accounts" to sidebar (between Upload and Settings)
 - Route: `/accounts`
 - Icon: Building2 (Lucide React)
 
 ### 5. **TypeScript Types**
+
 Updated `client/types/database.ts` with:
+
 - Enhanced `bank_accounts` type
 - `account_types` table type
 - `institutions` table type
@@ -85,6 +93,7 @@ Run the SQL migration in your Supabase SQL Editor:
 ```
 
 This will:
+
 - Create `account_types` and `institutions` tables
 - Add new columns to `bank_accounts`
 - Insert 7 account types
@@ -98,8 +107,8 @@ If you already have bank accounts in your database, update them with the new fie
 
 ```sql
 -- Example: Update existing RBC CAD account
-UPDATE bank_accounts 
-SET 
+UPDATE bank_accounts
+SET
   account_type = 'chequing',
   is_personal = false,
   last4_physical = '6245'
@@ -109,6 +118,7 @@ WHERE name = 'RBC CAD';
 ### Step 3: Navigate to Accounts Page
 
 The page is now accessible at:
+
 - **URL**: `http://localhost:5173/accounts`
 - **Sidebar**: Click "Accounts" in the navigation
 
@@ -162,12 +172,14 @@ The page is now accessible at:
 Accounts are automatically grouped into sections:
 
 **Business Accounts:**
+
 - Bank Accounts (Chequing, Savings)
 - Credit Cards
 - Payment Processors & Forex (PayPal, Stripe, Wise, Airwallex)
 - Other (Line of Credit, etc.)
 
 **Personal Cards:**
+
 - Credit/Cash cards used for business expenses
 - Shows Apple Wallet info if different from physical
 
@@ -181,6 +193,7 @@ Accounts are automatically grouped into sections:
 ### Badge Colors
 
 Each account type has a distinct color for easy visual identification:
+
 - 🔵 Blue: Chequing
 - 🟢 Green: Savings
 - 🟣 Purple: Credit Card
@@ -196,18 +209,23 @@ Each account type has a distinct color for easy visual identification:
 The system comes pre-loaded with 21 institutions:
 
 **Canadian Banks:**
+
 - RBC, TD, Scotiabank, BMO, CIBC, National Bank, Desjardins, Tangerine, Simplii, EQ Bank
 
 **Credit Cards:**
+
 - American Express, Visa, Mastercard
 
 **Payment Processors:**
+
 - PayPal, Stripe, Square
 
 **Forex/Multi-currency:**
+
 - Wise (TransferWise), Airwallex, Revolut
 
 **Cash Cards:**
+
 - Koho, STACK
 
 To add more institutions, insert into the `institutions` table via Supabase Dashboard.
@@ -223,6 +241,7 @@ SELECT * FROM bank_accounts_view;
 ```
 
 Returns:
+
 - All account fields
 - `account_type_display` - Human-readable type name
 - `account_type_color` - Badge color
@@ -234,20 +253,20 @@ Use this view for displaying accounts with enriched data.
 
 ## ✅ Key Features Summary
 
-| Feature | Status |
-|---------|--------|
-| Add Account Modal | ✅ Complete |
-| Edit Account Modal | ✅ Complete |
-| Delete Confirmation | ✅ Complete |
-| Account Grouping | ✅ Complete |
-| Type Badges | ✅ Complete |
+| Feature                | Status      |
+| ---------------------- | ----------- |
+| Add Account Modal      | ✅ Complete |
+| Edit Account Modal     | ✅ Complete |
+| Delete Confirmation    | ✅ Complete |
+| Account Grouping       | ✅ Complete |
+| Type Badges            | ✅ Complete |
 | Last 4 with N/A Option | ✅ Complete |
-| Wallet Support | ✅ Complete |
-| Company Association | ✅ Complete |
-| Empty States | ✅ Complete |
-| Success/Error Toasts | ✅ Complete |
-| Sidebar Navigation | ✅ Complete |
-| Responsive Design | ✅ Complete |
+| Wallet Support         | ✅ Complete |
+| Company Association    | ✅ Complete |
+| Empty States           | ✅ Complete |
+| Success/Error Toasts   | ✅ Complete |
+| Sidebar Navigation     | ✅ Complete |
+| Responsive Design      | ✅ Complete |
 
 ---
 
@@ -282,15 +301,18 @@ Use this view for displaying accounts with enriched data.
 ## 🐛 Troubleshooting
 
 **Issue: "No institutions found for this account type"**
+
 - Make sure you've run the migration to populate the `institutions` table
 - Check that the institution supports the selected account type
 
 **Issue: "Required for business accounts" error on Company field**
+
 - Company is mandatory for all business accounts
 - Make sure you've selected a company from the dropdown
 - Personal cards don't need a company
 
 **Issue: "Must be exactly 4 digits" error**
+
 - Last 4 fields only accept 4 numeric digits
 - Use the "N/A" checkbox if the account doesn't have a card/account number
 
