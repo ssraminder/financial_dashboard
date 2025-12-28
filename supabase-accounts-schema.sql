@@ -76,13 +76,12 @@ ON CONFLICT DO NOTHING;
 
 -- Create view for accounts with type display
 CREATE OR REPLACE VIEW bank_accounts_view AS
-SELECT 
+SELECT
   ba.*,
-  at.display_name as account_type_display,
-  at.badge_color as account_type_color,
+  at.name as account_type_display,
   c.name as company_name
 FROM bank_accounts ba
-LEFT JOIN account_types at ON ba.account_type = at.name
+LEFT JOIN account_types at ON ba.account_type = at.code
 LEFT JOIN companies c ON ba.company_id = c.id
 WHERE ba.is_active = true
 ORDER BY ba.is_personal ASC, ba.account_type, ba.name;
