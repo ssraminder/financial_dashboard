@@ -12,6 +12,7 @@ import ReviewQueue from "./pages/ReviewQueue";
 import Upload from "./pages/Upload";
 import Accounts from "./pages/Accounts";
 import Clients from "./pages/Clients";
+import Vendors from "./pages/Vendors";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/upload" element={<Upload />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/clients" element={<Clients />} />
+          <Route path="/vendors" element={<Vendors />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

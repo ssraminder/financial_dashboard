@@ -6,6 +6,7 @@ import {
   Upload,
   Building2,
   Users,
+  Package,
   LogOut,
   FileText,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const navigation = [
   { name: "Upload", href: "/upload", icon: Upload },
   { name: "Accounts", href: "/accounts", icon: Building2 },
   { name: "Clients", href: "/clients", icon: Users },
+  { name: "Vendors", href: "/vendors", icon: Package },
 ];
 
 export function Sidebar() {
