@@ -36,6 +36,11 @@ const App = () => (
   </QueryClientProvider>
 );
 
+// Prevent double root creation in development HMR
+let root: ReturnType<typeof createRoot> | null = null;
+
 const rootElement = document.getElementById("root")!;
-const root = createRoot(rootElement);
+if (!root) {
+  root = createRoot(rootElement);
+}
 root.render(<App />);
