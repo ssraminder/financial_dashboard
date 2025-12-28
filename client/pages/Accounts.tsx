@@ -780,6 +780,24 @@ export default function Accounts() {
             </DialogDescription>
           </DialogHeader>
 
+          {/* Error Display */}
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Success Display */}
+          {success && (
+            <Alert className="mt-4 bg-green-50 border-green-200">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                {success}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-4 py-4">
             {/* Ownership */}
             <div className="space-y-2">
