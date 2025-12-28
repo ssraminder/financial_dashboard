@@ -173,10 +173,10 @@ export default function ReviewQueue() {
     categoryId: string,
   ) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase
         .from("transactions")
-        .update({ category_id: categoryId } as any)
-        .eq("id", transactionId);
+        .update({ category_id: categoryId })
+        .eq("id", transactionId) as any);
 
       if (error) throw error;
 
@@ -213,10 +213,10 @@ export default function ReviewQueue() {
     companyId: string,
   ) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase
         .from("transactions")
-        .update({ company_id: companyId } as any)
-        .eq("id", transactionId);
+        .update({ company_id: companyId })
+        .eq("id", transactionId) as any);
 
       if (error) throw error;
 
@@ -251,14 +251,14 @@ export default function ReviewQueue() {
     try {
       setApproving((prev) => [...prev, transactionId]);
 
-      const { error } = await supabase
+      const { error } = await (supabase
         .from("transactions")
         .update({
           needs_review: false,
           reviewed_by: user?.id,
           reviewed_at: new Date().toISOString(),
-        } as any)
-        .eq("id", transactionId);
+        })
+        .eq("id", transactionId) as any);
 
       if (error) throw error;
 
@@ -293,14 +293,14 @@ export default function ReviewQueue() {
       const idsArray = Array.from(selectedIds);
       setApproving(idsArray);
 
-      const { error } = await supabase
+      const { error } = await (supabase
         .from("transactions")
         .update({
           needs_review: false,
           reviewed_by: user?.id,
           reviewed_at: new Date().toISOString(),
-        } as any)
-        .in("id", idsArray);
+        })
+        .in("id", idsArray) as any);
 
       if (error) throw error;
 
