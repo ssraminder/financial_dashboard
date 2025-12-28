@@ -66,11 +66,9 @@ interface BankAccount {
 }
 
 interface AccountType {
-  id: string;
+  code: string;
   name: string;
-  display_name: string;
   sort_order: number;
-  badge_color: string;
 }
 
 interface Institution {
@@ -184,7 +182,10 @@ export default function Accounts() {
             .order("is_personal", { ascending: true })
             .order("account_type")
             .order("name"),
-          supabase.from("account_types").select("*").order("sort_order"),
+          supabase
+          .from("account_types")
+          .select("code, name, sort_order")
+          .order("sort_order"),
           supabase
             .from("institutions")
             .select("*")
@@ -719,8 +720,8 @@ export default function Accounts() {
                 </SelectTrigger>
                 <SelectContent>
                   {accountTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.name}>
-                      {type.display_name}
+                    <SelectItem key={type.code} value={type.code}>
+                      {type.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
