@@ -384,7 +384,7 @@ export default function Clients() {
 
       setShowAddModal(false);
       resetForm();
-      fetchClients(currentPage, searchTerm, statusFilter);
+      fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
     } catch (err: any) {
       console.error("Add error:", err);
       toast({
@@ -425,7 +425,7 @@ export default function Clients() {
       setShowEditModal(false);
       setSelectedClient(null);
       resetForm();
-      fetchClients(currentPage, searchTerm, statusFilter);
+      fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
     } catch (err: any) {
       console.error("Update error:", err);
       toast({
@@ -455,7 +455,7 @@ export default function Clients() {
 
       setShowDeleteDialog(false);
       setSelectedClient(null);
-      fetchClients(currentPage, searchTerm, statusFilter);
+      fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
     } catch (err: any) {
       console.error("Delete error:", err);
       toast({
