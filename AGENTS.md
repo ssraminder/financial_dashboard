@@ -24,7 +24,7 @@ This application requires Supabase for authentication and database. Follow these
 
 - **Login** (`/login`) - Email/password authentication via Supabase
 - **Dashboard** (`/dashboard`) - Financial overview with Revenue, Expenses, Net Income, and Pending Reviews
-- **HITL Review Queue** (`/review-queue`) - Transaction review interface (placeholder)
+- **HITL Review Queue** (`/review-queue`) - **✅ FULLY IMPLEMENTED** - Transaction review interface with filters, dropdowns, and bulk approval
 - **Upload** (`/upload`) - PDF upload for bank statements (placeholder)
 
 ### User Roles
@@ -39,6 +39,23 @@ This application requires Supabase for authentication and database. Follow these
 - `categories` - Income and expense categories
 - `transactions` - Financial transactions with review status
 - `user_profiles` - User information and roles
+
+### HITL Review Queue Features
+
+The HITL Review Queue page (`/review-queue`) is fully implemented with:
+
+- ✅ **Transaction Table**: Date, Description, Amount, Category, Company, Bank Account columns
+- ✅ **Category Dropdown**: Loads from `categories` table, updates on selection
+- ✅ **Company Dropdown**: Loads from `companies` table, updates on selection
+- ✅ **Individual Approve**: Button per transaction that marks as reviewed
+- ✅ **Bulk Selection**: Checkboxes with "Select All" functionality
+- ✅ **Bulk Approve**: "Approve Selected" button for multiple transactions
+- ✅ **Advanced Filters**: Date range picker, Category filter, Bank account filter
+- ✅ **Empty State**: "No transactions pending review" message
+- ✅ **Real-time Updates**: Table updates immediately after approvals
+- ✅ **Notifications**: Success/error toast messages
+
+📖 For detailed documentation, see `HITL_REVIEW_QUEUE.md`
 
 ---
 
