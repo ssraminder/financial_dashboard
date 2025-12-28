@@ -19,6 +19,7 @@ A Country filter dropdown has been added to the Clients page, allowing users to 
 ### 1. State Management
 
 **Added Country-Related State:**
+
 ```javascript
 const [countryFilter, setCountryFilter] = useState("all");
 const [countries, setCountries] = useState<string[]>([]);
@@ -32,6 +33,7 @@ const [countries, setCountries] = useState<string[]>([]);
 ### 2. Fetch Unique Countries
 
 **New Function: `fetchCountries`**
+
 ```javascript
 const fetchCountries = async () => {
   const { data } = await supabase
@@ -49,6 +51,7 @@ const fetchCountries = async () => {
 ```
 
 **Key Points:**
+
 - ✅ Queries `clients` table for all countries
 - ✅ Filters out null values
 - ✅ Orders alphabetically
@@ -56,6 +59,7 @@ const fetchCountries = async () => {
 - ✅ Filters out falsy values
 
 **Called On:**
+
 - Initial page load (via `useEffect`)
 - After CSV import (to pick up new countries)
 
@@ -64,6 +68,7 @@ const fetchCountries = async () => {
 ### 3. Updated Fetch Clients Function
 
 **Enhanced Query Building:**
+
 ```javascript
 const fetchClients = async (
   page = 1,
@@ -106,12 +111,13 @@ const fetchClients = async (
 ### 4. UI Component
 
 **Country Dropdown (Next to Status Filter):**
+
 ```jsx
 <Select
   value={countryFilter}
   onValueChange={(value) => {
     setCountryFilter(value);
-    setCurrentPage(1);  // Reset to page 1 when filter changes
+    setCurrentPage(1); // Reset to page 1 when filter changes
   }}
 >
   <SelectTrigger className="w-48">
@@ -129,6 +135,7 @@ const fetchClients = async (
 ```
 
 **Features:**
+
 - ✅ Shows "All Countries" as default option
 - ✅ Dynamically populated from database
 - ✅ Resets to page 1 when changed (prevents pagination issues)
@@ -139,6 +146,7 @@ const fetchClients = async (
 ### 5. useEffect Hooks
 
 **Fetch Countries on Mount:**
+
 ```javascript
 useEffect(() => {
   fetchCountries();
@@ -146,6 +154,7 @@ useEffect(() => {
 ```
 
 **Debounced Search with Country Filter:**
+
 ```javascript
 useEffect(() => {
   const timer = setTimeout(() => {
@@ -154,10 +163,11 @@ useEffect(() => {
   }, 300);
 
   return () => clearTimeout(timer);
-}, [searchTerm, statusFilter, countryFilter]);  // ✅ Added countryFilter
+}, [searchTerm, statusFilter, countryFilter]); // ✅ Added countryFilter
 ```
 
 **Page Changes:**
+
 ```javascript
 useEffect(() => {
   fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
@@ -171,27 +181,32 @@ useEffect(() => {
 **All calls now include countryFilter parameter:**
 
 1. **Debounced search effect:**
+
    ```javascript
    fetchClients(1, searchTerm, statusFilter, countryFilter);
    ```
 
 2. **Page change effect:**
+
    ```javascript
    fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
    ```
 
 3. **After CSV import:**
+
    ```javascript
    fetchCountries(); // Refresh countries list
    fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
    ```
 
 4. **After adding client:**
+
    ```javascript
    fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
    ```
 
 5. **After editing client:**
+
    ```javascript
    fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
    ```
@@ -217,6 +232,7 @@ useEffect(() => {
 ```
 
 **Filter Row:**
+
 - Search box (flex-1, takes remaining space)
 - Status dropdown (width: 48)
 - **Country dropdown (width: 48)** ✅ NEW
@@ -252,6 +268,7 @@ useEffect(() => {
 All filters work together:
 
 **Example 1: Search + Status + Country**
+
 ```javascript
 // Search: "John"
 // Status: "Active"
@@ -261,6 +278,7 @@ All filters work together:
 ```
 
 **Example 2: Country Only**
+
 ```javascript
 // Search: ""
 // Status: "All Statuses"
@@ -270,6 +288,7 @@ All filters work together:
 ```
 
 **Example 3: Reset All Filters**
+
 ```javascript
 // Search: ""
 // Status: "All Statuses"
@@ -292,6 +311,7 @@ When clients are imported via CSV:
    - Maintains current filters
 
 **This ensures:**
+
 - ✅ New countries from CSV appear in dropdown immediately
 - ✅ User doesn't need to refresh the page
 - ✅ Current filters remain active
@@ -320,18 +340,20 @@ When clients are imported via CSV:
 ## Database Queries
 
 ### Countries Query
+
 ```sql
-SELECT country 
-FROM clients 
-WHERE country IS NOT NULL 
+SELECT country
+FROM clients
+WHERE country IS NOT NULL
 ORDER BY country;
 ```
 
 ### Filtered Clients Query (Example)
+
 ```sql
-SELECT * 
-FROM clients 
-WHERE 
+SELECT *
+FROM clients
+WHERE
   (name ILIKE '%search%' OR email ILIKE '%search%' OR xtrf_id ILIKE '%search%')
   AND status = 'Active'
   AND country = 'Canada'
@@ -343,12 +365,13 @@ LIMIT 20 OFFSET 0;
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `client/pages/Clients.tsx` | ✅ Added Country filter (state, UI, logic) |
-| `CLIENTS_COUNTRY_FILTER.md` | ✅ This documentation |
+| File                        | Change                                     |
+| --------------------------- | ------------------------------------------ |
+| `client/pages/Clients.tsx`  | ✅ Added Country filter (state, UI, logic) |
+| `CLIENTS_COUNTRY_FILTER.md` | ✅ This documentation                      |
 
 **Lines Changed in `client/pages/Clients.tsx`:**
+
 - Added `countries` and `countryFilter` state (lines ~72-73)
 - Added `fetchCountries` function (lines ~117-128)
 - Updated `fetchClients` signature and logic (lines ~130-158)
@@ -404,15 +427,18 @@ LIMIT 20 OFFSET 0;
 ## User Benefits
 
 **1. Better Organization**
+
 - ✅ Quickly find clients in specific countries
 - ✅ View country distribution of client base
 
 **2. Efficient Workflows**
+
 - ✅ Filter clients for country-specific campaigns
 - ✅ Segment clients by geography
 - ✅ Combine with status for targeted views
 
 **3. Data Insights**
+
 - ✅ See which countries have clients
 - ✅ Identify geographic coverage gaps
 
@@ -421,6 +447,7 @@ LIMIT 20 OFFSET 0;
 ## Future Enhancements (Optional)
 
 **Potential improvements:**
+
 - Add client count next to each country: "Canada (45)"
 - Add Province/State sub-filter for selected country
 - Show flag emoji next to country name
@@ -436,6 +463,7 @@ LIMIT 20 OFFSET 0;
 **Location:** Clients page, next to Status filter
 
 **Functionality:**
+
 - ✅ Fetch unique countries from database
 - ✅ Filter clients by country
 - ✅ Works with existing filters (Search, Status)
