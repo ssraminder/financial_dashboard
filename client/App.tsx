@@ -37,10 +37,14 @@ const App = () => (
 );
 
 // Prevent double root creation in development HMR
-let root: ReturnType<typeof createRoot> | null = null;
+declare global {
+  interface Window {
+    __root?: ReturnType<typeof createRoot>;
+  }
+}
 
 const rootElement = document.getElementById("root")!;
-if (!root) {
-  root = createRoot(rootElement);
+if (!window.__root) {
+  window.__root = createRoot(rootElement);
 }
-root.render(<App />);
+window.__root.render(<App />);
