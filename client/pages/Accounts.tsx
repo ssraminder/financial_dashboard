@@ -264,14 +264,25 @@ export default function Accounts() {
   };
 
   const openEditModal = (account: BankAccount) => {
-    console.log("Opening edit modal for account:", account.id, account.name);
+    console.log("=== OPENING EDIT MODAL ===");
+    console.log("Full account object:", account);
+    console.log("Account ID:", account.id);
+    console.log("Account name:", account.name);
+    console.log("Account type:", account.account_type);
+    console.log("Bank name:", account.bank_name);
+    console.log("Is personal:", account.is_personal);
+    console.log("Company ID:", account.company_id);
+
     if (!account.id) {
       console.error("ERROR: Account ID is missing!", account);
       setError("Cannot edit account: ID is missing");
       return;
     }
+
+    console.log("Setting editingAccount state...");
     setEditingAccount(account);
-    setFormData({
+
+    const formDataToSet = {
       isPersonal: account.is_personal,
       accountType: account.account_type || "",
       institution: account.bank_name,
@@ -284,8 +295,14 @@ export default function Accounts() {
       sameAsPhysical: account.last4_physical === account.last4_wallet,
       companyId: account.company_id || "",
       notes: account.notes || "",
-    });
+    };
+
+    console.log("Setting form data:", formDataToSet);
+    setFormData(formDataToSet);
+
+    console.log("Opening modal...");
     setShowEditModal(true);
+    console.log("=== EDIT MODAL OPENED ===");
   };
 
   const openDeleteModal = (account: BankAccount) => {
