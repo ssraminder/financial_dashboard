@@ -69,6 +69,8 @@ export default function Clients() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [countries, setCountries] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -113,19 +115,34 @@ export default function Clients() {
     notes: "",
   });
 
+  // Fetch unique countries for filter
+  const fetchCountries = async () => {
+    const { data } = await supabase
+      .from("clients")
+      .select("country")
+      .not("country", "is", null)
+      .order("country");
+
+    // Get unique countries
+    const uniqueCountries = [
+      ...new Set(data?.map((c) => c.country).filter(Boolean)),
+    ] as string[];
+    setCountries(uniqueCountries);
+  };
+
   // Fetch clients
   const fetchClients = async (
     page = 1,
     search = "",
     statusFilterValue = "all",
+    countryFilterValue = "all",
   ) => {
     setLoading(true);
     try {
       let query = supabase
         .from("clients")
         .select("*", { count: "exact" })
-        .order("name", { ascending: true })
-        .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+        .order("name", { ascending: true });
 
       // Search filter
       if (search) {
@@ -138,6 +155,13 @@ export default function Clients() {
       if (statusFilterValue !== "all") {
         query = query.eq("status", statusFilterValue);
       }
+
+      // Country filter
+      if (countryFilterValue !== "all") {
+        query = query.eq("country", countryFilterValue);
+      }
+
+      query = query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
       const { data, error, count } = await query;
 
@@ -160,19 +184,24 @@ export default function Clients() {
     }
   };
 
+  // Fetch countries on mount
+  useEffect(() => {
+    fetchCountries();
+  }, []);
+
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
-      fetchClients(1, searchTerm, statusFilter);
+      fetchClients(1, searchTerm, statusFilter, countryFilter);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, countryFilter]);
 
   // Initial load and page changes
   useEffect(() => {
-    fetchClients(currentPage, searchTerm, statusFilter);
+    fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
   }, [currentPage]);
 
   // CSV parsing
