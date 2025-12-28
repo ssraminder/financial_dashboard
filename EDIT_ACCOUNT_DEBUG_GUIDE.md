@@ -35,7 +35,7 @@ const openEditModal = (account: BankAccount) => {
     return;
   }
   // ...
-}
+};
 
 // In handleSubmit
 if (editingAccount) {
@@ -117,6 +117,7 @@ CREATE POLICY "Authenticated users can manage bank accounts"
 6. **Watch the console** for these logs:
 
 **Expected Console Output (Success):**
+
 ```
 Opening edit modal for account: <uuid> <account name>
 User role: accountant (or owner)
@@ -127,16 +128,20 @@ Update successful: [{ id: "...", name: "New Name", ... }]
 ```
 
 **Expected Console Output (Error - RLS Issue):**
+
 ```
 Update error: { message: "new row violates row-level security policy", ... }
 Failed to save account: new row violates row-level security policy
 ```
+
 → If you see this, the RLS policy wasn't applied correctly.
 
 **Expected Console Output (Error - Missing ID):**
+
 ```
 ERROR: Account ID is missing! { ... }
 ```
+
 → This means the account object doesn't have an ID field.
 
 ---
@@ -144,7 +149,9 @@ ERROR: Account ID is missing! { ... }
 ## 🔍 Debugging Checklist
 
 ### ✅ Check 1: Account ID is Set
+
 Open the console and click Edit on an account. You should see:
+
 ```
 Opening edit modal for account: <valid-uuid> <account-name>
 ```
@@ -152,13 +159,16 @@ Opening edit modal for account: <valid-uuid> <account-name>
 If you see `undefined` or an empty value, the account data isn't being fetched correctly.
 
 ### ✅ Check 2: Form Data is Populated
+
 When the edit modal opens, all fields should be pre-filled with the account's current data.
 
 ### ✅ Check 3: Update Data is Correct
+
 When you click "Save Changes", check the console for:
+
 ```
-Update data: { 
-  name: "...", 
+Update data: {
+  name: "...",
   bank_name: "...",
   currency: "...",
   account_type: "...",
@@ -169,7 +179,9 @@ Update data: {
 All fields should have values (or null where appropriate).
 
 ### ✅ Check 4: User Role
+
 Check the console for:
+
 ```
 User role: accountant (or owner)
 User ID: <valid-uuid>
@@ -178,7 +190,9 @@ User ID: <valid-uuid>
 If the user ID is undefined, the user isn't authenticated.
 
 ### ✅ Check 5: Supabase Response
+
 After clicking Save, check for:
+
 ```
 Update successful: [{ ... }]
 ```
@@ -190,9 +204,11 @@ If you see `Update error:` instead, read the error message carefully.
 ## 🐛 Common Issues & Solutions
 
 ### Issue 1: "new row violates row-level security policy"
+
 **Cause**: The RLS policy is too restrictive or wasn't updated.
 
-**Solution**: 
+**Solution**:
+
 1. Run the `supabase-fix-bank-accounts-rls.sql` migration
 2. Verify your user exists in the `user_profiles` table:
    ```sql
@@ -201,9 +217,11 @@ If you see `Update error:` instead, read the error message carefully.
 3. If no profile exists, create one or sign in with a different user
 
 ### Issue 2: "Account ID is missing"
+
 **Cause**: The account data isn't being fetched correctly from Supabase.
 
 **Solution**:
+
 1. Check if accounts are loading on the page
 2. Verify the `fetchData()` function is working:
    ```typescript
@@ -215,9 +233,11 @@ If you see `Update error:` instead, read the error message carefully.
    ```
 
 ### Issue 3: No error, but changes don't save
+
 **Cause**: The update might be succeeding but the UI isn't refreshing.
 
 **Solution**:
+
 1. Check if "Update successful" appears in console
 2. Refresh the page to see if changes persisted
 3. Verify `fetchData()` is being called after the update:
@@ -226,6 +246,7 @@ If you see `Update error:` instead, read the error message carefully.
    ```
 
 ### Issue 4: "Failed to save account: undefined"
+
 **Cause**: The error object isn't being parsed correctly.
 
 **Solution**: This has been fixed in the code. If you still see this, check the actual error in the console log before the user-facing error message.
@@ -237,9 +258,11 @@ If you see `Update error:` instead, read the error message carefully.
 ### ✅ Verified Correct:
 
 1. **Save Button**: Line 989
+
    ```typescript
    <Button onClick={handleSubmit} disabled={submitting}>
    ```
+
    ✓ Correctly connected to `handleSubmit`
    ✓ Disabled during submission
 
@@ -277,6 +300,7 @@ If you see `Update error:` instead, read the error message carefully.
 ## 🔐 RLS Policy Summary
 
 ### Before (Restrictive):
+
 ```sql
 CREATE POLICY "Owners can manage bank accounts"
   ON bank_accounts FOR ALL
@@ -291,6 +315,7 @@ CREATE POLICY "Owners can manage bank accounts"
 ```
 
 ### After (Permissive):
+
 ```sql
 CREATE POLICY "Authenticated users can manage bank accounts"
   ON bank_accounts FOR ALL
@@ -300,6 +325,7 @@ CREATE POLICY "Authenticated users can manage bank accounts"
 ```
 
 If you want to keep the owner-only restriction, you'll need to:
+
 1. Ensure all users have a `user_profiles` entry
 2. Ensure the current user's role is 'owner'
 3. Or add a separate policy for 'accountant' role
@@ -308,15 +334,15 @@ If you want to keep the owner-only restriction, you'll need to:
 
 ## ✅ All Changes Summary
 
-| File | Change | Purpose |
-|------|--------|---------|
-| `client/pages/Accounts.tsx` | Added console.log throughout | Debug what's happening |
-| `client/pages/Accounts.tsx` | Added ID validation | Prevent undefined ID errors |
-| `client/pages/Accounts.tsx` | Added `.select()` to update | Return updated data |
-| `client/pages/Accounts.tsx` | Improved error messages | Show actual Supabase errors |
-| `client/pages/Accounts.tsx` | Added user role logging | Debug RLS issues |
-| `supabase-fix-bank-accounts-rls.sql` | Fixed RLS policy | Allow authenticated users to update |
-| `supabase-schema.sql` | Updated RLS policy | Reflect fix in schema |
+| File                                 | Change                       | Purpose                             |
+| ------------------------------------ | ---------------------------- | ----------------------------------- |
+| `client/pages/Accounts.tsx`          | Added console.log throughout | Debug what's happening              |
+| `client/pages/Accounts.tsx`          | Added ID validation          | Prevent undefined ID errors         |
+| `client/pages/Accounts.tsx`          | Added `.select()` to update  | Return updated data                 |
+| `client/pages/Accounts.tsx`          | Improved error messages      | Show actual Supabase errors         |
+| `client/pages/Accounts.tsx`          | Added user role logging      | Debug RLS issues                    |
+| `supabase-fix-bank-accounts-rls.sql` | Fixed RLS policy             | Allow authenticated users to update |
+| `supabase-schema.sql`                | Updated RLS policy           | Reflect fix in schema               |
 
 ---
 

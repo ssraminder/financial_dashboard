@@ -412,7 +412,8 @@ export default function Accounts() {
       }, 1500);
     } catch (err: any) {
       console.error("Error saving account:", err);
-      const errorMessage = err?.message || "Failed to save account. Please try again.";
+      const errorMessage =
+        err?.message || "Failed to save account. Please try again.";
       setError(`Failed to save account: ${errorMessage}`);
     } finally {
       setSubmitting(false);
@@ -784,7 +785,10 @@ export default function Accounts() {
                   </SelectTrigger>
                   <SelectContent>
                     {filteredInstitutions.length === 0 ? (
-                      <div key="no-institutions" className="p-2 text-sm text-muted-foreground">
+                      <div
+                        key="no-institutions"
+                        className="p-2 text-sm text-muted-foreground"
+                      >
                         No institutions found for this account type
                       </div>
                     ) : (
