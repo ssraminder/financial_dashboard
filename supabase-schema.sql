@@ -100,22 +100,17 @@ CREATE POLICY "Owners can manage companies"
     )
   );
 
--- RLS Policies for bank_accounts (all authenticated users can read)
+-- RLS Policies for bank_accounts (all authenticated users can manage)
 CREATE POLICY "Authenticated users can view bank accounts"
   ON bank_accounts FOR SELECT
   TO authenticated
   USING (true);
 
-CREATE POLICY "Owners can manage bank accounts"
+CREATE POLICY "Authenticated users can manage bank accounts"
   ON bank_accounts FOR ALL
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE user_profiles.id = auth.uid()
-      AND user_profiles.role = 'owner'
-    )
-  );
+  USING (true)
+  WITH CHECK (true);
 
 -- RLS Policies for categories (all authenticated users can read)
 CREATE POLICY "Authenticated users can view categories"
