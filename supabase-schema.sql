@@ -65,6 +65,7 @@ CREATE INDEX IF NOT EXISTS idx_transactions_needs_review ON transactions(needs_r
 CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_company ON transactions(company_id);
 CREATE INDEX IF NOT EXISTS idx_bank_accounts_company ON bank_accounts(company_id);
+CREATE INDEX IF NOT EXISTS idx_bank_accounts_is_active ON bank_accounts(is_active);
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
