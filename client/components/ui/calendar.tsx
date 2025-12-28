@@ -20,9 +20,7 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
-  const [month, setMonth] = React.useState<Date>(
-    props.month || new Date()
-  );
+  const [month, setMonth] = React.useState<Date>(props.month || new Date());
 
   const handleMonthChange = (newMonth: string) => {
     const date = new Date(month);
