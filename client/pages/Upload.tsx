@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Sidebar } from '@/components/Sidebar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload as UploadIcon, Loader2 } from 'lucide-react';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Sidebar } from "@/components/Sidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Upload as UploadIcon, Loader2 } from "lucide-react";
 
 export default function Upload() {
   const { user, loading: authLoading } = useAuth();
@@ -11,7 +11,7 @@ export default function Upload() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [user, authLoading, navigate]);
 
@@ -26,7 +26,7 @@ export default function Upload() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
-      
+
       <div className="flex-1 overflow-auto">
         <div className="p-8">
           <div className="mb-8">
@@ -45,8 +45,8 @@ export default function Upload() {
             </CardHeader>
             <CardContent className="text-muted-foreground">
               <p className="mb-4">
-                The Upload page will allow you to upload PDF bank statements and other financial
-                documents with the following features:
+                The Upload page will allow you to upload PDF bank statements and
+                other financial documents with the following features:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-2">
                 <li>Drag-and-drop file upload interface</li>

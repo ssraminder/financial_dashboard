@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
-import { Sidebar } from '@/components/Sidebar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { Sidebar } from "@/components/Sidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   TrendingUp,
   TrendingDown,
   DollarSign,
   AlertCircle,
   Loader2,
-} from 'lucide-react';
-import type { DashboardStats } from '@/types';
+} from "lucide-react";
+import type { DashboardStats } from "@/types";
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
@@ -26,7 +26,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [user, authLoading, navigate]);
 
@@ -42,8 +42,8 @@ export default function Dashboard() {
 
       // Fetch transactions
       const { data: transactions, error: transactionsError } = await supabase
-        .from('transactions')
-        .select('amount, category_id, needs_review, categories(type)');
+        .from("transactions")
+        .select("amount, category_id, needs_review, categories(type)");
 
       if (transactionsError) throw transactionsError;
 
@@ -60,9 +60,9 @@ export default function Dashboard() {
         const amount = transaction.amount;
         const categoryType = transaction.categories?.type;
 
-        if (categoryType === 'income') {
+        if (categoryType === "income") {
           revenue += amount;
-        } else if (categoryType === 'expense') {
+        } else if (categoryType === "expense") {
           expenses += Math.abs(amount);
         }
       });
@@ -76,16 +76,16 @@ export default function Dashboard() {
         pendingReviews,
       });
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      console.error("Error fetching dashboard stats:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-CA', {
-      style: 'currency',
-      currency: 'CAD',
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: "CAD",
     }).format(amount);
   };
 
@@ -100,7 +100,7 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
-      
+
       <div className="flex-1 overflow-auto">
         <div className="p-8">
           <div className="mb-8">
@@ -163,7 +163,7 @@ export default function Dashboard() {
                 <CardContent>
                   <div
                     className={`text-2xl font-bold ${
-                      stats.netIncome >= 0 ? 'text-green-600' : 'text-red-600'
+                      stats.netIncome >= 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
                     {formatCurrency(stats.netIncome)}
@@ -200,17 +200,18 @@ export default function Dashboard() {
               <CardTitle>Getting Started</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-2">
-              <p>
-                Welcome to the Cethos Financial Dashboard. Here you can:
-              </p>
+              <p>Welcome to the Cethos Financial Dashboard. Here you can:</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>Monitor your revenue, expenses, and net income</li>
-                <li>Review and approve transactions in the HITL Review Queue</li>
+                <li>
+                  Review and approve transactions in the HITL Review Queue
+                </li>
                 <li>Upload bank statements and transaction data</li>
               </ul>
               <p className="mt-4 text-xs">
-                <strong>Note:</strong> To see data on this dashboard, you need to configure
-                your Supabase database with the required tables and add some sample data.
+                <strong>Note:</strong> To see data on this dashboard, you need
+                to configure your Supabase database with the required tables and
+                add some sample data.
               </p>
             </CardContent>
           </Card>

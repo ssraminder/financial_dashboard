@@ -17,7 +17,7 @@ export interface BankAccount {
 export interface Category {
   id: string;
   name: string;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   created_at: string;
   updated_at: string;
 }
@@ -41,7 +41,7 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'owner' | 'accountant';
+  role: "owner" | "accountant";
   created_at: string;
   updated_at: string;
 }

@@ -1,19 +1,19 @@
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   ClipboardList,
   Upload,
   LogOut,
   FileText,
-} from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'HITL Review Queue', href: '/review-queue', icon: ClipboardList },
-  { name: 'Upload', href: '/upload', icon: Upload },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "HITL Review Queue", href: "/review-queue", icon: ClipboardList },
+  { name: "Upload", href: "/upload", icon: Upload },
 ];
 
 export function Sidebar() {
@@ -31,8 +31,12 @@ export function Sidebar() {
         <div className="flex items-center gap-2">
           <FileText className="h-8 w-8 text-sidebar-primary" />
           <div>
-            <h1 className="text-xl font-bold text-sidebar-foreground">Cethos</h1>
-            <p className="text-xs text-sidebar-foreground/60">Financial Dashboard</p>
+            <h1 className="text-xl font-bold text-sidebar-foreground">
+              Cethos
+            </h1>
+            <p className="text-xs text-sidebar-foreground/60">
+              Financial Dashboard
+            </p>
           </div>
         </div>
       </div>
@@ -46,10 +50,10 @@ export function Sidebar() {
               key={item.name}
               to={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -63,10 +67,10 @@ export function Sidebar() {
       <div className="border-t border-sidebar-border p-4">
         <div className="mb-3">
           <p className="text-sm font-medium text-sidebar-foreground">
-            {profile?.full_name || profile?.email || 'User'}
+            {profile?.full_name || profile?.email || "User"}
           </p>
           <p className="text-xs text-sidebar-foreground/60 capitalize">
-            {profile?.role || 'Loading...'}
+            {profile?.role || "Loading..."}
           </p>
         </div>
         <Button
