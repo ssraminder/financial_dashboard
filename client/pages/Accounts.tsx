@@ -183,9 +183,9 @@ export default function Accounts() {
             .order("account_type")
             .order("name"),
           supabase
-          .from("account_types")
-          .select("code, name, sort_order")
-          .order("sort_order"),
+            .from("account_types")
+            .select("code, name, sort_order")
+            .order("sort_order"),
           supabase
             .from("institutions")
             .select("*")
