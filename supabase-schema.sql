@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS bank_accounts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   account_number TEXT NOT NULL,
+  bank_name TEXT,
+  currency TEXT DEFAULT 'CAD',
+  is_active BOOLEAN DEFAULT TRUE,
   company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
