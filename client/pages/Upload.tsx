@@ -36,7 +36,8 @@ export default function Upload() {
 
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>("");
+  const [selectedBankAccountId, setSelectedBankAccountId] =
+    useState<string>("");
   const [loading, setLoading] = useState(false);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [dragActive, setDragActive] = useState(false);
@@ -133,7 +134,7 @@ export default function Upload() {
     setSuccess(null);
 
     const selectedAccount = bankAccounts.find(
-      (acc) => acc.id === selectedBankAccountId
+      (acc) => acc.id === selectedBankAccountId,
     );
 
     const formData = new FormData();
@@ -157,7 +158,7 @@ export default function Upload() {
         const result = await response.json();
         const transactionCount = result.transactionCount || result.count || "";
         setSuccess(
-          `Successfully processed ${transactionCount ? `${transactionCount} ` : ""}transactions`
+          `Successfully processed ${transactionCount ? `${transactionCount} ` : ""}transactions`,
         );
         setSelectedFile(null);
         setSelectedBankAccountId("");
@@ -184,7 +185,7 @@ export default function Upload() {
   }
 
   const selectedAccount = bankAccounts.find(
-    (acc) => acc.id === selectedBankAccountId
+    (acc) => acc.id === selectedBankAccountId,
   );
   const isFormValid = selectedFile && selectedBankAccountId;
 
