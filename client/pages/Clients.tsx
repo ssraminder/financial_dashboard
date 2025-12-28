@@ -553,6 +553,25 @@ export default function Clients() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Select
+                  value={countryFilter}
+                  onValueChange={(value) => {
+                    setCountryFilter(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="All Countries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
