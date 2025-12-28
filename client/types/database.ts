@@ -81,27 +81,21 @@ export interface Database {
       };
       account_types: {
         Row: {
-          id: string;
+          code: string;
           name: string;
-          display_name: string;
           sort_order: number;
-          badge_color: string;
           created_at: string;
         };
         Insert: {
-          id?: string;
+          code: string;
           name: string;
-          display_name: string;
           sort_order: number;
-          badge_color?: string;
           created_at?: string;
         };
         Update: {
-          id?: string;
+          code?: string;
           name?: string;
-          display_name?: string;
           sort_order?: number;
-          badge_color?: string;
           created_at?: string;
         };
       };
