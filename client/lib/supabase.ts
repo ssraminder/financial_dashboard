@@ -9,7 +9,11 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const url = supabaseUrl || "https://placeholder.supabase.co";
 const key = supabaseAnonKey || "placeholder-key";
 
-export const supabase = createClient<Database>(url, key);
+// Create client without strict typing to allow flexible updates
+export const supabase = createClient(url, key);
+
+// Export a typed version for type-safe queries
+export const supabaseTyped = createClient<Database>(url, key);
 
 // Export a flag to check if Supabase is properly configured
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
