@@ -126,15 +126,19 @@ export default function Accounts() {
   const [accountTypes, setAccountTypes] = useState<AccountType[]>([]);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
-  
+
   // UI state
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null);
-  const [deletingAccount, setDeleteingAccount] = useState<BankAccount | null>(null);
-  
+  const [editingAccount, setEditingAccount] = useState<BankAccount | null>(
+    null,
+  );
+  const [deletingAccount, setDeleteingAccount] = useState<BankAccount | null>(
+    null,
+  );
+
   // Form state
   const [formData, setFormData] = useState({
     isPersonal: false,
@@ -150,7 +154,7 @@ export default function Accounts() {
     companyId: "",
     notes: "",
   });
-  
+
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -171,22 +175,23 @@ export default function Accounts() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [accountsRes, typesRes, institutionsRes, companiesRes] = await Promise.all([
-        supabase
-          .from("bank_accounts")
-          .select("*")
-          .eq("is_active", true)
-          .order("is_personal", { ascending: true })
-          .order("account_type")
-          .order("name"),
-        supabase.from("account_types").select("*").order("sort_order"),
-        supabase
-          .from("institutions")
-          .select("*")
-          .eq("is_active", true)
-          .order("sort_order"),
-        supabase.from("companies").select("id, name").order("name"),
-      ]);
+      const [accountsRes, typesRes, institutionsRes, companiesRes] =
+        await Promise.all([
+          supabase
+            .from("bank_accounts")
+            .select("*")
+            .eq("is_active", true)
+            .order("is_personal", { ascending: true })
+            .order("account_type")
+            .order("name"),
+          supabase.from("account_types").select("*").order("sort_order"),
+          supabase
+            .from("institutions")
+            .select("*")
+            .eq("is_active", true)
+            .order("sort_order"),
+          supabase.from("companies").select("id, name").order("name"),
+        ]);
 
       if (accountsRes.data) setAccounts(accountsRes.data);
       if (typesRes.data) setAccountTypes(typesRes.data);
@@ -293,7 +298,7 @@ export default function Accounts() {
 
     // Last 4 wallet validation (only for cards)
     const showWalletField = ["credit_card", "cash_card"].includes(
-      formData.accountType
+      formData.accountType,
     );
     if (
       showWalletField &&
@@ -330,7 +335,9 @@ export default function Accounts() {
       currency: formData.currency,
       account_type: formData.accountType,
       is_personal: formData.isPersonal,
-      last4_physical: formData.last4PhysicalNA ? null : formData.last4Physical || null,
+      last4_physical: formData.last4PhysicalNA
+        ? null
+        : formData.last4Physical || null,
       last4_wallet: formData.last4WalletNA
         ? null
         : formData.sameAsPhysical
@@ -421,11 +428,11 @@ export default function Accounts() {
   };
 
   const filteredInstitutions = institutions.filter((inst) =>
-    inst.supported_account_types.includes(formData.accountType)
+    inst.supported_account_types.includes(formData.accountType),
   );
 
   const showWalletField = ["credit_card", "cash_card"].includes(
-    formData.accountType
+    formData.accountType,
   );
 
   if (authLoading || loading) {
@@ -698,7 +705,11 @@ export default function Accounts() {
               <Select
                 value={formData.accountType}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, accountType: value, institution: "" })
+                  setFormData({
+                    ...formData,
+                    accountType: value,
+                    institution: "",
+                  })
                 }
               >
                 <SelectTrigger
@@ -1049,31 +1060,47 @@ function AccountCard({
 }: AccountCardProps) {
   const Icon = getAccountIcon(account.account_type);
   const accountType = account.account_type || "unknown";
-  
+
   // Get type info for badge
   const badgeColor = (() => {
     switch (accountType) {
-      case "chequing": return "blue";
-      case "savings": return "green";
-      case "credit_card": return "purple";
-      case "cash_card": return "orange";
-      case "payment_processor": return "indigo";
-      case "forex": return "teal";
-      case "line_of_credit": return "red";
-      default: return "blue";
+      case "chequing":
+        return "blue";
+      case "savings":
+        return "green";
+      case "credit_card":
+        return "purple";
+      case "cash_card":
+        return "orange";
+      case "payment_processor":
+        return "indigo";
+      case "forex":
+        return "teal";
+      case "line_of_credit":
+        return "red";
+      default:
+        return "blue";
     }
   })();
-  
+
   const displayName = (() => {
     switch (accountType) {
-      case "chequing": return "Chequing";
-      case "savings": return "Savings";
-      case "credit_card": return "Credit Card";
-      case "cash_card": return "Cash Card";
-      case "payment_processor": return "Payment Processor";
-      case "forex": return "Forex";
-      case "line_of_credit": return "Line of Credit";
-      default: return accountType;
+      case "chequing":
+        return "Chequing";
+      case "savings":
+        return "Savings";
+      case "credit_card":
+        return "Credit Card";
+      case "cash_card":
+        return "Cash Card";
+      case "payment_processor":
+        return "Payment Processor";
+      case "forex":
+        return "Forex";
+      case "line_of_credit":
+        return "Line of Credit";
+      default:
+        return accountType;
     }
   })();
 
@@ -1112,11 +1139,7 @@ function AccountCard({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(account)}
-            >
+            <Button variant="outline" size="sm" onClick={() => onEdit(account)}>
               <Pencil className="h-4 w-4" />
               Edit
             </Button>
