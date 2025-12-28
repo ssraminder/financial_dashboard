@@ -116,7 +116,7 @@ const getBadgeColor = (color: string) => {
 };
 
 export default function Accounts() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   // Data state
@@ -342,6 +342,9 @@ export default function Accounts() {
 
     setSubmitting(true);
     setError(null);
+
+    console.log("User role:", profile?.role);
+    console.log("User ID:", user?.id);
 
     const accountData = {
       name: formData.accountName.trim(),
