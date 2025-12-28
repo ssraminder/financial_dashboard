@@ -38,6 +38,7 @@ Before using the Clients page, you **MUST** create the `clients` table in Supaba
 4. **Verify Success**
    - You should see: `Success. No rows returned`
    - Run this verification query:
+
    ```sql
    SELECT table_name
    FROM information_schema.tables
@@ -48,6 +49,7 @@ Before using the Clients page, you **MUST** create the `clients` table in Supaba
    - You should see `clients` in the results
 
 **⚠️ If you already created the clients table WITH user_id:**
+
 - Run `supabase-clients-remove-user-id.sql` to remove the user_id column and update RLS policies
 - This migration is safe to run and won't delete your existing client data
 

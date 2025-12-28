@@ -13,6 +13,7 @@
 The Clients page was trying to filter clients by `user_id`, but the clients table is designed as a **shared business database** where all authenticated users can access all clients.
 
 The code was incorrectly filtering queries like:
+
 ```javascript
 .eq("user_id", user.id)  // ❌ Wrong - user_id doesn't exist
 ```
@@ -26,6 +27,7 @@ The code was incorrectly filtering queries like:
 **Changes Made:**
 
 ✅ **Removed user authentication check:**
+
 ```javascript
 // Before
 const { user } = useAuth();
@@ -36,22 +38,24 @@ if (!user) return;
 ```
 
 ✅ **Removed user_id filter from fetchClients:**
+
 ```javascript
 // Before
 let query = supabase
   .from("clients")
   .select("*", { count: "exact" })
-  .eq("user_id", user.id)  // ❌ Removed
-  .order("name", { ascending: true })
+  .eq("user_id", user.id) // ❌ Removed
+  .order("name", { ascending: true });
 
 // After
 let query = supabase
   .from("clients")
   .select("*", { count: "exact" })
-  .order("name", { ascending: true })
+  .order("name", { ascending: true });
 ```
 
 ✅ **Removed user_id from CSV import:**
+
 ```javascript
 // Before
 batch.map((c) => ({
@@ -68,6 +72,7 @@ batch.map((c) => ({
 ```
 
 ✅ **Removed user_id from mark missing as inactive:**
+
 ```javascript
 // Before
 await supabase
@@ -84,10 +89,11 @@ await supabase
 ```
 
 ✅ **Removed user_id from add client:**
+
 ```javascript
 // Before
 const { error } = await supabase.from("clients").insert({
-  user_id: user.id,  // ❌ Removed
+  user_id: user.id, // ❌ Removed
   ...formData,
   xtrf_id: xtrfId,
   is_active: formData.status === "Active",
@@ -102,6 +108,7 @@ const { error } = await supabase.from("clients").insert({
 ```
 
 ✅ **Removed user dependency from useEffect:**
+
 ```javascript
 // Before
 }, [searchTerm, statusFilter, user]);
@@ -115,6 +122,7 @@ const { error } = await supabase.from("clients").insert({
 ### 2. Updated TypeScript Interface (`client/types/index.ts`)
 
 **Removed user_id from Client interface:**
+
 ```typescript
 export interface Client {
   id: string;
@@ -132,6 +140,7 @@ export interface Client {
 **Changes:**
 
 ✅ **Removed user_id column:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS clients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -142,11 +151,13 @@ CREATE TABLE IF NOT EXISTS clients (
 ```
 
 ✅ **Removed user_id index:**
+
 ```sql
 -- CREATE INDEX IF NOT EXISTS idx_clients_user_id ON clients(user_id);  ❌ Removed
 ```
 
 ✅ **Updated RLS Policies to allow all authenticated users:**
+
 ```sql
 -- Before: User-specific policies
 CREATE POLICY "Users can view their own clients"
@@ -168,6 +179,7 @@ All four RLS policies (SELECT, INSERT, UPDATE, DELETE) now use `USING (true)` to
 ### 4. Created Migration Script (`supabase-clients-remove-user-id.sql`)
 
 For users who already created the clients table with `user_id`, this migration:
+
 - ✅ Drops old RLS policies
 - ✅ Removes user_id column
 - ✅ Creates new shared database RLS policies
@@ -179,6 +191,7 @@ For users who already created the clients table with `user_id`, this migration:
 ### 5. Updated Documentation (`CLIENTS_SETUP_GUIDE.md`)
 
 **Changes:**
+
 - ✅ Added note about shared business database
 - ✅ Removed user_id from schema table
 - ✅ Updated RLS policy descriptions
@@ -189,14 +202,14 @@ For users who already created the clients table with `user_id`, this migration:
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `client/pages/Clients.tsx` | ✅ Removed all user_id references (6 locations) |
-| `client/types/index.ts` | ✅ Removed user_id from Client interface |
-| `supabase-clients-schema.sql` | ✅ Removed user_id column and updated RLS policies |
-| `supabase-clients-remove-user-id.sql` | ✅ Created migration for existing databases |
-| `CLIENTS_SETUP_GUIDE.md` | ✅ Updated documentation |
-| `CLIENTS_USER_ID_FIX.md` | ✅ This summary document |
+| File                                  | Change                                             |
+| ------------------------------------- | -------------------------------------------------- |
+| `client/pages/Clients.tsx`            | ✅ Removed all user_id references (6 locations)    |
+| `client/types/index.ts`               | ✅ Removed user_id from Client interface           |
+| `supabase-clients-schema.sql`         | ✅ Removed user_id column and updated RLS policies |
+| `supabase-clients-remove-user-id.sql` | ✅ Created migration for existing databases        |
+| `CLIENTS_SETUP_GUIDE.md`              | ✅ Updated documentation                           |
+| `CLIENTS_USER_ID_FIX.md`              | ✅ This summary document                           |
 
 ---
 
@@ -205,6 +218,7 @@ For users who already created the clients table with `user_id`, this migration:
 ### For New Databases
 
 **Just run the updated schema:**
+
 1. Open Supabase SQL Editor
 2. Run `supabase-clients-schema.sql`
 3. Done! No user_id column will be created
@@ -212,6 +226,7 @@ For users who already created the clients table with `user_id`, this migration:
 ### For Existing Databases (Already Have clients Table)
 
 **Run the migration script:**
+
 1. Open Supabase SQL Editor
 2. Run `supabase-clients-remove-user-id.sql`
 3. This will:
@@ -226,6 +241,7 @@ For users who already created the clients table with `user_id`, this migration:
 ### Shared Business Model
 
 **Key Points:**
+
 - ✅ No user_id column
 - ✅ All authenticated users can access all clients
 - ✅ Perfect for team collaboration
@@ -256,43 +272,49 @@ CREATE POLICY "Authenticated users can delete clients"
 ## Query Examples (Now Correct)
 
 ### Fetch All Clients
+
 ```javascript
 const { data, error, count } = await supabase
-  .from('clients')
-  .select('*', { count: 'exact' })
-  .order('name', { ascending: true })
+  .from("clients")
+  .select("*", { count: "exact" })
+  .order("name", { ascending: true })
   .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 ```
 
 ### Fetch with Search
+
 ```javascript
 const { data, error, count } = await supabase
-  .from('clients')
-  .select('*', { count: 'exact' })
-  .or(`name.ilike.%${search}%,email.ilike.%${search}%,xtrf_id.ilike.%${search}%`)
-  .order('name', { ascending: true })
+  .from("clients")
+  .select("*", { count: "exact" })
+  .or(
+    `name.ilike.%${search}%,email.ilike.%${search}%,xtrf_id.ilike.%${search}%`,
+  )
+  .order("name", { ascending: true })
   .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 ```
 
 ### Fetch with Status Filter
+
 ```javascript
 const { data, error, count } = await supabase
-  .from('clients')
-  .select('*', { count: 'exact' })
-  .eq('status', statusFilter)
-  .order('name', { ascending: true })
+  .from("clients")
+  .select("*", { count: "exact" })
+  .eq("status", statusFilter)
+  .order("name", { ascending: true })
   .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 ```
 
 ### Insert New Client
+
 ```javascript
-const { error } = await supabase.from('clients').insert({
-  xtrf_id: 'C001234',
-  name: 'John Doe',
-  email: 'john@example.com',
-  status: 'Active',
-  gst_rate: 5.00,
-  preferred_currency: 'CAD',
+const { error } = await supabase.from("clients").insert({
+  xtrf_id: "C001234",
+  name: "John Doe",
+  email: "john@example.com",
+  status: "Active",
+  gst_rate: 5.0,
+  preferred_currency: "CAD",
   // No user_id needed!
 });
 ```
@@ -328,6 +350,7 @@ const { error } = await supabase.from('clients').insert({
 **Root Cause:** Code was written with per-user isolation that doesn't apply to this use case
 
 **Solution:**
+
 1. Removed all user_id references from code
 2. Removed user_id column from database
 3. Updated RLS policies for shared access
@@ -335,12 +358,14 @@ const { error } = await supabase.from('clients').insert({
 5. Updated documentation
 
 **User Action Required:**
+
 - **New setup:** Run `supabase-clients-schema.sql`
 - **Existing setup:** Run `supabase-clients-remove-user-id.sql`
 
 **Status:** ✅ **Completely fixed and ready to use**
 
 **Impact:**
+
 - ✅ Clients page works correctly
 - ✅ All authenticated users can manage all clients
 - ✅ Perfect for team collaboration
