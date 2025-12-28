@@ -247,6 +247,12 @@ export default function Accounts() {
   };
 
   const openEditModal = (account: BankAccount) => {
+    console.log("Opening edit modal for account:", account.id, account.name);
+    if (!account.id) {
+      console.error("ERROR: Account ID is missing!", account);
+      setError("Cannot edit account: ID is missing");
+      return;
+    }
     setEditingAccount(account);
     setFormData({
       isPersonal: account.is_personal,
