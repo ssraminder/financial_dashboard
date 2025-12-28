@@ -324,7 +324,8 @@ export default function Clients() {
         title: "Import Complete",
         description: `Successfully imported ${updated} clients`,
       });
-      fetchClients(currentPage, searchTerm, statusFilter);
+      fetchCountries(); // Refresh countries list
+      fetchClients(currentPage, searchTerm, statusFilter, countryFilter);
     } catch (err: any) {
       console.error("Import error:", err);
       toast({
