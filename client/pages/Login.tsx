@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { SupabaseSetup } from "@/components/SupabaseSetup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +23,11 @@ export default function Login() {
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Show setup screen if Supabase is not configured
+  if (!isSupabaseConfigured) {
+    return <SupabaseSetup />;
+  }
 
   useEffect(() => {
     if (user) {
