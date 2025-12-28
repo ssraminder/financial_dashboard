@@ -194,6 +194,10 @@ export default function Accounts() {
           supabase.from("companies").select("id, name").order("name"),
         ]);
 
+      if (typesRes.error) {
+        console.error("Error fetching account types:", typesRes.error);
+      }
+
       if (accountsRes.data) setAccounts(accountsRes.data);
       if (typesRes.data) {
         console.log("Account types fetched:", typesRes.data);
