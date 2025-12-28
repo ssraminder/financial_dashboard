@@ -802,8 +802,602 @@ export default function Vendors() {
         </div>
       </div>
 
-      {/* Import CSV Modal - Continuing in next part due to length */}
-      {/* ... rest of modals ... */}
+      {/* Import CSV Modal */}
+      <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Import Vendors from XTRF</DialogTitle>
+          </DialogHeader>
+
+          {!importing && !importComplete && (
+            <>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Upload your XTRF vendor export CSV file.
+                </p>
+
+                <div
+                  className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
+                  onClick={() => document.getElementById("csv-upload")?.click()}
+                >
+                  <FileTextIcon className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-sm font-medium mb-1">
+                    Drag & drop your CSV file here
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    or click to browse
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Accepts: .csv files from XTRF
+                  </p>
+                  <input
+                    id="csv-upload"
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setCsvFile(file);
+                    }}
+                  />
+                </div>
+
+                {csvFile && (
+                  <Card className="bg-muted/50">
+                    <CardContent className="py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="text-sm font-medium">
+                          {csvFile.name}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCsvFile(null)}
+                      >
+                        Remove
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Import Options:</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="update-existing"
+                        checked={importOptions.updateExisting}
+                        onCheckedChange={(checked) =>
+                          setImportOptions((prev) => ({
+                            ...prev,
+                            updateExisting: checked === true,
+                          }))
+                        }
+                      />
+                      <Label htmlFor="update-existing" className="text-sm">
+                        Update existing vendors (match by Legal Name)
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="add-new"
+                        checked={importOptions.addNew}
+                        onCheckedChange={(checked) =>
+                          setImportOptions((prev) => ({
+                            ...prev,
+                            addNew: checked === true,
+                          }))
+                        }
+                      />
+                      <Label htmlFor="add-new" className="text-sm">
+                        Add new vendors
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="mark-missing"
+                        checked={importOptions.markMissing}
+                        onCheckedChange={(checked) =>
+                          setImportOptions((prev) => ({
+                            ...prev,
+                            markMissing: checked === true,
+                          }))
+                        }
+                      />
+                      <Label htmlFor="mark-missing" className="text-sm">
+                        Mark missing vendors as inactive
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowImportModal(false);
+                    setCsvFile(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleImport} disabled={!csvFile}>
+                  Import Vendors
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {importing && (
+            <div className="py-6 space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Processing...</span>
+                  <span>
+                    {importProgress.current} / {importProgress.total}
+                  </span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-primary h-full transition-all duration-300"
+                    style={{
+                      width: `${(importProgress.current / importProgress.total) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1 text-sm">
+                <div className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span>Added: {importProgress.added}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span>Updated: {importProgress.updated}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                  <span>Errors: {importProgress.errors}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {importComplete && (
+            <>
+              <div className="py-8 text-center">
+                <div className="mx-auto w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-4">
+                  <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Import Complete</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Successfully imported vendors!
+                </p>
+                <div className="space-y-1 text-sm">
+                  <p>Added: {importProgress.added} new vendors</p>
+                  <p>Updated: {importProgress.updated} existing vendors</p>
+                  {importProgress.errors > 0 && (
+                    <p className="text-destructive">
+                      Errors: {importProgress.errors}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    setShowImportModal(false);
+                    setImportComplete(false);
+                    setCsvFile(null);
+                    setImportProgress({
+                      current: 0,
+                      total: 0,
+                      added: 0,
+                      updated: 0,
+                      errors: 0,
+                    });
+                  }}
+                >
+                  Done
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Vendor Modal */}
+      <Dialog
+        open={showAddModal || showEditModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowAddModal(false);
+            setShowEditModal(false);
+            setSelectedVendor(null);
+            resetForm();
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {showEditModal ? "Edit Vendor" : "Add New Vendor"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {showEditModal && selectedVendor && (
+              <div className="flex items-center justify-between pb-4 border-b">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <span>{statusConfig[selectedVendor.status]?.emoji}</span>
+                    {selectedVendor.status}
+                  </Badge>
+                  {selectedVendor.is_preferred && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Award className="h-3 w-3" />
+                      Preferred
+                    </Badge>
+                  )}
+                </div>
+                {selectedVendor.overall_evaluation && (
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                    <span className="font-medium">
+                      {selectedVendor.overall_evaluation.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="font-semibold">Basic Information</h3>
+
+              <div className="space-y-2">
+                <Label htmlFor="legal-name">
+                  Legal Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="legal-name"
+                  value={formData.legal_name}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      legal_name: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    value={formData.country || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        country: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={formData.city || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, city: e.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: Vendor["status"]) =>
+                    setFormData((prev) => ({ ...prev, status: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Contact Information */}
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="font-semibold">Contact Information</h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, email: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email-3">Email 2</Label>
+                  <Input
+                    id="email-3"
+                    type="email"
+                    value={formData.email_3 || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        email_3: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone-2">Phone 2</Label>
+                  <Input
+                    id="phone-2"
+                    value={formData.phone_2 || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        phone_2: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Settings */}
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="font-semibold">Financial Settings</h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 h-10">
+                    <Checkbox
+                      id="gst-registered"
+                      checked={formData.gst_registered}
+                      onCheckedChange={(checked) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          gst_registered: checked === true,
+                        }))
+                      }
+                    />
+                    <Label htmlFor="gst-registered">GST Registered</Label>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gst-rate">GST Rate (%)</Label>
+                  <Input
+                    id="gst-rate"
+                    type="number"
+                    step="0.01"
+                    value={formData.gst_rate}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        gst_rate: parseFloat(e.target.value),
+                      }))
+                    }
+                    disabled={!formData.gst_registered}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gst-number">GST Number</Label>
+                <Input
+                  id="gst-number"
+                  value={formData.gst_number || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      gst_number: e.target.value,
+                    }))
+                  }
+                  disabled={!formData.gst_registered}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value: Vendor["category"]) =>
+                      setFormData((prev) => ({ ...prev, category: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="payment-terms">Payment Terms</Label>
+                  <Select
+                    value={formData.payment_terms}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, payment_terms: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {paymentTermsOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="currency">Preferred Currency</Label>
+                <Select
+                  value={formData.preferred_currency}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      preferred_currency: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CAD">CAD</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="GBP">GBP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="preferred"
+                  checked={formData.is_preferred}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      is_preferred: checked === true,
+                    }))
+                  }
+                />
+                <Label htmlFor="preferred">Preferred Vendor</Label>
+              </div>
+            </div>
+
+            {/* Language Pairs (Read-only from XTRF) */}
+            {showEditModal &&
+              selectedVendor?.language_combinations && (
+                <div className="space-y-2 pt-4 border-t">
+                  <Label>Language Pairs (from XTRF)</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedVendor.language_combinations}
+                  </p>
+                </div>
+              )}
+
+            {/* Notes */}
+            <div className="space-y-2 pt-4 border-t">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                }
+                rows={3}
+              />
+            </div>
+
+            {showEditModal && selectedVendor?.last_synced_at && (
+              <p className="text-xs text-muted-foreground pt-4 border-t">
+                Last synced from XTRF:{" "}
+                {new Date(selectedVendor.last_synced_at).toLocaleString()}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAddModal(false);
+                setShowEditModal(false);
+                setSelectedVendor(null);
+                resetForm();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={showEditModal ? handleEditVendor : handleAddVendor}>
+              {showEditModal ? "Save Changes" : "Add Vendor"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Vendor</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete{" "}
+            <span className="font-semibold">{selectedVendor?.legal_name}</span>?
+            This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setSelectedVendor(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteVendor}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
