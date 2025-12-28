@@ -4,6 +4,7 @@ import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,20 @@ function Calendar({
   const handleYearChange = (newYear: string) => {
     const date = new Date(month);
     date.setFullYear(parseInt(newYear));
+    setMonth(date);
+    props.onMonthChange?.(date);
+  };
+
+  const goToPreviousMonth = () => {
+    const date = new Date(month);
+    date.setMonth(date.getMonth() - 1);
+    setMonth(date);
+    props.onMonthChange?.(date);
+  };
+
+  const goToNextMonth = () => {
+    const date = new Date(month);
+    date.setMonth(date.getMonth() + 1);
     setMonth(date);
     props.onMonthChange?.(date);
   };
@@ -65,13 +80,7 @@ function Calendar({
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
-        nav_button: cn(
-          buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-        ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
+        nav: "hidden",
         table: "w-full border-collapse",
         head_row: "grid grid-cols-7",
         head_cell:
@@ -95,14 +104,17 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Chevron: (props) => {
-          if (props.orientation === "left") {
-            return <ChevronLeft className="h-4 w-4" />;
-          }
-          return <ChevronRight className="h-4 w-4" />;
-        },
+        Nav: () => null,
         CaptionLabel: () => (
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+              onClick={goToPreviousMonth}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
             <Select
               value={month.getMonth().toString()}
               onValueChange={handleMonthChange}
@@ -133,6 +145,14 @@ function Calendar({
                 ))}
               </SelectContent>
             </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+              onClick={goToNextMonth}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         ),
       }}
