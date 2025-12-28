@@ -13,6 +13,7 @@ Error fetching dashboard stats: column categories_1.type does not exist
 The Dashboard was trying to query the `categories` table (specifically the `type` column) but your Supabase database doesn't have this table set up yet.
 
 The query was:
+
 ```javascript
 .select("amount, category_id, needs_review, categories(type)")
 ```
@@ -40,9 +41,7 @@ if (categoriesError) {
     categoriesError.message?.includes("does not exist") ||
     categoriesError.code === "42P01"
   ) {
-    console.error(
-      "⚠️ DATABASE NOT SET UP: Please run supabase-schema.sql"
-    );
+    console.error("⚠️ DATABASE NOT SET UP: Please run supabase-schema.sql");
     setDbSetupRequired(true);
     // Set all stats to 0 and return gracefully
     setStats({ revenue: 0, expenses: 0, netIncome: 0, pendingReviews: 0 });
@@ -56,6 +55,7 @@ if (categoriesError) {
 When the database setup is missing, the Dashboard now shows a prominent warning banner with step-by-step instructions:
 
 ![Warning Banner]
+
 - ⚠️ Database Setup Required
 - Quick fix steps with direct link to Supabase SQL Editor
 - Reference to DATABASE_SETUP_GUIDE.md
@@ -63,6 +63,7 @@ When the database setup is missing, the Dashboard now shows a prominent warning 
 ### 3. Graceful Degradation
 
 Instead of showing a broken page with errors:
+
 - Dashboard loads successfully
 - Shows $0.00 for all stats
 - Displays helpful warning message
@@ -71,6 +72,7 @@ Instead of showing a broken page with errors:
 ### 4. Better Console Logging
 
 Console errors now show:
+
 - Clear error messages
 - Specific guidance on which migration to run
 - Distinction between missing tables and other errors
@@ -82,9 +84,11 @@ Console errors now show:
 ### 🚀 Quick Fix (5 minutes)
 
 **Step 1:** Open Supabase SQL Editor
+
 - Direct link: [https://supabase.com/dashboard/project/llxlkawdmuwsothxaada/sql](https://supabase.com/dashboard/project/llxlkawdmuwsothxaada/sql)
 
 **Step 2:** Run the Migration
+
 1. Click "New Query"
 2. Open `supabase-schema.sql` from the project
 3. Copy **all contents**
@@ -92,6 +96,7 @@ Console errors now show:
 5. Click "Run" (or `Ctrl+Enter`)
 
 **Step 3:** Refresh the Dashboard
+
 - Press `Ctrl+Shift+R` (or `Cmd+Shift+R`)
 - The warning should disappear
 - Dashboard will work normally
@@ -100,11 +105,11 @@ Console errors now show:
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
+| File                         | Change                                                      |
+| ---------------------------- | ----------------------------------------------------------- |
 | `client/pages/Dashboard.tsx` | Added error detection, visual warning, graceful degradation |
-| `DATABASE_SETUP_GUIDE.md` | Created comprehensive setup guide |
-| `DASHBOARD_ERROR_FIX.md` | This summary document |
+| `DATABASE_SETUP_GUIDE.md`    | Created comprehensive setup guide                           |
+| `DASHBOARD_ERROR_FIX.md`     | This summary document                                       |
 
 ---
 
@@ -136,6 +141,7 @@ The `supabase-schema.sql` file creates these tables:
 ### RLS Policies
 
 Row Level Security is configured so:
+
 - Authenticated users can view all data
 - Only owners can create/update categories
 - All users can review transactions
@@ -145,6 +151,7 @@ Row Level Security is configured so:
 ## Error Prevention
 
 The fix ensures:
+
 - ✅ No more cryptic PostgreSQL errors
 - ✅ Clear visual feedback when database isn't set up
 - ✅ Step-by-step guidance to resolve the issue
@@ -156,6 +163,7 @@ The fix ensures:
 ## Testing the Fix
 
 ### Before Migration
+
 1. Open `/dashboard`
 2. Check browser console → Should see:
    ```
@@ -166,6 +174,7 @@ The fix ensures:
 4. All stats show $0.00
 
 ### After Migration
+
 1. Run `supabase-schema.sql` in Supabase
 2. Refresh dashboard (`Ctrl+Shift+R`)
 3. Warning banner disappears
@@ -189,7 +198,8 @@ The fix ensures:
 
 **Root Cause:** Database tables not created in Supabase
 
-**Solution:** 
+**Solution:**
+
 1. Added error detection and graceful handling
 2. Created visual warning banner with instructions
 3. Provided comprehensive setup guide

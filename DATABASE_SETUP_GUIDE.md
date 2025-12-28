@@ -37,13 +37,14 @@ Your Supabase database is **not set up** with the required tables for the Cethos
 Run this verification query in the SQL Editor:
 
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;
 ```
 
 **You should see these tables:**
+
 - ✅ `bank_accounts`
 - ✅ `categories`
 - ✅ `companies`
@@ -156,6 +157,7 @@ Press `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac) to clear cache and reload.
 ### 2. Check the Dashboard
 
 Navigate to `/dashboard` - you should see:
+
 - Revenue: $0.00
 - Expenses: $0.00
 - Net Income: $0.00
@@ -176,23 +178,28 @@ For transactions, you can use `sample-transactions.sql` or upload your own data 
 ### Core Tables
 
 **`companies`**
+
 - Stores company/business entities
 - Used to categorize transactions by company
 
 **`categories`**
+
 - Income and expense categories
 - Has a `type` column ('income' or 'expense') ← **This is what's missing!**
 
 **`bank_accounts`**
+
 - Bank accounts and credit cards
 - Links to companies
 
 **`transactions`**
+
 - Financial transactions
 - Links to categories, companies, and bank accounts
 - Has `needs_review` flag for HITL workflow
 
 **`user_profiles`**
+
 - User information and roles
 - Auto-created when users sign up
 - Roles: 'owner' or 'accountant'

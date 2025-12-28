@@ -228,7 +228,13 @@ export default function Clients() {
     if (!csvFile || !user) return;
 
     setImporting(true);
-    setImportProgress({ current: 0, total: 0, added: 0, updated: 0, errors: 0 });
+    setImportProgress({
+      current: 0,
+      total: 0,
+      added: 0,
+      updated: 0,
+      errors: 0,
+    });
 
     try {
       const csvText = await csvFile.text();
@@ -283,9 +289,7 @@ export default function Clients() {
 
       // Mark missing as inactive if option selected
       if (importOptions.markMissing) {
-        const importedIds = parsedClients
-          .map((c) => c.xtrf_id)
-          .filter(Boolean);
+        const importedIds = parsedClients.map((c) => c.xtrf_id).filter(Boolean);
         await supabase
           .from("clients")
           .update({ is_active: false, status: "Inactive" })
@@ -489,7 +493,10 @@ export default function Clients() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => setShowImportModal(true)} variant="outline">
+              <Button
+                onClick={() => setShowImportModal(true)}
+                variant="outline"
+              >
                 <Upload className="h-4 w-4 mr-2" />
                 Import CSV
               </Button>
@@ -533,8 +540,8 @@ export default function Clients() {
           <Card className="mb-4">
             <CardContent className="py-3 flex items-center justify-between text-sm text-muted-foreground">
               <span>
-                Showing {totalCount === 0 ? 0 : startIndex} -{" "}
-                {endIndex} of {totalCount} clients
+                Showing {totalCount === 0 ? 0 : startIndex} - {endIndex} of{" "}
+                {totalCount} clients
               </span>
               {clients.some((c) => c.last_synced_at) && (
                 <span className="flex items-center gap-1">
@@ -624,13 +631,14 @@ export default function Clients() {
                               variant="secondary"
                               className="flex items-center gap-1 w-fit"
                             >
-                              <span>
-                                {statusConfig[client.status]?.emoji}
-                              </span>
+                              <span>{statusConfig[client.status]?.emoji}</span>
                               {client.status}
                             </Badge>
                           </td>
-                          <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <td
+                            className="p-4 text-right"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">
@@ -713,9 +721,7 @@ export default function Clients() {
 
                 <div
                   className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
-                  onClick={() =>
-                    document.getElementById("csv-upload")?.click()
-                  }
+                  onClick={() => document.getElementById("csv-upload")?.click()}
                 >
                   <FileTextIcon className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                   <p className="text-sm font-medium mb-1">
@@ -870,9 +876,7 @@ export default function Clients() {
                 <div className="mx-auto w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-4">
                   <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Import Complete
-                </h3>
+                <h3 className="text-lg font-semibold mb-2">Import Complete</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Successfully imported clients!
                 </p>
@@ -936,13 +940,8 @@ export default function Clients() {
                   <p className="text-sm text-muted-foreground">XTRF ID</p>
                   <p className="font-medium">{selectedClient.xtrf_id}</p>
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-1"
-                >
-                  <span>
-                    {statusConfig[selectedClient.status]?.emoji}
-                  </span>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <span>{statusConfig[selectedClient.status]?.emoji}</span>
                   {selectedClient.status}
                 </Badge>
               </div>
@@ -994,7 +993,10 @@ export default function Clients() {
                     type="email"
                     value={formData.email || ""}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, email: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
                     }
                   />
                 </div>
@@ -1005,7 +1007,10 @@ export default function Clients() {
                     id="phone"
                     value={formData.phone || ""}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
                     }
                   />
                 </div>
