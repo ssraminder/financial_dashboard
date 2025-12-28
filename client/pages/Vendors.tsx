@@ -224,9 +224,7 @@ export default function Vendors() {
     const lines = csvText.split("\n");
 
     // Find header line
-    let headerIndex = lines.findIndex((line) =>
-      line.startsWith("Legal Name;"),
-    );
+    let headerIndex = lines.findIndex((line) => line.startsWith("Legal Name;"));
     if (headerIndex === -1) {
       throw new Error("Invalid CSV format: Could not find header row");
     }
@@ -1034,12 +1032,18 @@ export default function Vendors() {
             {showEditModal && selectedVendor && (
               <div className="flex items-center justify-between pb-4 border-b">
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
                     <span>{statusConfig[selectedVendor.status]?.emoji}</span>
                     {selectedVendor.status}
                   </Badge>
                   {selectedVendor.is_preferred && (
-                    <Badge variant="secondary" className="flex items-center gap-1">
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
                       <Award className="h-3 w-3" />
                       Preferred
                     </Badge>
@@ -1135,7 +1139,10 @@ export default function Vendors() {
                     type="email"
                     value={formData.email || ""}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, email: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
                     }
                   />
                 </div>
@@ -1163,7 +1170,10 @@ export default function Vendors() {
                     id="phone"
                     value={formData.phone || ""}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
                     }
                   />
                 </div>
@@ -1321,15 +1331,14 @@ export default function Vendors() {
             </div>
 
             {/* Language Pairs (Read-only from XTRF) */}
-            {showEditModal &&
-              selectedVendor?.language_combinations && (
-                <div className="space-y-2 pt-4 border-t">
-                  <Label>Language Pairs (from XTRF)</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedVendor.language_combinations}
-                  </p>
-                </div>
-              )}
+            {showEditModal && selectedVendor?.language_combinations && (
+              <div className="space-y-2 pt-4 border-t">
+                <Label>Language Pairs (from XTRF)</Label>
+                <p className="text-sm text-muted-foreground">
+                  {selectedVendor.language_combinations}
+                </p>
+              </div>
+            )}
 
             {/* Notes */}
             <div className="space-y-2 pt-4 border-t">
@@ -1364,7 +1373,9 @@ export default function Vendors() {
             >
               Cancel
             </Button>
-            <Button onClick={showEditModal ? handleEditVendor : handleAddVendor}>
+            <Button
+              onClick={showEditModal ? handleEditVendor : handleAddVendor}
+            >
               {showEditModal ? "Save Changes" : "Add Vendor"}
             </Button>
           </DialogFooter>

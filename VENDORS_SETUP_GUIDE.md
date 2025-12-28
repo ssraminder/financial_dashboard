@@ -46,6 +46,7 @@ Before using the Vendors page, you **MUST** create the `vendors` table in Supaba
    WHERE table_schema = 'public'
    AND table_name = 'vendors';
    ```
+
    - You should see `vendors` in the results
 
 ---
@@ -65,6 +66,7 @@ Before using the Vendors page, you **MUST** create the `vendors` table in Supaba
 ### 2. Importing from XTRF
 
 **Supported Format:**
+
 - XTRF vendor export CSV files (semicolon-delimited)
 - Expected columns: `Legal Name`, `Status`, `Overall Evaluation`, `Availability`, `Language Combinations`, `Country`, `City`, `E-mail Address`, etc.
 
@@ -81,6 +83,7 @@ Before using the Vendors page, you **MUST** create the `vendors` table in Supaba
 6. Review the import summary
 
 **CSV Format Example:**
+
 ```csv
 Legal Name;Status;Overall Evaluation;Availability;Language Combinations;Address > Country;Address > City;Address > E-mail Address;...
 Abdessamad Binaoui;Active;-;Available;FR » EN-US, EN-US » FR;Morocco;AIN TAOUJDATE;neues-leben@live.de;...
@@ -90,6 +93,7 @@ Abhash Pathak;Active;5.00;Available;EN » HI, HI » EN;India;New Delhi;abhashpat
 ### 3. Manual Vendor Management
 
 **Add New Vendor:**
+
 1. Click **"+ Add Vendor"** button
 2. Fill in required fields (Legal Name is mandatory)
 3. Set contact information (email, phone)
@@ -105,17 +109,20 @@ Abhash Pathak;Active;5.00;Available;EN » HI, HI » EN;India;New Delhi;abhashpat
 7. Click **"Add Vendor"**
 
 **Edit Existing Vendor:**
+
 1. Click on any vendor row in the table
 2. Or click the ⋮ menu and select **"Edit"**
 3. Update any fields
 4. Click **"Save Changes"**
 
 **Delete Vendor:**
+
 1. Click the ⋮ menu on a vendor row
 2. Select **"Delete"**
 3. Confirm the deletion
 
 **Mark as Preferred:**
+
 1. Click the ⋮ menu on a vendor row
 2. Select **"Mark as Preferred"** or **"Remove Preferred"**
 3. Preferred vendors display an award badge (🏅)
@@ -123,6 +130,7 @@ Abhash Pathak;Active;5.00;Available;EN » HI, HI » EN;India;New Delhi;abhashpat
 ### 4. Search and Filters
 
 **Search:**
+
 - Type in the search box to filter by:
   - Legal name
   - Email address
@@ -130,12 +138,14 @@ Abhash Pathak;Active;5.00;Available;EN » HI, HI » EN;India;New Delhi;abhashpat
 - Search is debounced (waits 300ms after you stop typing)
 
 **Status Filter:**
+
 - Use the dropdown to filter by:
   - All Statuses
   - Active
   - Inactive
 
 **Country Filter:**
+
 - Use the dropdown to filter by:
   - All Countries
   - Specific country (dynamically populated from database)
@@ -152,33 +162,33 @@ Abhash Pathak;Active;5.00;Available;EN » HI, HI » EN;India;New Delhi;abhashpat
 
 ### Table: `vendors`
 
-| Column                  | Type      | Description                                       |
-| ----------------------- | --------- | ------------------------------------------------- |
-| `id`                    | UUID      | Primary key (auto-generated)                      |
-| `legal_name`            | TEXT      | Legal name (required, unique)                     |
-| `status`                | TEXT      | Active or Inactive                                |
-| `is_active`             | BOOLEAN   | Active status flag                                |
-| `country`               | TEXT      | Country                                           |
-| `city`                  | TEXT      | City                                              |
-| `email`                 | TEXT      | Primary email address                             |
-| `email_3`               | TEXT      | Additional email (from XTRF)                      |
-| `phone`                 | TEXT      | Primary phone number                              |
-| `phone_2`               | TEXT      | Additional phone                                  |
-| `phone_3`               | TEXT      | Additional phone                                  |
-| `overall_evaluation`    | DECIMAL   | Rating from XTRF (0.00 to 5.00)                   |
-| `availability`          | TEXT      | Availability status from XTRF                     |
-| `language_combinations` | TEXT      | Language pairs from XTRF                          |
-| `gst_registered`        | BOOLEAN   | GST registration status                           |
-| `gst_rate`              | DECIMAL   | GST percentage (default 5.00)                     |
-| `gst_number`            | TEXT      | GST registration number                           |
-| `category`              | TEXT      | Contractor, Agency, Freelancer, or Employee       |
-| `payment_terms`         | TEXT      | Due on Receipt, Net 15, Net 30, Net 60            |
-| `preferred_currency`    | TEXT      | CAD, USD, EUR, GBP                                |
-| `is_preferred`          | BOOLEAN   | Preferred vendor flag                             |
-| `notes`                 | TEXT      | Free-form notes                                   |
-| `last_synced_at`        | TIMESTAMP | Last XTRF sync timestamp                          |
-| `created_at`            | TIMESTAMP | Record creation timestamp                         |
-| `updated_at`            | TIMESTAMP | Last update timestamp (auto-updated)              |
+| Column                  | Type      | Description                                 |
+| ----------------------- | --------- | ------------------------------------------- |
+| `id`                    | UUID      | Primary key (auto-generated)                |
+| `legal_name`            | TEXT      | Legal name (required, unique)               |
+| `status`                | TEXT      | Active or Inactive                          |
+| `is_active`             | BOOLEAN   | Active status flag                          |
+| `country`               | TEXT      | Country                                     |
+| `city`                  | TEXT      | City                                        |
+| `email`                 | TEXT      | Primary email address                       |
+| `email_3`               | TEXT      | Additional email (from XTRF)                |
+| `phone`                 | TEXT      | Primary phone number                        |
+| `phone_2`               | TEXT      | Additional phone                            |
+| `phone_3`               | TEXT      | Additional phone                            |
+| `overall_evaluation`    | DECIMAL   | Rating from XTRF (0.00 to 5.00)             |
+| `availability`          | TEXT      | Availability status from XTRF               |
+| `language_combinations` | TEXT      | Language pairs from XTRF                    |
+| `gst_registered`        | BOOLEAN   | GST registration status                     |
+| `gst_rate`              | DECIMAL   | GST percentage (default 5.00)               |
+| `gst_number`            | TEXT      | GST registration number                     |
+| `category`              | TEXT      | Contractor, Agency, Freelancer, or Employee |
+| `payment_terms`         | TEXT      | Due on Receipt, Net 15, Net 30, Net 60      |
+| `preferred_currency`    | TEXT      | CAD, USD, EUR, GBP                          |
+| `is_preferred`          | BOOLEAN   | Preferred vendor flag                       |
+| `notes`                 | TEXT      | Free-form notes                             |
+| `last_synced_at`        | TIMESTAMP | Last XTRF sync timestamp                    |
+| `created_at`            | TIMESTAMP | Record creation timestamp                   |
+| `updated_at`            | TIMESTAMP | Last update timestamp (auto-updated)        |
 
 ---
 
@@ -213,7 +223,6 @@ The `vendors` table has RLS enabled with policies that:
    - Ensure the CSV is from XTRF
    - Check that headers include: `Legal Name`, `Status`, etc.
    - File must be semicolon-delimited (`;`)
-   
 2. **Special Characters**
    - CSV should use semicolon (`;`) as delimiter
    - Ensure UTF-8 encoding
@@ -230,7 +239,6 @@ The `vendors` table has RLS enabled with policies that:
 
 1. **No vendors imported yet**
    - Import from XTRF or add manually
-   
 2. **Status or Country filter active**
    - Reset filters to "All Statuses" and "All Countries"
 
@@ -242,7 +250,7 @@ To test the feature, you can insert sample vendors by uncommenting the section a
 
 ```sql
 INSERT INTO vendors (legal_name, status, country, city, email, overall_evaluation, gst_registered, gst_rate)
-VALUES 
+VALUES
   ('Abdessamad Binaoui', 'Active', 'Morocco', 'AIN TAOUJDATE', 'neues-leben@live.de', NULL, false, 5.00),
   ('Abdi Hurre', 'Active', 'Canada', 'Toronto', 'ahurre@hotmail.com', NULL, false, 5.00),
   ('Abhash Pathak', 'Active', 'India', 'New Delhi', 'abhashpathak@gmail.com', 5.00, false, 5.00);
@@ -297,13 +305,13 @@ After setting up the Vendors page:
 
 ## File Summary
 
-| File                         | Purpose                                   |
-| ---------------------------- | ----------------------------------------- |
-| `client/pages/Vendors.tsx`   | Main Vendors page component               |
-| `client/types/index.ts`      | Vendor TypeScript interface               |
-| `supabase-vendors-schema.sql`| Database migration script                 |
-| `client/components/Sidebar.tsx`| Updated navigation (includes Vendors)   |
-| `client/App.tsx`             | Updated router (includes /vendors route)  |
+| File                            | Purpose                                  |
+| ------------------------------- | ---------------------------------------- |
+| `client/pages/Vendors.tsx`      | Main Vendors page component              |
+| `client/types/index.ts`         | Vendor TypeScript interface              |
+| `supabase-vendors-schema.sql`   | Database migration script                |
+| `client/components/Sidebar.tsx` | Updated navigation (includes Vendors)    |
+| `client/App.tsx`                | Updated router (includes /vendors route) |
 
 ---
 
