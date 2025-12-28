@@ -10,9 +10,10 @@ TypeError: Failed to fetch
 ```
 
 These errors occur because:
+
 - ✅ The `bank_accounts` table exists (from the original schema)
 - ❌ The `account_types` table does NOT exist
-- ❌ The `institutions` table does NOT exist  
+- ❌ The `institutions` table does NOT exist
 - ❌ The `companies` table MIGHT not exist
 
 ## ✅ Fixes Applied (Error Logging)
@@ -60,7 +61,7 @@ CREATE TABLE IF NOT EXISTS institutions (
 );
 
 -- Add new columns to bank_accounts if not exists
-ALTER TABLE bank_accounts 
+ALTER TABLE bank_accounts
 ADD COLUMN IF NOT EXISTS account_type TEXT,
 ADD COLUMN IF NOT EXISTS is_personal BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS last4_physical TEXT,
@@ -95,22 +96,22 @@ INSERT INTO institutions (name, supported_account_types, sort_order) VALUES
   ('Tangerine', ARRAY['chequing', 'savings', 'credit_card'], 8),
   ('Simplii Financial', ARRAY['chequing', 'savings'], 9),
   ('EQ Bank', ARRAY['savings'], 10),
-  
+
   -- Credit Cards
   ('American Express', ARRAY['credit_card'], 11),
   ('Visa', ARRAY['credit_card'], 12),
   ('Mastercard', ARRAY['credit_card'], 13),
-  
+
   -- Payment Processors
   ('PayPal', ARRAY['payment_processor'], 14),
   ('Stripe', ARRAY['payment_processor'], 15),
   ('Square', ARRAY['payment_processor'], 16),
-  
+
   -- Forex / Multi-currency
   ('Wise (TransferWise)', ARRAY['forex'], 17),
   ('Airwallex', ARRAY['forex'], 18),
   ('Revolut', ARRAY['forex'], 19),
-  
+
   -- Cash Cards
   ('Koho', ARRAY['cash_card'], 20),
   ('STACK', ARRAY['cash_card'], 21)
@@ -118,7 +119,7 @@ ON CONFLICT DO NOTHING;
 
 -- Create view for accounts with type display
 CREATE OR REPLACE VIEW bank_accounts_view AS
-SELECT 
+SELECT
   ba.*,
   at.name as account_type_display,
   c.name as company_name
@@ -166,9 +167,9 @@ COMMENT ON COLUMN bank_accounts.notes IS 'Additional notes about the account';
 Run this query to check:
 
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
   AND table_name IN ('account_types', 'institutions', 'bank_accounts');
 ```
 
@@ -187,6 +188,7 @@ SELECT * FROM institutions ORDER BY sort_order;
 ### Step 5: Refresh Your Browser
 
 After running the migration:
+
 1. Refresh your browser (F5)
 2. The errors should be gone
 3. The Accounts page should load successfully
@@ -194,12 +196,14 @@ After running the migration:
 ## 🎯 What You'll See After Fixing
 
 ### ✅ Before (Errors):
+
 ```
 Error fetching account types: [object Object]
 TypeError: Failed to fetch
 ```
 
 ### ✅ After (Success):
+
 ```
 Account types fetched: [
   { code: 'chequing', name: 'Chequing Account', ... },
@@ -209,6 +213,7 @@ Account types fetched: [
 ```
 
 The Accounts page will load with:
+
 - Empty state message if no accounts exist
 - "Add Account" button that opens a working modal
 - All dropdowns populated with data
@@ -218,14 +223,19 @@ The Accounts page will load with:
 ### 1. Better Error Logging (`client/pages/Accounts.tsx`)
 
 **Before:**
+
 ```javascript
 console.error("Error fetching account types:", typesRes.error);
 // Output: Error fetching account types: [object Object]
 ```
 
 **After:**
+
 ```javascript
-console.error("Error fetching account types:", typesRes.error.message || typesRes.error);
+console.error(
+  "Error fetching account types:",
+  typesRes.error.message || typesRes.error,
+);
 console.error("Full error:", JSON.stringify(typesRes.error, null, 2));
 // Output: Error fetching account types: relation "public.account_types" does not exist
 ```
@@ -233,14 +243,16 @@ console.error("Full error:", JSON.stringify(typesRes.error, null, 2));
 ### 2. Helpful UI Message
 
 The app now shows:
+
 ```
-Database tables are missing. Please run the database migrations in Supabase. 
+Database tables are missing. Please run the database migrations in Supabase.
 See ACCOUNTS_PAGE_SETUP.md for instructions.
 ```
 
 ### 3. Fixed HMR Warning (`client/App.tsx`)
 
 Used Vite's HMR API to prevent double root creation:
+
 ```typescript
 if (import.meta.hot) {
   if (!import.meta.hot.data.root) {
@@ -255,6 +267,7 @@ if (import.meta.hot) {
 ### Still seeing errors after running migration?
 
 **Check 1: Verify tables exist**
+
 ```sql
 \dt account_types
 \dt institutions
@@ -264,6 +277,7 @@ if (import.meta.hot) {
 Look in the Supabase SQL Editor output for any red error messages.
 
 **Check 3: Check RLS policies**
+
 ```sql
 SELECT * FROM pg_policies WHERE tablename IN ('account_types', 'institutions');
 ```
@@ -275,12 +289,12 @@ Press `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac) to clear cache.
 
 ## 📝 Summary of Changes
 
-| File | Change | Purpose |
-|------|--------|---------|
-| `client/pages/Accounts.tsx` | Improved error logging | Show actual error messages |
-| `client/pages/Accounts.tsx` | Added missing table detection | Guide user to run migrations |
-| `client/hooks/useAuth.ts` | Fixed profile error logging | Show error message instead of object |
-| `client/App.tsx` | Fixed HMR handling | Prevent createRoot warnings |
+| File                        | Change                        | Purpose                              |
+| --------------------------- | ----------------------------- | ------------------------------------ |
+| `client/pages/Accounts.tsx` | Improved error logging        | Show actual error messages           |
+| `client/pages/Accounts.tsx` | Added missing table detection | Guide user to run migrations         |
+| `client/hooks/useAuth.ts`   | Fixed profile error logging   | Show error message instead of object |
+| `client/App.tsx`            | Fixed HMR handling            | Prevent createRoot warnings          |
 
 ## ✅ Next Steps
 
@@ -290,6 +304,7 @@ Press `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac) to clear cache.
 4. **Add your first account** - the form should work perfectly
 
 Once the migration is complete, all features will work:
+
 - ✅ Account type dropdown (7 options)
 - ✅ Institution dropdown (21 institutions, filtered by type)
 - ✅ Add/Edit/Delete accounts

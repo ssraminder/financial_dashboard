@@ -82,6 +82,7 @@ Supabase response - error: null
 ### On Success:
 
 The modal should:
+
 1. Show a green success message: "Account updated successfully"
 2. Close after 1.5 seconds
 3. Refresh the accounts list
@@ -139,6 +140,7 @@ TypeError: Failed to fetch
 ### Issue 1: Account ID is undefined
 
 **Console shows:**
+
 ```
 Account ID: undefined
 ERROR: No account ID set!
@@ -147,11 +149,13 @@ ERROR: No account ID set!
 **Cause**: The `editingAccount` state isn't being set or the account object doesn't have an `id` field.
 
 **Debug**:
+
 1. Check the "Full account object" log when opening the modal
 2. Verify the account has an `id` field
 3. Check if the accounts are loading correctly from Supabase
 
 **Fix**: Ensure accounts are being fetched with all fields:
+
 ```typescript
 const { data } = await supabase
   .from("bank_accounts")
@@ -162,6 +166,7 @@ const { data } = await supabase
 ### Issue 2: RLS Policy Error
 
 **Console shows:**
+
 ```
 Update failed: new row violates row-level security policy
 ```
@@ -169,6 +174,7 @@ Update failed: new row violates row-level security policy
 **Cause**: User doesn't have permission to update the `bank_accounts` table.
 
 **Fix**: Run this SQL in Supabase:
+
 ```sql
 DROP POLICY IF EXISTS "Owners can manage bank accounts" ON bank_accounts;
 
@@ -182,6 +188,7 @@ CREATE POLICY "Authenticated users can manage bank accounts"
 ### Issue 3: Form Data Not Updating
 
 **Console shows:**
+
 ```
 Prepared account data: {
   name: "",  ← Empty!
@@ -192,6 +199,7 @@ Prepared account data: {
 **Cause**: Form data isn't being populated when opening the edit modal.
 
 **Debug**:
+
 1. Check the "Setting form data" log
 2. Verify all fields are being set
 
@@ -206,6 +214,7 @@ Prepared account data: {
 **Debug**: Check if you see "=== UPDATE SUCCESSFUL ===" in the console.
 
 **Fix**: Verify the success timeout is running:
+
 ```typescript
 setTimeout(() => {
   setShowAddModal(false);
@@ -220,6 +229,7 @@ setTimeout(() => {
 ### 1. `openEditModal` Function
 
 Added logging for:
+
 - Full account object
 - Individual account fields
 - Account ID validation
@@ -229,6 +239,7 @@ Added logging for:
 ### 2. `handleSubmit` Function
 
 Added logging for:
+
 - Edit mode detection
 - Editing account object
 - Account ID
@@ -243,6 +254,7 @@ Added logging for:
 ### 3. Error Display in UI
 
 Added to the modal:
+
 - Red error alert (shows Supabase error messages)
 - Green success alert (shows "Account updated successfully")
 
@@ -303,16 +315,16 @@ After testing, please provide:
 
 ## 📝 Files Modified
 
-| File | What Changed |
-|------|-------------|
+| File                        | What Changed                                   |
+| --------------------------- | ---------------------------------------------- |
 | `client/pages/Accounts.tsx` | Added comprehensive logging to `openEditModal` |
-| `client/pages/Accounts.tsx` | Added comprehensive logging to `handleSubmit` |
-| `client/pages/Accounts.tsx` | Added error/success alerts inside modal |
+| `client/pages/Accounts.tsx` | Added comprehensive logging to `handleSubmit`  |
+| `client/pages/Accounts.tsx` | Added error/success alerts inside modal        |
 
 ## ✅ Next Steps
 
 1. **Test the edit functionality** with DevTools open
-2. **Copy the console output** 
+2. **Copy the console output**
 3. **Share the output** so we can identify the exact issue
 4. **Check for specific error patterns** listed above
 

@@ -47,7 +47,9 @@ export function useAuth() {
       setProfile(data);
     } catch (error: any) {
       console.error("Error fetching profile:", error?.message || error);
-      console.error("This is normal if the user_profiles table doesn't exist yet");
+      console.error(
+        "This is normal if the user_profiles table doesn't exist yet",
+      );
     } finally {
       setLoading(false);
     }
