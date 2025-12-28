@@ -34,10 +34,15 @@ export interface Database {
           id: string;
           name: string;
           account_number: string;
-          company_id: string;
+          company_id: string | null;
           bank_name: string;
           currency: string;
+          account_type: string | null;
+          is_personal: boolean;
           is_active: boolean;
+          last4_physical: string | null;
+          last4_wallet: string | null;
+          notes: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -45,10 +50,15 @@ export interface Database {
           id?: string;
           name: string;
           account_number: string;
-          company_id: string;
+          company_id?: string | null;
           bank_name?: string;
           currency?: string;
+          account_type?: string | null;
+          is_personal?: boolean;
           is_active?: boolean;
+          last4_physical?: string | null;
+          last4_wallet?: string | null;
+          notes?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -56,10 +66,70 @@ export interface Database {
           id?: string;
           name?: string;
           account_number?: string;
-          company_id?: string;
+          company_id?: string | null;
           bank_name?: string;
           currency?: string;
+          account_type?: string | null;
+          is_personal?: boolean;
           is_active?: boolean;
+          last4_physical?: string | null;
+          last4_wallet?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      account_types: {
+        Row: {
+          id: string;
+          name: string;
+          display_name: string;
+          sort_order: number;
+          badge_color: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          display_name: string;
+          sort_order: number;
+          badge_color?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          display_name?: string;
+          sort_order?: number;
+          badge_color?: string;
+          created_at?: string;
+        };
+      };
+      institutions: {
+        Row: {
+          id: string;
+          name: string;
+          supported_account_types: string[];
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          supported_account_types?: string[];
+          is_active?: boolean;
+          sort_order: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          supported_account_types?: string[];
+          is_active?: boolean;
+          sort_order?: number;
           created_at?: string;
           updated_at?: string;
         };
