@@ -14,8 +14,8 @@ export function SupabaseSetup() {
             <CardTitle className="text-2xl">Supabase Setup Required</CardTitle>
           </div>
           <p className="text-muted-foreground">
-            The Cethos Financial Dashboard requires Supabase for authentication and
-            database functionality.
+            The Cethos Financial Dashboard requires Supabase for authentication
+            and database functionality.
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -28,8 +28,8 @@ export function SupabaseSetup() {
               <li className="flex gap-3">
                 <span className="font-bold min-w-[24px]">1.</span>
                 <div>
-                  <strong>Connect to Supabase:</strong> Click the button below to
-                  connect Supabase MCP integration.
+                  <strong>Connect to Supabase:</strong> Click the button below
+                  to connect Supabase MCP integration.
                   <div className="mt-2">
                     <Button asChild variant="outline" size="sm">
                       <a href="#open-mcp-popover">Connect to Supabase</a>
@@ -67,8 +67,8 @@ export function SupabaseSetup() {
               <li className="flex gap-3">
                 <span className="font-bold min-w-[24px]">4.</span>
                 <div>
-                  <strong>Create Your First User:</strong> In Supabase Dashboard →
-                  Authentication → Users, create a user with email/password.
+                  <strong>Create Your First User:</strong> In Supabase Dashboard
+                  → Authentication → Users, create a user with email/password.
                 </div>
               </li>
               <li className="flex gap-3">
@@ -91,8 +91,8 @@ export function SupabaseSetup() {
               <code className="bg-white px-1 py-0.5 rounded border border-gray-200">
                 AGENTS.md
               </code>{" "}
-              file for detailed setup instructions and more information about the
-              database schema.
+              file for detailed setup instructions and more information about
+              the database schema.
             </p>
           </div>
         </CardContent>
