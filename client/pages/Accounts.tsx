@@ -195,7 +195,10 @@ export default function Accounts() {
         ]);
 
       if (accountsRes.data) setAccounts(accountsRes.data);
-      if (typesRes.data) setAccountTypes(typesRes.data);
+      if (typesRes.data) {
+        console.log("Account types fetched:", typesRes.data);
+        setAccountTypes(typesRes.data);
+      }
       if (institutionsRes.data) setInstitutions(institutionsRes.data);
       if (companiesRes.data) setCompanies(companiesRes.data);
     } catch (err) {
