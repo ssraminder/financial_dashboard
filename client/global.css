@@ -112,24 +112,31 @@
   }
 
   /* Calendar fixes for react-day-picker v9 */
-  .rdp-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-  }
+.rdp-weekdays {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  width: 252px !important;
+}
 
-  .rdp-weekday {
-    width: 36px;
-    text-align: center;
-    font-size: 0.8rem;
-    color: #64748b;
-  }
+.rdp-weekday {
+  width: 36px !important;
+  text-align: center !important;
+  font-size: 0.8rem;
+  color: #64748b;
+}
 
-  .rdp-week {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-  }
+.rdp-week {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  width: 252px !important;
+}
 
-  .rdp-month_grid {
-    width: 100%;
-  }
+.rdp-month_grid {
+  width: 252px !important;
+}
+
+.rdp-day_button {
+  width: 36px !important;
+  height: 36px !important;
+}
 }
