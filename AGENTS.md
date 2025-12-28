@@ -1,4 +1,45 @@
-# Fusion Starter
+# Cethos Financial Dashboard
+
+A professional financial dashboard application for Cethos, a Canadian translation company. Built with React, Vite, Tailwind CSS, and Supabase for authentication and database management.
+
+## Quick Start - Supabase Setup
+
+This application requires Supabase for authentication and database. Follow these steps:
+
+1. **Connect to Supabase**: Click [Connect to Supabase](#open-mcp-popover) to integrate Supabase with this project.
+
+2. **Set Environment Variables**: After connecting, you'll need to add your Supabase credentials:
+   - `VITE_SUPABASE_URL` - Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous/public key
+
+3. **Run Database Schema**: Execute the SQL in `supabase-schema.sql` in your Supabase SQL Editor to create all required tables, policies, and sample data.
+
+4. **Create Your First User**: In Supabase Dashboard > Authentication > Users, create a user with email/password. The user profile will be created automatically.
+
+5. **Set User Role**: Update the user's role to 'owner' in the `user_profiles` table for full access.
+
+## Application Overview
+
+### Pages
+- **Login** (`/login`) - Email/password authentication via Supabase
+- **Dashboard** (`/dashboard`) - Financial overview with Revenue, Expenses, Net Income, and Pending Reviews
+- **HITL Review Queue** (`/review-queue`) - Transaction review interface (placeholder)
+- **Upload** (`/upload`) - PDF upload for bank statements (placeholder)
+
+### User Roles
+- **Owner** - Full access to all features
+- **Accountant** - Limited access (can review transactions)
+
+### Database Tables
+- `companies` - Company records
+- `bank_accounts` - Bank account information linked to companies
+- `categories` - Income and expense categories
+- `transactions` - Financial transactions with review status
+- `user_profiles` - User information and roles
+
+---
+
+# Fusion Starter (Original Documentation)
 
 A production-ready full-stack React application template with integrated Express server, featuring React Router 6 SPA mode, TypeScript, Vitest, Zod and modern tooling.
 
