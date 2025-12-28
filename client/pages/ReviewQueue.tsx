@@ -175,7 +175,7 @@ export default function ReviewQueue() {
     try {
       const { error } = await supabase
         .from("transactions")
-        .update({ category_id: categoryId })
+        .update({ category_id: categoryId } as any)
         .eq("id", transactionId);
 
       if (error) throw error;
@@ -215,7 +215,7 @@ export default function ReviewQueue() {
     try {
       const { error } = await supabase
         .from("transactions")
-        .update({ company_id: companyId })
+        .update({ company_id: companyId } as any)
         .eq("id", transactionId);
 
       if (error) throw error;
@@ -257,7 +257,7 @@ export default function ReviewQueue() {
           needs_review: false,
           reviewed_by: user?.id,
           reviewed_at: new Date().toISOString(),
-        })
+        } as any)
         .eq("id", transactionId);
 
       if (error) throw error;
@@ -299,7 +299,7 @@ export default function ReviewQueue() {
           needs_review: false,
           reviewed_by: user?.id,
           reviewed_at: new Date().toISOString(),
-        })
+        } as any)
         .in("id", idsArray);
 
       if (error) throw error;
