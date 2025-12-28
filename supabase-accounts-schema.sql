@@ -1,10 +1,8 @@
 -- Account Types table
 CREATE TABLE IF NOT EXISTS account_types (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name TEXT NOT NULL UNIQUE,
-  display_name TEXT NOT NULL,
+  code TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
   sort_order INTEGER NOT NULL,
-  badge_color TEXT NOT NULL DEFAULT 'blue',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -32,15 +30,15 @@ CREATE INDEX IF NOT EXISTS idx_bank_accounts_account_type ON bank_accounts(accou
 CREATE INDEX IF NOT EXISTS idx_bank_accounts_is_personal ON bank_accounts(is_personal);
 
 -- Insert account types
-INSERT INTO account_types (name, display_name, sort_order, badge_color) VALUES
-  ('chequing', 'Chequing', 1, 'blue'),
-  ('savings', 'Savings', 2, 'green'),
-  ('credit_card', 'Credit Card', 3, 'purple'),
-  ('cash_card', 'Cash Card', 4, 'orange'),
-  ('payment_processor', 'Payment Processor', 5, 'indigo'),
-  ('forex', 'Forex', 6, 'teal'),
-  ('line_of_credit', 'Line of Credit', 7, 'red')
-ON CONFLICT (name) DO NOTHING;
+INSERT INTO account_types (code, name, sort_order) VALUES
+  ('chequing', 'Chequing Account', 1),
+  ('savings', 'Savings Account', 2),
+  ('credit_card', 'Credit Card', 3),
+  ('cash_card', 'Cash Card / Prepaid', 4),
+  ('payment_processor', 'Payment Processor', 5),
+  ('forex', 'Foreign Exchange / Multi-currency', 6),
+  ('line_of_credit', 'Line of Credit', 7)
+ON CONFLICT (code) DO NOTHING;
 
 -- Insert institutions
 INSERT INTO institutions (name, supported_account_types, sort_order) VALUES
