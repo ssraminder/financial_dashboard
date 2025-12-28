@@ -351,9 +351,35 @@ export default function Accounts() {
   };
 
   const handleSubmit = async () => {
+    console.log("=== SAVE STARTED ===");
+    console.log("Edit mode:", !!editingAccount);
+    console.log("Editing account:", editingAccount);
+    console.log("Account ID:", editingAccount?.id);
+    console.log("Form data:", {
+      accountName: formData.accountName,
+      institution: formData.institution,
+      currency: formData.currency,
+      accountType: formData.accountType,
+      isPersonal: formData.isPersonal,
+      last4Physical: formData.last4Physical,
+      last4Wallet: formData.last4Wallet,
+      last4PhysicalNA: formData.last4PhysicalNA,
+      last4WalletNA: formData.last4WalletNA,
+      sameAsPhysical: formData.sameAsPhysical,
+      companyId: formData.companyId,
+      notes: formData.notes,
+    });
+
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
+      console.error("Validation errors:", errors);
       setFormErrors(errors);
+      return;
+    }
+
+    if (editingAccount && !editingAccount.id) {
+      console.error("ERROR: No account ID set!");
+      setError("No account selected for editing");
       return;
     }
 
@@ -383,14 +409,13 @@ export default function Accounts() {
       account_number: "", // Legacy field
     };
 
+    console.log("Prepared account data:", accountData);
+
     try {
       if (editingAccount) {
-        if (!editingAccount.id) {
-          throw new Error("Account ID is missing - cannot update");
-        }
-
-        console.log("Updating account ID:", editingAccount.id);
-        console.log("Update data:", accountData);
+        console.log("=== UPDATING EXISTING ACCOUNT ===");
+        console.log("Account ID to update:", editingAccount.id);
+        console.log("Sending to Supabase:", accountData);
 
         const { data, error } = await supabase
           .from("bank_accounts")
@@ -398,25 +423,34 @@ export default function Accounts() {
           .eq("id", editingAccount.id)
           .select();
 
+        console.log("Supabase response - data:", data);
+        console.log("Supabase response - error:", error);
+
         if (error) {
-          console.error("Update error:", error);
+          console.error("Update failed:", error.message);
+          console.error("Full error object:", error);
           throw error;
         }
-        console.log("Update successful:", data);
+        console.log("=== UPDATE SUCCESSFUL ===");
         setSuccess("Account updated successfully");
       } else {
-        console.log("Inserting new account:", accountData);
+        console.log("=== INSERTING NEW ACCOUNT ===");
+        console.log("Sending to Supabase:", accountData);
 
         const { data, error } = await supabase
           .from("bank_accounts")
           .insert(accountData)
           .select();
 
+        console.log("Supabase response - data:", data);
+        console.log("Supabase response - error:", error);
+
         if (error) {
-          console.error("Insert error:", error);
+          console.error("Insert failed:", error.message);
+          console.error("Full error object:", error);
           throw error;
         }
-        console.log("Insert successful:", data);
+        console.log("=== INSERT SUCCESSFUL ===");
         setSuccess("Account added successfully");
       }
 
