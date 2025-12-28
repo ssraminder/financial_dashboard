@@ -365,6 +365,10 @@ export default function Accounts() {
 
     try {
       if (editingAccount) {
+        if (!editingAccount.id) {
+          throw new Error("Account ID is missing - cannot update");
+        }
+
         console.log("Updating account ID:", editingAccount.id);
         console.log("Update data:", accountData);
 
