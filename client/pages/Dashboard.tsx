@@ -23,6 +23,7 @@ export default function Dashboard() {
     pendingReviews: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [dbSetupRequired, setDbSetupRequired] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -60,6 +61,7 @@ export default function Dashboard() {
           console.error(
             "⚠️ DATABASE NOT SET UP: Please run supabase-schema.sql in your Supabase SQL Editor"
           );
+          setDbSetupRequired(true);
           // Set all stats to 0 and return
           setStats({
             revenue: 0,
@@ -163,6 +165,39 @@ export default function Dashboard() {
               Overview of your financial metrics
             </p>
           </div>
+
+          {/* Database Setup Warning */}
+          {dbSetupRequired && (
+            <Card className="mb-6 border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
+                      Database Setup Required
+                    </h3>
+                    <p className="text-sm text-amber-800 dark:text-amber-200 mb-3">
+                      Your Supabase database needs to be set up with the required tables.
+                      This is a one-time setup that takes about 5 minutes.
+                    </p>
+                    <div className="bg-amber-100 dark:bg-amber-900/30 rounded p-3 text-sm space-y-2">
+                      <p className="font-medium text-amber-900 dark:text-amber-100">Quick Fix:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-amber-800 dark:text-amber-200 ml-2">
+                        <li>Open <a href="https://supabase.com/dashboard/project/llxlkawdmuwsothxaada/sql" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900 dark:hover:text-amber-100">Supabase SQL Editor</a></li>
+                        <li>Click "New Query"</li>
+                        <li>Copy the contents of <code className="bg-amber-200 dark:bg-amber-800 px-1 rounded">supabase-schema.sql</code></li>
+                        <li>Paste and click "Run"</li>
+                        <li>Refresh this page</li>
+                      </ol>
+                    </div>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-3">
+                      See <code className="bg-amber-200 dark:bg-amber-800 px-1 rounded">DATABASE_SETUP_GUIDE.md</code> for detailed instructions.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
