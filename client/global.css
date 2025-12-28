@@ -111,32 +111,39 @@
     white-space: pre;
   }
 
-  /* Calendar fixes for react-day-picker v9 */
+ /* Calendar fixes for react-day-picker v9 */
+.rdp-month_grid {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
 .rdp-weekdays {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-  width: 252px !important;
+  display: table-row !important;
 }
 
 .rdp-weekday {
   width: 36px !important;
+  height: 36px !important;
   text-align: center !important;
   font-size: 0.8rem;
   color: #64748b;
+  padding: 0 !important;
 }
 
 .rdp-week {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-  width: 252px !important;
+  display: table-row !important;
 }
 
-.rdp-month_grid {
-  width: 252px !important;
+.rdp-week td {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  text-align: center !important;
 }
 
 .rdp-day_button {
   width: 36px !important;
   height: 36px !important;
+  padding: 0 !important;
 }
 }
