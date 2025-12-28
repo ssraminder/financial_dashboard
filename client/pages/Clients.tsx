@@ -63,7 +63,6 @@ const statusConfig = {
 };
 
 export default function Clients() {
-  const { user } = useAuth();
   const { toast } = useToast();
 
   // State
@@ -121,14 +120,11 @@ export default function Clients() {
     search = "",
     statusFilterValue = "all",
   ) => {
-    if (!user) return;
-
     setLoading(true);
     try {
       let query = supabase
         .from("clients")
         .select("*", { count: "exact" })
-        .eq("user_id", user.id)
         .order("name", { ascending: true })
         .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
@@ -173,7 +169,7 @@ export default function Clients() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, statusFilter, user]);
+  }, [searchTerm, statusFilter]);
 
   // Initial load and page changes
   useEffect(() => {
@@ -225,7 +221,7 @@ export default function Clients() {
 
   // Handle CSV import
   const handleImport = async () => {
-    if (!csvFile || !user) return;
+    if (!csvFile) return;
 
     setImporting(true);
     setImportProgress({
@@ -254,7 +250,6 @@ export default function Clients() {
           .from("clients")
           .upsert(
             batch.map((c) => ({
-              user_id: user.id,
               xtrf_id: c.xtrf_id,
               name: c.name,
               status: c.status,
@@ -293,7 +288,6 @@ export default function Clients() {
         await supabase
           .from("clients")
           .update({ is_active: false, status: "Inactive" })
-          .eq("user_id", user.id)
           .not("xtrf_id", "in", `(${importedIds.join(",")})`);
       }
 
