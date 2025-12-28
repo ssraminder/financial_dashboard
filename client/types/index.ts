@@ -52,3 +52,26 @@ export interface DashboardStats {
   netIncome: number;
   pendingReviews: number;
 }
+
+export interface Client {
+  id: string;
+  user_id: string;
+  xtrf_id: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  country: string | null;
+  province: string | null;
+  status: "Active" | "Potential" | "Inactive";
+  is_active: boolean;
+  gst_rate: number;
+  gst_exempt: boolean;
+  preferred_currency: string;
+  payment_terms: string;
+  client_type: "Individual" | "Business" | "Organization";
+  is_recurring: boolean;
+  notes: string | null;
+  last_synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
