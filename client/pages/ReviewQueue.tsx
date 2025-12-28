@@ -187,8 +187,7 @@ export default function ReviewQueue() {
             ? {
                 ...t,
                 category_id: categoryId,
-                categories:
-                  categories.find((c) => c.id === categoryId) || null,
+                categories: categories.find((c) => c.id === categoryId) || null,
               }
             : t,
         ),
@@ -305,9 +304,7 @@ export default function ReviewQueue() {
       if (error) throw error;
 
       // Remove from local state
-      setTransactions((prev) =>
-        prev.filter((t) => !selectedIds.has(t.id)),
-      );
+      setTransactions((prev) => prev.filter((t) => !selectedIds.has(t.id)));
       setSelectedIds(new Set());
 
       toast({
@@ -469,7 +466,10 @@ export default function ReviewQueue() {
                 {/* Category Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
@@ -656,9 +656,7 @@ export default function ReviewQueue() {
                                 <SelectValue placeholder="Select company" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="none">
-                                  No Company
-                                </SelectItem>
+                                <SelectItem value="none">No Company</SelectItem>
                                 {companies.map((company) => (
                                   <SelectItem
                                     key={company.id}
