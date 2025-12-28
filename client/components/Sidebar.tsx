@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   Upload,
+  Building2,
   LogOut,
   FileText,
 } from "lucide-react";
@@ -14,6 +15,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "HITL Review Queue", href: "/review-queue", icon: ClipboardList },
   { name: "Upload", href: "/upload", icon: Upload },
+  { name: "Accounts", href: "/accounts", icon: Building2 },
 ];
 
 export function Sidebar() {
