@@ -38,6 +38,7 @@ import type {
 
 interface TransactionWithRelations extends Transaction {
   categories?: Category | null;
+  ai_suggested_category?: Category | null;
   companies?: Company | null;
   bank_accounts?: BankAccount | null;
 }
