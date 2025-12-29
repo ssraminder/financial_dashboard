@@ -520,6 +520,17 @@ export default function ReviewQueue() {
                           </div>
                         )}
 
+                        <div className="mb-2">
+                          <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                            Suggested Category:{" "}
+                          </span>
+                          <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                            {currentTransaction.categories?.name === "Needs Review"
+                              ? "Unable to determine - please categorize manually"
+                              : currentTransaction.categories?.name || "Unknown"}
+                          </span>
+                        </div>
+
                         <div>
                           <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
                             Reasoning:
