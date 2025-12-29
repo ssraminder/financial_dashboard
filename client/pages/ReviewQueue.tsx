@@ -183,7 +183,7 @@ export default function ReviewQueue() {
 
   const resetForm = () => {
     setSelectedCategoryId("");
-    setVendorType("regular");
+    setVendorType("one-time");
     setSelectedVendorId("");
     setNewVendorName("");
     setSelectedContractorType("");
