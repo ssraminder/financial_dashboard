@@ -205,8 +205,8 @@ export default function ReviewQueue() {
   };
 
   const handleAcceptSuggestion = () => {
-    if (currentTransaction?.category_id) {
-      setSelectedCategoryId(currentTransaction.category_id);
+    if (currentTransaction?.ai_suggested_category?.id) {
+      setSelectedCategoryId(currentTransaction.ai_suggested_category.id);
       setReasonForChange("");
       toast({
         title: "Success",
