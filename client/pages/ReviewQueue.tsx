@@ -535,11 +535,8 @@ export default function ReviewQueue() {
                             Suggested Category:{" "}
                           </span>
                           <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                            {currentTransaction.categories?.name ===
-                            "Needs Review"
-                              ? "Unable to determine - please categorize manually"
-                              : currentTransaction.categories?.name ||
-                                "Unknown"}
+                            {currentTransaction.ai_suggested_category?.name ||
+                              "Unable to determine"}
                           </span>
                         </div>
 
