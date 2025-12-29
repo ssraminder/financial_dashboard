@@ -107,7 +107,7 @@ export default function Dashboard() {
         }
 
         const amount = transaction.amount;
-        const categoryType = transaction.categories?.type;
+        const categoryType = transaction.categories?.category_type;
 
         if (categoryType === "income") {
           revenue += amount;
