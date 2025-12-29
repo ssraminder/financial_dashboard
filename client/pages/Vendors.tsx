@@ -1297,7 +1297,10 @@ export default function Vendors() {
                   <Select
                     value={formData.contractor_type || ""}
                     onValueChange={(value: string) =>
-                      setFormData((prev) => ({ ...prev, contractor_type: value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        contractor_type: value,
+                      }))
                     }
                   >
                     <SelectTrigger>
