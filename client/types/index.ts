@@ -27,10 +27,17 @@ export interface Transaction {
   date: string;
   description: string;
   amount: number;
+  payee_normalized: string | null;
   category_id: string | null;
   company_id: string | null;
+  vendor_id: string | null;
   bank_account_id: string;
   needs_review: boolean;
+  status: "pending" | "categorized" | "approved";
+  ai_reasoning: string | null;
+  ai_confidence_score: number | null;
+  human_notes: string | null;
+  human_decision_reason: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
   created_at: string;
