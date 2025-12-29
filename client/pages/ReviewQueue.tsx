@@ -477,7 +477,10 @@ export default function ReviewQueue() {
                     <div>
                       <div className="text-sm text-muted-foreground">
                         {format(
-                          new Date(currentTransaction.transaction_date || currentTransaction.date),
+                          new Date(
+                            currentTransaction.transaction_date ||
+                              currentTransaction.date,
+                          ),
                           "MMM d, yyyy",
                         )}
                       </div>
