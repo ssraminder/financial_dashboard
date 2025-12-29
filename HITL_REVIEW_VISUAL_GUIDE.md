@@ -144,6 +144,7 @@
 ## Confidence Badge Colors
 
 ### High Confidence (85-100%)
+
 ```
 ╔════════════════════════════════╗
 ║ 🟢 High Confidence (92%)        ║
@@ -154,6 +155,7 @@
 ```
 
 ### Medium Confidence (70-84%)
+
 ```
 ╔════════════════════════════════╗
 ║ 🟡 Medium Confidence (78%)      ║
@@ -164,6 +166,7 @@
 ```
 
 ### Low Confidence (0-69%)
+
 ```
 ╔════════════════════════════════╗
 ║ 🔴 Low Confidence (52%)         ║
@@ -176,6 +179,7 @@
 ## Form States
 
 ### Initial State (No Category Selected)
+
 ```
 Category: [Select category ▼]
 
@@ -187,6 +191,7 @@ Category: [Select category ▼]
 ```
 
 ### After Category Selected (Non-Contractor)
+
 ```
 Category: [Utilities ▼]
 
@@ -200,6 +205,7 @@ Your Notes (optional):
 ```
 
 ### After Contractor Category Selected
+
 ```
 Category: [Contractor Services ▼]
 
@@ -219,6 +225,7 @@ Your Notes (optional):
 ```
 
 ### When Category Differs from AI
+
 ```
 Category: [Selected Category ▼] (different from AI)
 
@@ -236,6 +243,7 @@ Why different from AI? (SHOWN because category changed)
 ## Color Scheme
 
 ### Light Mode
+
 ```
 AI Suggestion Section
 ├─ Background: #f0f9ff (light blue)
@@ -255,6 +263,7 @@ Badges
 ```
 
 ### Dark Mode
+
 ```
 AI Suggestion Section
 ├─ Background: #0c2340 (dark blue)
@@ -346,6 +355,7 @@ Bottom of card shows result:
 ## Error States
 
 ### Validation Error
+
 ```
 ┌─────────────────────────────┐
 │ ❌ Validation Error         │
@@ -359,6 +369,7 @@ Bottom of card shows result:
 ```
 
 ### Save Error
+
 ```
 ┌─────────────────────────────┐
 │ ❌ Error                    │
@@ -373,6 +384,7 @@ Bottom of card shows result:
 ```
 
 ### Save Success
+
 ```
 ┌─────────────────────────────┐
 │ ✅ Success                  │
@@ -389,6 +401,7 @@ Bottom of card shows result:
 ## Responsive Behavior
 
 ### Desktop (1400px+)
+
 ```
 ┌──────────────────────────────────────────┐
 │ Full layout as shown above                │
@@ -398,6 +411,7 @@ Bottom of card shows result:
 ```
 
 ### Tablet (1024px)
+
 ```
 ┌────────────────────────────┐
 │ Card layout remains        │
@@ -407,6 +421,7 @@ Bottom of card shows result:
 ```
 
 ### Mobile (< 768px)
+
 ```
 ┌──────────────────┐
 │ Single column    │

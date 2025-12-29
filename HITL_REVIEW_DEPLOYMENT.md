@@ -3,20 +3,23 @@
 ## Pre-Deployment (Do This First)
 
 ### 1. Database Migration
+
 - [ ] Ensure you have backup of production database
 - [ ] Review `supabase-migration-add-ai-fields.sql`
 - [ ] Apply migration to Supabase:
+
   ```bash
   # Option A: Using Supabase Dashboard
   # - Go to SQL Editor
   # - Copy content of supabase-migration-add-ai-fields.sql
   # - Execute the SQL
-  
+
   # Option B: Using Supabase CLI
   supabase db push
   ```
 
 ### 2. Verify Prerequisites
+
 - [ ] Vendors table exists and is properly set up
   - Check: `SELECT COUNT(*) FROM vendors;`
   - Should have at least some active vendors
@@ -26,6 +29,7 @@
   - Check: `SELECT COUNT(*) FROM bank_accounts;`
 
 ### 3. Test Data
+
 - [ ] Create test transactions with `needs_review = true`
   - Include example contractor payments
   - Include example regular expense payments
@@ -35,28 +39,32 @@
 ## Deployment Steps
 
 ### Step 1: Code Deployment
+
 - [ ] Code changes are in place (ReviewQueue.tsx, types/index.ts)
 - [ ] Build successfully: `npm run build` or `pnpm build`
 - [ ] No TypeScript errors
 - [ ] All imports resolve correctly
 
 ### Step 2: Database Setup
+
 - [ ] Migration applied successfully
 - [ ] Verify new columns exist:
+
   ```sql
   -- Check transactions table columns
-  SELECT column_name FROM information_schema.columns 
-  WHERE table_name='transactions' 
+  SELECT column_name FROM information_schema.columns
+  WHERE table_name='transactions'
   AND column_name IN ('vendor_id', 'ai_reasoning', 'status');
-  
+
   -- Check transaction_patterns table exists
   SELECT EXISTS (
-    SELECT FROM information_schema.tables 
+    SELECT FROM information_schema.tables
     WHERE table_name='transaction_patterns'
   );
   ```
 
 ### Step 3: Verification
+
 - [ ] Navigate to /review-queue in UI
 - [ ] Page loads without errors
 - [ ] First transaction displays correctly
@@ -67,6 +75,7 @@
 ## Testing Workflow
 
 ### Basic Flow Test
+
 1. [ ] Open /review-queue
 2. [ ] Verify transaction card displays:
    - Date, description, amount ✓
@@ -106,6 +115,7 @@
    - Verify next transaction loads
 
 ### Edge Cases
+
 - [ ] Skip button works (moves to next without saving)
 - [ ] Works with no transactions pending
 - [ ] Works with one transaction
@@ -117,6 +127,7 @@
 ## Post-Deployment Validation
 
 ### Check Database
+
 ```sql
 -- Verify saved transaction
 SELECT id, category_id, vendor_id, status, human_notes, ai_reasoning
@@ -135,6 +146,7 @@ SELECT COUNT(*) FROM transactions WHERE status = 'categorized';
 ```
 
 ### Check UI
+
 - [ ] No console errors
 - [ ] All buttons functional
 - [ ] Form validation works
@@ -145,11 +157,13 @@ SELECT COUNT(*) FROM transactions WHERE status = 'categorized';
 ## Rollback Plan (If Needed)
 
 ### Quick Rollback
+
 1. Revert the ReviewQueue.tsx and types/index.ts to previous versions
 2. Refresh the page
 3. Users will see the table-based view again
 
 ### Database Rollback
+
 If migration causes issues:
 
 ```sql
@@ -170,12 +184,14 @@ DROP COLUMN IF EXISTS human_decision_reason;
 ## Performance Monitoring
 
 After deployment, monitor:
+
 - [ ] Page load time (should be <2s)
 - [ ] Category/vendor dropdown responsiveness
 - [ ] Form save time (should be <1s)
 - [ ] No N+1 queries in browser dev tools
 
 ### Check Logs
+
 - [ ] No 404 errors
 - [ ] No 500 server errors
 - [ ] No auth/permission errors
@@ -184,14 +200,17 @@ After deployment, monitor:
 ## Known Issues & Workarounds
 
 ### If vendor dropdown is empty:
+
 - Check that vendors table has active vendors: `WHERE is_active = true`
 - Add test vendors if needed
 
 ### If categories don't appear:
+
 - Verify categories exist in database
 - Ensure they are ordered by name (migration includes ORDER BY)
 
 ### If transactions won't save:
+
 - Check vendor_id is nullable (migration includes this)
 - Verify category_id matches existing category
 - Check auth user is logged in
@@ -199,6 +218,7 @@ After deployment, monitor:
 ## Success Criteria
 
 ✅ All of the following should be true:
+
 - [ ] Page loads without errors
 - [ ] Can navigate through transactions
 - [ ] Can select categories
@@ -215,6 +235,7 @@ After deployment, monitor:
 ## Support/Troubleshooting
 
 If you encounter issues:
+
 1. Check browser console (F12) for errors
 2. Check Supabase logs for database errors
 3. Verify all prerequisites are met
@@ -225,11 +246,13 @@ If you encounter issues:
 ## Rollout Strategy (For Production)
 
 ### Option A: Immediate Deployment
+
 - Deploy to all users immediately
 - Monitor for issues
 - Be ready to rollback
 
 ### Option B: Phased Rollout
+
 - Deploy to internal team first
 - Test for 1-2 days
 - Deploy to power users
@@ -237,6 +260,7 @@ If you encounter issues:
 - Monitor and support as needed
 
 ### Option C: Feature Flag
+
 - Deploy code but disable with feature flag
 - Enable for subset of users
 - Monitor performance and feedback

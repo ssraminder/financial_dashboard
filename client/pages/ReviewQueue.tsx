@@ -76,9 +76,9 @@ export default function ReviewQueue() {
   const [currentTransaction, setCurrentTransaction] =
     useState<TransactionWithRelations | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [vendorType, setVendorType] = useState<
-    "regular" | "one-time" | "new"
-  >("regular");
+  const [vendorType, setVendorType] = useState<"regular" | "one-time" | "new">(
+    "regular",
+  );
   const [selectedVendorId, setSelectedVendorId] = useState<string>("");
   const [newVendorName, setNewVendorName] = useState("");
   const [selectedContractorType, setSelectedContractorType] = useState("");
@@ -221,9 +221,7 @@ export default function ReviewQueue() {
     }
   };
 
-  const selectedCategory = categories.find(
-    (c) => c.id === selectedCategoryId,
-  );
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
   const filteredVendors = vendors.filter((v) =>
     v.legal_name.toLowerCase().includes(searchVendor.toLowerCase()),
@@ -344,7 +342,8 @@ export default function ReviewQueue() {
       );
 
       // Set next transaction
-      const nextIdx = transactions.findIndex((t) => t.id === currentTransaction.id) + 1;
+      const nextIdx =
+        transactions.findIndex((t) => t.id === currentTransaction.id) + 1;
       if (nextIdx < transactions.length) {
         setCurrentTransaction(transactions[nextIdx]);
       } else if (transactions.length > 1) {
@@ -443,8 +442,10 @@ export default function ReviewQueue() {
               {/* Progress */}
               <div className="mb-6 flex items-center justify-between text-sm text-muted-foreground">
                 <span>
-                  Transaction {transactions.length - transactions.indexOf(currentTransaction)} of{" "}
-                  {transactions.length}
+                  Transaction{" "}
+                  {transactions.length -
+                    transactions.indexOf(currentTransaction)}{" "}
+                  of {transactions.length}
                 </span>
                 <div className="w-48 bg-muted rounded-full h-2">
                   <div
@@ -467,7 +468,10 @@ export default function ReviewQueue() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="text-sm text-muted-foreground">
-                        {format(new Date(currentTransaction.date), "MMM d, yyyy")}
+                        {format(
+                          new Date(currentTransaction.date),
+                          "MMM d, yyyy",
+                        )}
                       </div>
                       <h2 className="text-2xl font-bold mt-1">
                         {currentTransaction.description}
@@ -778,9 +782,7 @@ export default function ReviewQueue() {
                   </Button>
                   <Button
                     onClick={handleApprove}
-                    disabled={
-                      approvingId !== null || !selectedCategoryId
-                    }
+                    disabled={approvingId !== null || !selectedCategoryId}
                   >
                     {approvingId ? (
                       <>

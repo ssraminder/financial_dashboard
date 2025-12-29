@@ -12,20 +12,21 @@
 
 ## Files Changed
 
-| File | Change | Lines |
-|------|--------|-------|
-| `client/types/index.ts` | Add 7 fields to Transaction | +7 |
-| `client/pages/ReviewQueue.tsx` | Complete rewrite | 806 |
-| `supabase-migration-add-ai-fields.sql` | NEW: DB schema | 47 |
-| `HITL_REVIEW_UPDATE.md` | NEW: Feature guide | 176 |
-| `HITL_REVIEW_IMPLEMENTATION.md` | NEW: Technical docs | 278 |
-| `HITL_REVIEW_DEPLOYMENT.md` | NEW: Deploy guide | 258 |
-| `HITL_REVIEW_VISUAL_GUIDE.md` | NEW: UI reference | 467 |
-| `HITL_QUICK_START.md` | NEW: This file | - |
+| File                                   | Change                      | Lines |
+| -------------------------------------- | --------------------------- | ----- |
+| `client/types/index.ts`                | Add 7 fields to Transaction | +7    |
+| `client/pages/ReviewQueue.tsx`         | Complete rewrite            | 806   |
+| `supabase-migration-add-ai-fields.sql` | NEW: DB schema              | 47    |
+| `HITL_REVIEW_UPDATE.md`                | NEW: Feature guide          | 176   |
+| `HITL_REVIEW_IMPLEMENTATION.md`        | NEW: Technical docs         | 278   |
+| `HITL_REVIEW_DEPLOYMENT.md`            | NEW: Deploy guide           | 258   |
+| `HITL_REVIEW_VISUAL_GUIDE.md`          | NEW: UI reference           | 467   |
+| `HITL_QUICK_START.md`                  | NEW: This file              | -     |
 
 ## Quick Setup (3 Steps)
 
 ### 1. Apply Database Migration
+
 ```sql
 -- Copy content of supabase-migration-add-ai-fields.sql
 -- Paste into Supabase SQL Editor
@@ -36,6 +37,7 @@ supabase db push
 ```
 
 ### 2. Deploy Code
+
 ```bash
 # Code already in place:
 # - client/types/index.ts (updated)
@@ -47,6 +49,7 @@ pnpm run build
 ```
 
 ### 3. Test
+
 ```
 Navigate to: http://localhost:8080/review-queue
 (or your deployed URL)
@@ -85,16 +88,19 @@ Should see:
 ```
 
 ### Accept Suggestion Button
+
 - ✅ Auto-fills category with AI's suggestion
 - ✅ Clears "why different?" field
 - ✅ One-click workflow
 
 ### Vendor Selection Logic
+
 - **Regular Vendor**: Pick from existing active vendors
 - **One-Time Payment**: Skip vendor tracking
 - **New Vendor**: Create inline (name + type + offshore + country)
 
 ### Form Validation
+
 ```
 Required:
 ├─ Category (always)
@@ -109,6 +115,7 @@ Optional:
 ## Database Changes
 
 ### New Transaction Fields
+
 ```typescript
 payee_normalized?: string      // For pattern matching
 vendor_id?: string             // Vendor reference
@@ -120,6 +127,7 @@ human_decision_reason?: string // Why user chose differently
 ```
 
 ### New Table: transaction_patterns
+
 ```sql
 CREATE TABLE transaction_patterns (
   payee_pattern TEXT,
@@ -135,34 +143,36 @@ CREATE TABLE transaction_patterns (
 ## Key Components
 
 ### ReviewQueue.tsx State
+
 ```typescript
 // Current transaction
-const [currentTransaction]
+const [currentTransaction];
 
 // Form fields
-const [selectedCategoryId]
-const [vendorType]               // "regular"|"one-time"|"new"
-const [selectedVendorId]
-const [newVendorName]
-const [selectedContractorType]
-const [isOffshore]
-const [selectedCountry]
-const [userNotes]
-const [reasonForChange]
-const [searchVendor]
+const [selectedCategoryId];
+const [vendorType]; // "regular"|"one-time"|"new"
+const [selectedVendorId];
+const [newVendorName];
+const [selectedContractorType];
+const [isOffshore];
+const [selectedCountry];
+const [userNotes];
+const [reasonForChange];
+const [searchVendor];
 
 // Data
-const [categories]
-const [vendors]
-const [transactions]
+const [categories];
+const [vendors];
+const [transactions];
 ```
 
 ### Core Functions
+
 ```typescript
 // Fetch all required data
 const fetchData = () => {
   // Load categories, vendors, bank accounts, transactions
-}
+};
 
 // Save transaction with validation
 const handleApprove = async () => {
@@ -171,17 +181,16 @@ const handleApprove = async () => {
   // 3. Update transaction
   // 4. Save to patterns
   // 5. Load next
-}
+};
 
 // Move to next without saving
 const handleReject = () => {
   // Move to next transaction
-}
+};
 
 // Show "why different?" only when needed
-const isShowReasonField = 
-  selectedCategoryId && 
-  selectedCategoryId !== currentTransaction.category_id
+const isShowReasonField =
+  selectedCategoryId && selectedCategoryId !== currentTransaction.category_id;
 ```
 
 ## Styling Reference
@@ -208,23 +217,25 @@ bg-muted rounded-lg p-4
 ## Common Tasks
 
 ### Adding Test Data
+
 ```sql
 -- Add test vendors
 INSERT INTO vendors (legal_name, category, status, is_active)
-VALUES 
+VALUES
   ('Acme Translation', 'Language Vendor', 'Active', true),
   ('Big Blue Solutions', 'IT/Development', 'Active', true);
 
 -- Add test transaction
-INSERT INTO transactions 
+INSERT INTO transactions
   (date, description, amount, bank_account_id, needs_review,
    ai_reasoning, ai_confidence_score)
-VALUES 
+VALUES
   (NOW(), 'Translation Service', 1250.00, 'account-id', true,
    'Payment to translation service based on vendor name', 92);
 ```
 
 ### Checking Saved Data
+
 ```sql
 -- View reviewed transactions
 SELECT id, category_id, vendor_id, status, human_notes
@@ -238,6 +249,7 @@ ORDER BY created_at DESC;
 ```
 
 ### Debugging
+
 ```typescript
 // Check component state (in browser console)
 localStorage.getItem('transaction_state')
@@ -250,6 +262,7 @@ SELECT * FROM transaction_patterns LIMIT 10
 ## Troubleshooting
 
 ### Page Won't Load
+
 ```
 ❌ Check: User logged in
 ❌ Check: /review-queue route exists
@@ -258,6 +271,7 @@ SELECT * FROM transaction_patterns LIMIT 10
 ```
 
 ### No Transactions Showing
+
 ```
 ❌ Check: needs_review = true in database
 ❌ Check: Query returns results
@@ -265,6 +279,7 @@ SELECT * FROM transaction_patterns LIMIT 10
 ```
 
 ### Vendor Dropdown Empty
+
 ```
 ❌ Check: Vendors exist with is_active = true
 ❌ Check: Vendor table has data
@@ -272,6 +287,7 @@ SELECT * FROM transaction_patterns LIMIT 10
 ```
 
 ### Form Won't Submit
+
 ```
 ❌ Check: All required fields filled
 ❌ Check: No console errors
@@ -279,6 +295,7 @@ SELECT * FROM transaction_patterns LIMIT 10
 ```
 
 ### AI Suggestion Not Showing
+
 ```
 ❌ Check: ai_reasoning field populated
 ❌ Check: Value is not null
@@ -304,6 +321,7 @@ SELECT * FROM transaction_patterns LIMIT 10
 ## Testing Checklist
 
 Basic Flow:
+
 - [ ] Navigate to /review-queue
 - [ ] See transaction card
 - [ ] Read AI suggestion
@@ -312,11 +330,13 @@ Basic Flow:
 - [ ] Next transaction loads
 
 Vendor Selection:
+
 - [ ] Regular vendor: search and select
 - [ ] One-time: vendor section hidden
 - [ ] New vendor: form appears and saves
 
 Validation:
+
 - [ ] Can't save without category
 - [ ] Can't save with invalid vendor
 - [ ] Error messages appear
@@ -347,12 +367,14 @@ Start with these files in order:
 ## Need Help?
 
 ### Check Documentation
+
 - UI questions → HITL_REVIEW_VISUAL_GUIDE.md
 - How to use → HITL_REVIEW_UPDATE.md
 - Implementation → HITL_REVIEW_IMPLEMENTATION.md
 - Setup issues → HITL_REVIEW_DEPLOYMENT.md
 
 ### Check Database
+
 ```sql
 -- Verify migration applied
 \d transactions  -- See new columns
@@ -364,6 +386,7 @@ SELECT * FROM transactions WHERE ai_reasoning IS NOT NULL LIMIT 1;
 ```
 
 ### Check Code
+
 - ReviewQueue.tsx (806 lines)
 - client/types/index.ts (Transaction interface)
 - Check browser console for errors

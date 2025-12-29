@@ -9,6 +9,7 @@ The HITL (Human-in-the-Loop) Review Queue has been completely redesigned to disp
 ### 1. AI Suggestion Display
 
 Each transaction now shows:
+
 - **Confidence Badge**: Visual indicator of AI confidence level
   - 🟢 Green (85-100%) = High Confidence
   - 🟡 Yellow (70-84%) = Medium Confidence
@@ -19,6 +20,7 @@ Each transaction now shows:
 ### 2. Enhanced Decision Making
 
 Users can now:
+
 - View transaction details in a card-based layout
 - See AI reasoning before making a decision
 - Accept or override AI suggestions
@@ -30,15 +32,18 @@ Users can now:
 For contractor or professional services payments:
 
 #### Regular Vendor
+
 - Select from existing active vendors in the database
 - Search vendors by name
 - Track for taxes and future reporting
 
 #### One-Time Payment
+
 - No vendor association
 - For one-off payments that shouldn't be tracked
 
 #### New Vendor
+
 - Create vendor on-the-fly during transaction review
 - Required fields:
   - Vendor name
@@ -50,6 +55,7 @@ For contractor or professional services payments:
 ### 4. Knowledge Base Integration
 
 All reviewed transactions are saved to the `transaction_patterns` table:
+
 - Pattern matching on normalized payee names
 - Category associations with confidence scores
 - Vendor relationships
@@ -95,7 +101,7 @@ CREATE TABLE transaction_patterns (
 
 1. **View Transaction**: Card shows transaction details and AI suggestion
 2. **Review AI Suggestion**: Read confidence level and reasoning
-3. **Make Decision**: 
+3. **Make Decision**:
    - Click "Accept Suggestion" to use AI's category, OR
    - Select a different category from dropdown
 4. **Add Context**:
@@ -114,6 +120,7 @@ CREATE TABLE transaction_patterns (
 ## Contractor Types Available
 
 When creating a new vendor during transaction review:
+
 - Language Vendor
 - Offshore Employee
 - Legal
@@ -131,6 +138,7 @@ When creating a new vendor during transaction review:
 Before using the HITL Review Queue with AI suggestions:
 
 1. **Run Migration**:
+
    ```bash
    # Apply the migration to your Supabase project
    supabase migration up supabase-migration-add-ai-fields.sql
@@ -160,6 +168,7 @@ transaction_patterns (NEW knowledge base)
 ## Future Improvements
 
 This structure enables:
+
 - Pattern-based auto-categorization
 - Vendor relationship tracking
 - ML training on user corrections

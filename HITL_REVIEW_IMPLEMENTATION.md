@@ -3,6 +3,7 @@
 ## ✅ Completed Tasks
 
 ### 1. Updated Transaction Data Model
+
 - Added 7 new fields to Transaction type in `client/types/index.ts`:
   - `payee_normalized` - For pattern matching
   - `vendor_id` - Reference to vendors table
@@ -13,9 +14,11 @@
   - `human_decision_reason` - Reason for different choice than AI
 
 ### 2. Completely Redesigned ReviewQueue Component
+
 Replaced table-based layout with card-based interface featuring:
 
 #### Card Layout
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ [Date] [Description] [$Amount]                          │
@@ -42,6 +45,7 @@ Replaced table-based layout with card-based interface featuring:
 ```
 
 #### Key Features
+
 1. **AI Confidence Badges**
    - Green (85-100%): High Confidence
    - Yellow (70-84%): Medium Confidence
@@ -101,6 +105,7 @@ handleApprove() {
 ### 4. Validation Rules
 
 Before saving:
+
 - ✅ Category must be selected
 - ✅ If Regular Vendor → vendor must be selected
 - ✅ If New Vendor → name and type must be provided
@@ -111,6 +116,7 @@ Before saving:
 File: `supabase-migration-add-ai-fields.sql`
 
 Adds:
+
 - 7 new columns to transactions table
 - transaction_patterns table with knowledge base schema
 - Proper indexes for performance
@@ -120,6 +126,7 @@ Adds:
 ## File Changes
 
 ### Modified Files
+
 1. **client/types/index.ts**
    - Updated Transaction interface with 7 new fields
 
@@ -132,6 +139,7 @@ Adds:
    - Transaction patterns knowledge base integration
 
 ### New Files
+
 1. **supabase-migration-add-ai-fields.sql** (47 lines)
    - Database schema changes
    - New transaction_patterns table
@@ -151,6 +159,7 @@ Adds:
 ## Component State Management
 
 The ReviewQueue component manages:
+
 ```
 const [currentTransaction]     // Currently displayed transaction
 const [selectedCategoryId]     // User's category choice
@@ -168,6 +177,7 @@ const [searchVendor]          // Live vendor search input
 ## API/Database Operations
 
 ### Fetch Operations
+
 ```
 1. Categories: fetch all ordered by name
 2. Vendors: fetch active vendors with legal_name and category
@@ -176,6 +186,7 @@ const [searchVendor]          // Live vendor search input
 ```
 
 ### Write Operations
+
 ```
 1. Create vendor: insert to vendors table (if "New Vendor")
 2. Update transaction: update categorization and review status
@@ -195,7 +206,9 @@ const [searchVendor]          // Live vendor search input
 ## Next Steps / Setup
 
 ### Before Using:
+
 1. **Apply Migration**
+
    ```bash
    # In Supabase dashboard, run the migration SQL
    # OR use Supabase CLI: supabase db push
@@ -216,6 +229,7 @@ const [searchVendor]          // Live vendor search input
    - Test "Approve & Save"
 
 ### Optional Enhancements:
+
 - Add payee normalization logic
 - Implement AI confidence score calculation
 - Add transaction pattern frequency updates
@@ -226,6 +240,7 @@ const [searchVendor]          // Live vendor search input
 ## Error Handling
 
 The component includes:
+
 - Try-catch blocks around all async operations
 - Toast notifications for errors and success
 - Validation before save
