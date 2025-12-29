@@ -198,6 +198,10 @@ export default function ReviewQueue() {
     if (currentTransaction?.category_id) {
       setSelectedCategoryId(currentTransaction.category_id);
       setReasonForChange("");
+      toast({
+        title: "Success",
+        description: "AI suggestion accepted! Review and save when ready.",
+      });
     }
   };
 
