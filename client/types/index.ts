@@ -16,8 +16,13 @@ export interface BankAccount {
 
 export interface Category {
   id: string;
+  code: string;
   name: string;
-  type: "income" | "expense";
+  category_type: "income" | "expense";
+  tax_deductible_percent: number | null;
+  quickbooks_account: string | null;
+  description: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
