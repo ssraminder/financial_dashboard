@@ -113,7 +113,9 @@ export default function Vendors() {
     addNew: true,
     markMissing: false,
   });
-  const [errorDetails, setErrorDetails] = useState<Array<{ name: string; error: string }>>([]);
+  const [errorDetails, setErrorDetails] = useState<
+    Array<{ name: string; error: string }>
+  >([]);
 
   // Form state
   const [formData, setFormData] = useState<Partial<Vendor>>({
@@ -1011,7 +1013,8 @@ export default function Vendors() {
                       <div className="mt-2 max-h-40 overflow-y-auto bg-red-50 dark:bg-red-950 p-2 rounded text-left">
                         {errorDetails.slice(0, 10).map((err, i) => (
                           <div key={i} className="text-xs mb-1">
-                            <span className="font-medium">{err.name}:</span> {err.error}
+                            <span className="font-medium">{err.name}:</span>{" "}
+                            {err.error}
                           </div>
                         ))}
                         {errorDetails.length > 10 && (
