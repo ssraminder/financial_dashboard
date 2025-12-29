@@ -127,7 +127,7 @@ export default function Vendors() {
     status: "Active",
     gst_registered: false,
     gst_rate: 5.0,
-    category: "Contractor",
+    contractor_type: "Contractor",
     payment_terms: "Net 30",
     preferred_currency: "CAD",
     is_preferred: false,
