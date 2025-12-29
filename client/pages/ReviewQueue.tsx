@@ -151,15 +151,15 @@ export default function ReviewQueue() {
         .from("transactions")
         .select(
           `*,
-          categories(id, name, code, category_type),
+          categories!transactions_category_id_fkey(id, name, code, category_type),
           bank_accounts(id, name, bank_name),
           companies(id, name)`,
         )
         .eq("needs_review", true)
-        .order("date", { ascending: false });
+        .order("transaction_date", { ascending: false });
 
       if (error) {
-        console.error("Supabase fetch error:", error);
+        console.error("Error fetching HITL transactions:", error);
         throw error;
       }
 
