@@ -30,6 +30,7 @@ export interface Category {
 export interface Transaction {
   id: string;
   date: string;
+  transaction_date?: string;
   description: string;
   amount: number;
   payee_normalized: string | null;
