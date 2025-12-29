@@ -291,7 +291,7 @@ export default function ReviewQueue() {
           .from("vendors")
           .insert({
             legal_name: newVendorName,
-            category: selectedContractorType,
+            contractor_type: selectedContractorType,
             country: selectedCountry === "Other" ? null : selectedCountry,
             status: "Active",
             is_active: true,
