@@ -117,7 +117,7 @@ export default function ReviewQueue() {
       // Fetch vendors
       const { data: vendorsData, error: vendorsError } = await supabase
         .from("vendors")
-        .select("id, legal_name, category")
+        .select("id, legal_name, contractor_type")
         .eq("is_active", true)
         .order("legal_name");
 
