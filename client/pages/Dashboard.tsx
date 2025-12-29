@@ -77,7 +77,7 @@ export default function Dashboard() {
       // Fetch transactions with categories
       const { data: transactions, error: transactionsError } = await supabase
         .from("transactions")
-        .select("amount, category_id, needs_review, categories(type)");
+        .select("amount, category_id, needs_review, categories(category_type)");
 
       if (transactionsError) {
         console.error(
