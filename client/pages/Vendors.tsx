@@ -113,6 +113,7 @@ export default function Vendors() {
     addNew: true,
     markMissing: false,
   });
+  const [errorDetails, setErrorDetails] = useState<Array<{ name: string; error: string }>>([]);
 
   // Form state
   const [formData, setFormData] = useState<Partial<Vendor>>({
@@ -272,68 +273,83 @@ export default function Vendors() {
 
     try {
       const csvText = await csvFile.text();
-      const parsedVendors = parseXTRFVendorCSV(csvText);
-      setImportProgress((prev) => ({ ...prev, total: parsedVendors.length }));
+      const vendors = parseXTRFVendorCSV(csvText);
+      setImportProgress((prev) => ({ ...prev, total: vendors.length }));
 
       let added = 0;
       let updated = 0;
       let errors = 0;
+      const errorDetailsList: Array<{ name: string; error: string }> = [];
 
-      // Process in batches of 50
-      const BATCH_SIZE = 50;
-      for (let i = 0; i < parsedVendors.length; i += BATCH_SIZE) {
-        const batch = parsedVendors.slice(i, i + BATCH_SIZE);
+      // Process one by one to catch individual errors
+      for (let i = 0; i < vendors.length; i++) {
+        const v = vendors[i];
 
-        const { data, error } = await supabase
-          .from("vendors")
-          .upsert(
-            batch.map((v) => ({
-              legal_name: v.legal_name,
-              status: v.status,
-              overall_evaluation:
-                v.overall_evaluation === "-"
-                  ? null
-                  : parseFloat(v.overall_evaluation || "0") || null,
-              availability: v.availability,
-              language_combinations: v.language_combinations,
-              country: v.country,
-              city: v.city,
-              email: v.email,
-              email_3: v.email_3,
-              phone: v.phone,
-              phone_2: v.phone_2,
-              phone_3: v.phone_3,
-              last_synced_at: new Date().toISOString(),
-              is_active: v.status === "Active",
-            })),
-            {
-              onConflict: "legal_name",
-              ignoreDuplicates: false,
-            },
-          )
-          .select();
+        try {
+          // Parse evaluation safely
+          let evaluation = null;
+          if (v.overall_evaluation && v.overall_evaluation !== "-") {
+            const parsed = parseFloat(v.overall_evaluation);
+            if (!isNaN(parsed)) {
+              evaluation = parsed;
+            }
+          }
 
-        if (error) {
-          console.error("Batch error:", error);
-          errors += batch.length;
-        } else {
-          updated += data.length;
+          const { data, error } = await supabase
+            .from("vendors")
+            .upsert(
+              {
+                legal_name: v.legal_name,
+                status: v.status || "Active",
+                overall_evaluation: evaluation,
+                availability: v.availability || null,
+                language_combinations: v.language_combinations || null,
+                country: v.country || null,
+                city: v.city || null,
+                email: v.email || null,
+                email_3: v.email_3 || null,
+                phone: v.phone || null,
+                phone_2: v.phone_2 || null,
+                phone_3: v.phone_3 || null,
+                last_synced_at: new Date().toISOString(),
+                is_active: v.status === "Active",
+              },
+              {
+                onConflict: "legal_name",
+              },
+            )
+            .select();
+
+          if (error) {
+            errors++;
+            errorDetailsList.push({ name: v.legal_name, error: error.message });
+            console.error(`Error importing ${v.legal_name}:`, error);
+          } else {
+            updated++;
+          }
+        } catch (err: any) {
+          errors++;
+          errorDetailsList.push({ name: v.legal_name, error: err.message });
+          console.error(`Exception importing ${v.legal_name}:`, err);
         }
 
         setImportProgress((prev) => ({
           ...prev,
-          current: Math.min(i + BATCH_SIZE, parsedVendors.length),
+          current: i + 1,
           added,
           updated,
           errors,
         }));
       }
 
+      // Log error details for debugging
+      if (errorDetailsList.length > 0) {
+        console.log("Import errors:", errorDetailsList);
+      }
+
       // Mark missing as inactive if option selected
       if (importOptions.markMissing) {
-        const importedNames = parsedVendors
-          .map((v) => v.legal_name)
-          .filter(Boolean);
+        const importedNames = vendors.map((v) => v.legal_name).filter(Boolean);
         await supabase
           .from("vendors")
           .update({ is_active: false, status: "Inactive" })
@@ -341,6 +357,7 @@ export default function Vendors() {
       }
 
       setImportComplete(true);
+      setErrorDetails(errorDetailsList); // Store for display
       toast({
         title: "Import Complete",
         description: `Successfully imported ${updated} vendors`,
@@ -984,6 +1001,28 @@ export default function Vendors() {
                     </p>
                   )}
                 </div>
+
+                {errorDetails && errorDetails.length > 0 && (
+                  <div className="mt-4">
+                    <details className="text-sm">
+                      <summary className="cursor-pointer text-red-600 font-medium hover:underline">
+                        View {errorDetails.length} errors
+                      </summary>
+                      <div className="mt-2 max-h-40 overflow-y-auto bg-red-50 dark:bg-red-950 p-2 rounded text-left">
+                        {errorDetails.slice(0, 10).map((err, i) => (
+                          <div key={i} className="text-xs mb-1">
+                            <span className="font-medium">{err.name}:</span> {err.error}
+                          </div>
+                        ))}
+                        {errorDetails.length > 10 && (
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                            ... and {errorDetails.length - 10} more
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  </div>
+                )}
               </div>
 
               <DialogFooter>
@@ -992,6 +1031,7 @@ export default function Vendors() {
                     setShowImportModal(false);
                     setImportComplete(false);
                     setCsvFile(null);
+                    setErrorDetails([]);
                     setImportProgress({
                       current: 0,
                       total: 0,
