@@ -105,7 +105,7 @@ export interface Vendor {
   gst_registered: boolean;
   gst_rate: number;
   gst_number: string | null;
-  category: "Contractor" | "Agency" | "Freelancer" | "Employee";
+  contractor_type: string | null;
   payment_terms: string;
   preferred_currency: string;
   is_preferred: boolean;
