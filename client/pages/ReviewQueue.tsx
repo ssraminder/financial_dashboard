@@ -5,7 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { Sidebar } from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -13,39 +15,48 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   ClipboardList,
   Loader2,
   Check,
-  Filter,
-  Calendar as CalendarIcon,
+  AlertCircle,
+  Zap,
+  Search,
   X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import type { Transaction, Category, Company, BankAccount } from "@/types";
+import type {
+  Transaction,
+  Category,
+  Company,
+  BankAccount,
+  Vendor,
+} from "@/types";
 
 interface TransactionWithRelations extends Transaction {
   categories?: Category | null;
   companies?: Company | null;
   bank_accounts?: BankAccount | null;
 }
+
+const contractorTypeOptions = [
+  "Language Vendor",
+  "Offshore Employee",
+  "Legal",
+  "Accounting",
+  "Consulting",
+  "IT/Development",
+  "Design",
+  "Trades",
+  "Cleaning/Maintenance",
+  "Virtual Assistant",
+  "Other",
+];
+
+const countryOptions = ["CA", "US", "UK", "AU", "IN", "PH", "MX", "Other"];
 
 export default function ReviewQueue() {
   const { user, loading: authLoading } = useAuth();
@@ -56,19 +67,26 @@ export default function ReviewQueue() {
     [],
   );
   const [categories, setCategories] = useState<Category[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
-  const [approving, setApproving] = useState<string[]>([]);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
-  // Filters
-  const [dateFrom, setDateFrom] = useState<Date | undefined>();
-  const [dateTo, setDateTo] = useState<Date | undefined>();
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [bankAccountFilter, setBankAccountFilter] = useState<string>("all");
-
-  // Bulk selection
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // Form state for current transaction
+  const [currentTransaction, setCurrentTransaction] =
+    useState<TransactionWithRelations | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [vendorType, setVendorType] = useState<
+    "regular" | "one-time" | "new"
+  >("regular");
+  const [selectedVendorId, setSelectedVendorId] = useState<string>("");
+  const [newVendorName, setNewVendorName] = useState("");
+  const [selectedContractorType, setSelectedContractorType] = useState("");
+  const [isOffshore, setIsOffshore] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState("CA");
+  const [userNotes, setUserNotes] = useState("");
+  const [reasonForChange, setReasonForChange] = useState("");
+  const [searchVendor, setSearchVendor] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -89,20 +107,21 @@ export default function ReviewQueue() {
       // Fetch categories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from("categories")
-        .select("*")
+        .select("id, name, type")
         .order("name");
 
       if (categoriesError) throw categoriesError;
       setCategories(categoriesData || []);
 
-      // Fetch companies
-      const { data: companiesData, error: companiesError } = await supabase
-        .from("companies")
-        .select("*")
-        .order("name");
+      // Fetch vendors
+      const { data: vendorsData, error: vendorsError } = await supabase
+        .from("vendors")
+        .select("id, legal_name, category")
+        .eq("is_active", true)
+        .order("legal_name");
 
-      if (companiesError) throw companiesError;
-      setCompanies(companiesData || []);
+      if (vendorsError) throw vendorsError;
+      setVendors(vendorsData || []);
 
       // Fetch bank accounts
       const { data: bankAccountsData, error: bankAccountsError } =
@@ -127,7 +146,7 @@ export default function ReviewQueue() {
 
   const fetchTransactions = async () => {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from("transactions")
         .select(
           `
@@ -140,24 +159,14 @@ export default function ReviewQueue() {
         .eq("needs_review", true)
         .order("date", { ascending: false });
 
-      // Apply filters
-      if (dateFrom) {
-        query = query.gte("date", format(dateFrom, "yyyy-MM-dd"));
-      }
-      if (dateTo) {
-        query = query.lte("date", format(dateTo, "yyyy-MM-dd"));
-      }
-      if (categoryFilter && categoryFilter !== "all") {
-        query = query.eq("category_id", categoryFilter);
-      }
-      if (bankAccountFilter && bankAccountFilter !== "all") {
-        query = query.eq("bank_account_id", bankAccountFilter);
-      }
-
-      const { data, error } = await query;
-
       if (error) throw error;
       setTransactions(data || []);
+
+      // Set first transaction as current if available
+      if (data && data.length > 0) {
+        setCurrentTransaction(data[0]);
+        resetForm();
+      }
     } catch (error) {
       console.error("Error fetching transactions:", error);
       toast({
@@ -168,110 +177,187 @@ export default function ReviewQueue() {
     }
   };
 
-  const handleCategoryChange = async (
-    transactionId: string,
-    categoryId: string,
-  ) => {
-    try {
-      const { error } = await (supabase
-        .from("transactions")
-        .update({ category_id: categoryId })
-        .eq("id", transactionId) as any);
+  const resetForm = () => {
+    setSelectedCategoryId("");
+    setVendorType("regular");
+    setSelectedVendorId("");
+    setNewVendorName("");
+    setSelectedContractorType("");
+    setIsOffshore(false);
+    setSelectedCountry("CA");
+    setUserNotes("");
+    setReasonForChange("");
+    setSearchVendor("");
+  };
 
-      if (error) throw error;
-
-      // Update local state
-      setTransactions((prev) =>
-        prev.map((t) =>
-          t.id === transactionId
-            ? {
-                ...t,
-                category_id: categoryId,
-                categories: categories.find((c) => c.id === categoryId) || null,
-              }
-            : t,
-        ),
-      );
-
-      toast({
-        title: "Success",
-        description: "Category updated successfully.",
-      });
-    } catch (error) {
-      console.error("Error updating category:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update category.",
-      });
+  const handleAcceptSuggestion = () => {
+    if (currentTransaction?.category_id) {
+      setSelectedCategoryId(currentTransaction.category_id);
+      setReasonForChange("");
     }
   };
 
-  const handleCompanyChange = async (
-    transactionId: string,
-    companyId: string,
-  ) => {
-    try {
-      const { error } = await (supabase
-        .from("transactions")
-        .update({ company_id: companyId })
-        .eq("id", transactionId) as any);
+  const getConfidenceBadge = (score: number | null) => {
+    if (score === null) return null;
 
-      if (error) throw error;
-
-      // Update local state
-      setTransactions((prev) =>
-        prev.map((t) =>
-          t.id === transactionId
-            ? {
-                ...t,
-                company_id: companyId,
-                companies: companies.find((c) => c.id === companyId) || null,
-              }
-            : t,
-        ),
+    if (score >= 85) {
+      return (
+        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+          High Confidence ({score}%)
+        </Badge>
       );
-
-      toast({
-        title: "Success",
-        description: "Company updated successfully.",
-      });
-    } catch (error) {
-      console.error("Error updating company:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update company.",
-      });
+    } else if (score >= 70) {
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+          Medium Confidence ({score}%)
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+          Low Confidence ({score}%)
+        </Badge>
+      );
     }
   };
 
-  const handleApprove = async (transactionId: string) => {
-    try {
-      setApproving((prev) => [...prev, transactionId]);
+  const selectedCategory = categories.find(
+    (c) => c.id === selectedCategoryId,
+  );
 
-      const { error } = await (supabase
+  const filteredVendors = vendors.filter((v) =>
+    v.legal_name.toLowerCase().includes(searchVendor.toLowerCase()),
+  );
+
+  const validateForm = (): boolean => {
+    if (!selectedCategoryId) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Category must be selected",
+      });
+      return false;
+    }
+
+    const categoryIsContractor =
+      selectedCategory?.name?.toLowerCase().includes("contractor") ||
+      selectedCategory?.name?.toLowerCase().includes("professional");
+
+    if (categoryIsContractor && vendorType === "regular") {
+      if (!selectedVendorId) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please select a vendor for regular payments",
+        });
+        return false;
+      }
+    }
+
+    if (categoryIsContractor && vendorType === "new") {
+      if (!newVendorName) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Vendor name is required for new vendors",
+        });
+        return false;
+      }
+      if (!selectedContractorType) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Contractor type is required",
+        });
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleApprove = async () => {
+    if (!currentTransaction) return;
+
+    if (!validateForm()) return;
+
+    try {
+      setApprovingId(currentTransaction.id);
+
+      let finalVendorId = selectedVendorId || null;
+
+      // Create new vendor if needed
+      if (vendorType === "new") {
+        const { data: newVendor, error: vendorError } = await supabase
+          .from("vendors")
+          .insert({
+            legal_name: newVendorName,
+            category: selectedContractorType,
+            country: selectedCountry === "Other" ? null : selectedCountry,
+            status: "Active",
+            is_active: true,
+            gst_registered: false,
+            gst_rate: 5.0,
+            payment_terms: "Net 30",
+            preferred_currency: "CAD",
+          })
+          .select()
+          .single();
+
+        if (vendorError) throw vendorError;
+        finalVendorId = newVendor.id;
+      }
+
+      // Update transaction
+      const { error: updateError } = await supabase
         .from("transactions")
         .update({
+          category_id: selectedCategoryId,
+          vendor_id: vendorType === "one-time" ? null : finalVendorId,
           needs_review: false,
+          status: "categorized",
+          human_notes: userNotes || null,
+          human_decision_reason:
+            reasonForChange || currentTransaction.ai_reasoning || null,
           reviewed_by: user?.id,
           reviewed_at: new Date().toISOString(),
         })
-        .eq("id", transactionId) as any);
+        .eq("id", currentTransaction.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      // Remove from local state
-      setTransactions((prev) => prev.filter((t) => t.id !== transactionId));
-      setSelectedIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(transactionId);
-        return newSet;
+      // Save to transaction patterns for knowledge base
+      const categoryId = selectedCategoryId;
+      await supabase.from("transaction_patterns").insert({
+        payee_pattern: currentTransaction.payee_normalized,
+        category_id: categoryId,
+        vendor_id: finalVendorId,
+        contractor_type: selectedContractorType || null,
+        reasoning: reasonForChange || currentTransaction.ai_reasoning,
+        notes: userNotes,
+        confidence_score: 100,
       });
+
+      // Remove from UI and move to next
+      setTransactions((prev) =>
+        prev.filter((t) => t.id !== currentTransaction.id),
+      );
+
+      // Set next transaction
+      const nextIdx = transactions.findIndex((t) => t.id === currentTransaction.id) + 1;
+      if (nextIdx < transactions.length) {
+        setCurrentTransaction(transactions[nextIdx]);
+      } else if (transactions.length > 1) {
+        setCurrentTransaction(transactions[0]);
+      } else {
+        setCurrentTransaction(null);
+      }
+
+      resetForm();
 
       toast({
         title: "Success",
-        description: "Transaction approved successfully.",
+        description: "Transaction approved and saved!",
       });
     } catch (error) {
       console.error("Error approving transaction:", error);
@@ -281,78 +367,26 @@ export default function ReviewQueue() {
         description: "Failed to approve transaction.",
       });
     } finally {
-      setApproving((prev) => prev.filter((id) => id !== transactionId));
+      setApprovingId(null);
     }
   };
 
-  const handleBulkApprove = async () => {
-    if (selectedIds.size === 0) return;
+  const handleReject = () => {
+    if (!currentTransaction) return;
 
-    try {
-      const idsArray = Array.from(selectedIds);
-      setApproving(idsArray);
-
-      const { error } = await (supabase
-        .from("transactions")
-        .update({
-          needs_review: false,
-          reviewed_by: user?.id,
-          reviewed_at: new Date().toISOString(),
-        })
-        .in("id", idsArray) as any);
-
-      if (error) throw error;
-
-      // Remove from local state
-      setTransactions((prev) => prev.filter((t) => !selectedIds.has(t.id)));
-      setSelectedIds(new Set());
-
-      toast({
-        title: "Success",
-        description: `${idsArray.length} transaction(s) approved successfully.`,
-      });
-    } catch (error) {
-      console.error("Error approving transactions:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to approve transactions.",
-      });
-    } finally {
-      setApproving([]);
-    }
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === transactions.length) {
-      setSelectedIds(new Set());
+    // Move to next transaction
+    const currentIdx = transactions.findIndex(
+      (t) => t.id === currentTransaction.id,
+    );
+    if (currentIdx + 1 < transactions.length) {
+      setCurrentTransaction(transactions[currentIdx + 1]);
+    } else if (currentIdx > 0) {
+      setCurrentTransaction(transactions[currentIdx - 1]);
     } else {
-      setSelectedIds(new Set(transactions.map((t) => t.id)));
+      setCurrentTransaction(null);
     }
-  };
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
-
-  const clearFilters = () => {
-    setDateFrom(undefined);
-    setDateTo(undefined);
-    setCategoryFilter("all");
-    setBankAccountFilter("all");
-    fetchTransactions();
-  };
-
-  const applyFilters = () => {
-    fetchTransactions();
+    resetForm();
   };
 
   const formatCurrency = (amount: number) => {
@@ -375,331 +409,395 @@ export default function ReviewQueue() {
       <Sidebar />
 
       <div className="flex-1 overflow-auto">
-        <div className="p-8">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-foreground">
+        <div className="p-8 max-w-5xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <ClipboardList className="h-8 w-8" />
               HITL Review Queue
             </h1>
             <p className="text-muted-foreground mt-1">
-              Review and approve transactions
+              Review AI suggestions and categorize transactions
             </p>
           </div>
 
-          {/* Filters */}
-          <Card className="mb-6">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">Filters</CardTitle>
-                </div>
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  <X className="h-4 w-4 mr-1" />
-                  Clear
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Date From */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Date From</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !dateFrom && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateFrom ? (
-                          format(dateFrom, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={dateFrom}
-                        onSelect={setDateFrom}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* Date To */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Date To</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !dateTo && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateTo ? (
-                          format(dateTo, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={dateTo}
-                        onSelect={setDateTo}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* Category Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select
-                    value={categoryFilter}
-                    onValueChange={setCategoryFilter}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Bank Account Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Bank Account</label>
-                  <Select
-                    value={bankAccountFilter}
-                    onValueChange={setBankAccountFilter}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Accounts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Accounts</SelectItem>
-                      {bankAccounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id}>
-                          {account.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+          {loading ? (
+            <Card>
+              <CardContent className="py-12 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </CardContent>
+            </Card>
+          ) : transactions.length === 0 ? (
+            <Card>
+              <CardContent className="py-16 text-center">
+                <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  All transactions reviewed!
+                </h3>
+                <p className="text-muted-foreground">
+                  No transactions are pending review at this time.
+                </p>
+              </CardContent>
+            </Card>
+          ) : currentTransaction ? (
+            <>
+              {/* Progress */}
+              <div className="mb-6 flex items-center justify-between text-sm text-muted-foreground">
+                <span>
+                  Transaction {transactions.length - transactions.indexOf(currentTransaction)} of{" "}
+                  {transactions.length}
+                </span>
+                <div className="w-48 bg-muted rounded-full h-2">
+                  <div
+                    className="bg-primary h-full rounded-full transition-all"
+                    style={{
+                      width: `${
+                        ((transactions.length -
+                          transactions.indexOf(currentTransaction)) /
+                          transactions.length) *
+                        100
+                      }%`,
+                    }}
+                  />
                 </div>
               </div>
-              <div className="mt-4">
-                <Button onClick={applyFilters}>
-                  <Filter className="h-4 w-4 mr-2" />
-                  Apply Filters
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Bulk Actions */}
-          {selectedIds.size > 0 && (
-            <Card className="mb-6 border-primary">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-base px-3 py-1">
-                      {selectedIds.size} selected
-                    </Badge>
+              {/* Transaction Card */}
+              <Card className="mb-8 border-2">
+                <CardHeader className="bg-muted/50 border-b">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-sm text-muted-foreground">
+                        {format(new Date(currentTransaction.date), "MMM d, yyyy")}
+                      </div>
+                      <h2 className="text-2xl font-bold mt-1">
+                        {currentTransaction.description}
+                      </h2>
+                      <div className="text-lg font-semibold mt-2">
+                        {formatCurrency(currentTransaction.amount)}
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground text-right">
+                      {currentTransaction.bank_accounts?.name}
+                    </div>
                   </div>
+                </CardHeader>
+
+                <CardContent className="pt-8 space-y-8">
+                  {/* AI Suggestion Section */}
+                  {currentTransaction.ai_reasoning && (
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                          AI's Suggestion
+                        </h3>
+                      </div>
+
+                      <div className="space-y-3">
+                        {currentTransaction.ai_confidence_score !== null && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                              Confidence
+                            </span>
+                            {getConfidenceBadge(
+                              currentTransaction.ai_confidence_score,
+                            )}
+                          </div>
+                        )}
+
+                        <div>
+                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                            Reasoning:
+                          </p>
+                          <p className="text-sm text-blue-800 dark:text-blue-200">
+                            {currentTransaction.ai_reasoning}
+                          </p>
+                        </div>
+
+                        <Button
+                          onClick={handleAcceptSuggestion}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white mt-3"
+                        >
+                          <Check className="h-4 w-4 mr-2" />
+                          Accept Suggestion
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Your Decision Section */}
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-4">
+                        Your Decision
+                      </h3>
+
+                      {/* Category Selection */}
+                      <div className="space-y-2 mb-6">
+                        <Label htmlFor="category">Category *</Label>
+                        <Select
+                          value={selectedCategoryId}
+                          onValueChange={setSelectedCategoryId}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Vendor Selection - Show if category involves contractors */}
+                      {selectedCategory &&
+                        (selectedCategory.name
+                          .toLowerCase()
+                          .includes("contractor") ||
+                          selectedCategory.name
+                            .toLowerCase()
+                            .includes("professional")) && (
+                          <div className="space-y-4 mb-6 p-4 bg-muted rounded-lg">
+                            <div>
+                              <Label className="text-base font-medium mb-3 block">
+                                Vendor Type
+                              </Label>
+                              <RadioGroup
+                                value={vendorType}
+                                onValueChange={(
+                                  value: "regular" | "one-time" | "new",
+                                ) => {
+                                  setVendorType(value);
+                                  setSelectedVendorId("");
+                                  setNewVendorName("");
+                                }}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem
+                                    value="regular"
+                                    id="vendor-regular"
+                                  />
+                                  <Label
+                                    htmlFor="vendor-regular"
+                                    className="font-normal cursor-pointer"
+                                  >
+                                    Regular Vendor (track for taxes)
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem
+                                    value="one-time"
+                                    id="vendor-onetime"
+                                  />
+                                  <Label
+                                    htmlFor="vendor-onetime"
+                                    className="font-normal cursor-pointer"
+                                  >
+                                    One-Time Payment (no tracking)
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="new" id="vendor-new" />
+                                  <Label
+                                    htmlFor="vendor-new"
+                                    className="font-normal cursor-pointer"
+                                  >
+                                    New Vendor (add to database)
+                                  </Label>
+                                </div>
+                              </RadioGroup>
+                            </div>
+
+                            {/* Regular Vendor Selection */}
+                            {vendorType === "regular" && (
+                              <div className="space-y-2 mt-4">
+                                <Label htmlFor="vendor-select">
+                                  Select Vendor *
+                                </Label>
+                                <div className="relative">
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    placeholder="Search vendors..."
+                                    value={searchVendor}
+                                    onChange={(e) =>
+                                      setSearchVendor(e.target.value)
+                                    }
+                                    className="pl-10"
+                                  />
+                                </div>
+                                <Select
+                                  value={selectedVendorId}
+                                  onValueChange={setSelectedVendorId}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Choose a vendor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {filteredVendors.map((vendor) => (
+                                      <SelectItem
+                                        key={vendor.id}
+                                        value={vendor.id}
+                                      >
+                                        {vendor.legal_name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+
+                            {/* New Vendor Form */}
+                            {vendorType === "new" && (
+                              <div className="space-y-4 mt-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="vendor-name">
+                                    Vendor Name *
+                                  </Label>
+                                  <Input
+                                    id="vendor-name"
+                                    value={newVendorName}
+                                    onChange={(e) =>
+                                      setNewVendorName(e.target.value)
+                                    }
+                                    placeholder="Enter vendor name"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="contractor-type">
+                                    Contractor Type *
+                                  </Label>
+                                  <Select
+                                    value={selectedContractorType}
+                                    onValueChange={setSelectedContractorType}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {contractorTypeOptions.map((type) => (
+                                        <SelectItem key={type} value={type}>
+                                          {type}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="checkbox"
+                                    id="offshore"
+                                    checked={isOffshore}
+                                    onChange={(e) =>
+                                      setIsOffshore(e.target.checked)
+                                    }
+                                    className="w-4 h-4"
+                                  />
+                                  <Label
+                                    htmlFor="offshore"
+                                    className="font-normal cursor-pointer"
+                                  >
+                                    Is Offshore?
+                                  </Label>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="country">Country</Label>
+                                  <Select
+                                    value={selectedCountry}
+                                    onValueChange={setSelectedCountry}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {countryOptions.map((country) => (
+                                        <SelectItem
+                                          key={country}
+                                          value={country}
+                                        >
+                                          {country}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                      {/* Notes Section */}
+                      <div className="space-y-4 mb-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="notes">Your Notes (optional)</Label>
+                          <Textarea
+                            id="notes"
+                            value={userNotes}
+                            onChange={(e) => setUserNotes(e.target.value)}
+                            placeholder="Add any notes about this transaction..."
+                            rows={3}
+                          />
+                        </div>
+
+                        {selectedCategoryId &&
+                          selectedCategoryId !==
+                            currentTransaction.category_id && (
+                            <div className="space-y-2">
+                              <Label htmlFor="reason">
+                                Why different from AI? (optional)
+                              </Label>
+                              <Textarea
+                                id="reason"
+                                value={reasonForChange}
+                                onChange={(e) =>
+                                  setReasonForChange(e.target.value)
+                                }
+                                placeholder="Explain why you chose a different category..."
+                                rows={2}
+                              />
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+
+                <div className="border-t bg-muted/50 px-6 py-4 flex gap-3 justify-end">
                   <Button
-                    onClick={handleBulkApprove}
-                    disabled={approving.length > 0}
+                    variant="outline"
+                    onClick={handleReject}
+                    disabled={approvingId !== null}
                   >
-                    {approving.length > 0 ? (
+                    <X className="h-4 w-4 mr-2" />
+                    Skip
+                  </Button>
+                  <Button
+                    onClick={handleApprove}
+                    disabled={
+                      approvingId !== null || !selectedCategoryId
+                    }
+                  >
+                    {approvingId ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Approving...
+                        Saving...
                       </>
                     ) : (
                       <>
                         <Check className="h-4 w-4 mr-2" />
-                        Approve Selected
+                        Approve & Save
                       </>
                     )}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Transactions Table */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <ClipboardList className="h-5 w-5 text-primary" />
-                <CardTitle>
-                  Pending Transactions ({transactions.length})
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : transactions.length === 0 ? (
-                <div className="text-center py-12">
-                  <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    No transactions pending review
-                  </h3>
-                  <p className="text-muted-foreground">
-                    All transactions have been reviewed and approved.
-                  </p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <Checkbox
-                            checked={
-                              transactions.length > 0 &&
-                              selectedIds.size === transactions.length
-                            }
-                            onCheckedChange={toggleSelectAll}
-                          />
-                        </TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Bank Account</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {transactions.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedIds.has(transaction.id)}
-                              onCheckedChange={() =>
-                                toggleSelect(transaction.id)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {format(new Date(transaction.date), "MMM d, yyyy")}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {transaction.description}
-                          </TableCell>
-                          <TableCell
-                            className={cn(
-                              "text-right font-medium whitespace-nowrap",
-                              transaction.amount >= 0
-                                ? "text-green-600"
-                                : "text-red-600",
-                            )}
-                          >
-                            {formatCurrency(transaction.amount)}
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={transaction.category_id || "none"}
-                              onValueChange={(value) =>
-                                handleCategoryChange(transaction.id, value)
-                              }
-                            >
-                              <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">
-                                  No Category
-                                </SelectItem>
-                                {categories.map((category) => (
-                                  <SelectItem
-                                    key={category.id}
-                                    value={category.id}
-                                  >
-                                    {category.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={transaction.company_id || "none"}
-                              onValueChange={(value) =>
-                                handleCompanyChange(transaction.id, value)
-                              }
-                            >
-                              <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Select company" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">No Company</SelectItem>
-                                {companies.map((company) => (
-                                  <SelectItem
-                                    key={company.id}
-                                    value={company.id}
-                                  >
-                                    {company.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm text-muted-foreground">
-                              {transaction.bank_accounts?.name || "N/A"}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              onClick={() => handleApprove(transaction.id)}
-                              disabled={approving.includes(transaction.id)}
-                            >
-                              {approving.includes(transaction.id) ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                  Approving...
-                                </>
-                              ) : (
-                                <>
-                                  <Check className="h-4 w-4 mr-1" />
-                                  Approve
-                                </>
-                              )}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </Card>
+            </>
+          ) : null}
         </div>
       </div>
     </div>
