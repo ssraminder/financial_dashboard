@@ -77,7 +77,7 @@ export default function ReviewQueue() {
     useState<TransactionWithRelations | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [vendorType, setVendorType] = useState<"regular" | "one-time" | "new">(
-    "regular",
+    "one-time",
   );
   const [selectedVendorId, setSelectedVendorId] = useState<string>("");
   const [newVendorName, setNewVendorName] = useState("");
