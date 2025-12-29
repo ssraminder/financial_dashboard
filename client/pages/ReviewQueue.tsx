@@ -107,7 +107,8 @@ export default function ReviewQueue() {
       // Fetch categories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from("categories")
-        .select("id, name, type")
+        .select("id, code, name, category_type, description")
+        .eq("is_active", true)
         .order("name");
 
       if (categoriesError) throw categoriesError;
