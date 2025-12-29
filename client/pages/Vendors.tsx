@@ -1295,9 +1295,9 @@ export default function Vendors() {
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
                   <Select
-                    value={formData.category}
-                    onValueChange={(value: Vendor["category"]) =>
-                      setFormData((prev) => ({ ...prev, category: value }))
+                    value={formData.contractor_type || ""}
+                    onValueChange={(value: string) =>
+                      setFormData((prev) => ({ ...prev, contractor_type: value }))
                     }
                   >
                     <SelectTrigger>
