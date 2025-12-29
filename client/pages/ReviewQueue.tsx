@@ -147,25 +147,28 @@ export default function ReviewQueue() {
 
   const fetchTransactions = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: pendingTransactions, error } = await supabase
         .from("transactions")
         .select(
-          `
-          *,
-          categories(*),
-          companies(*),
-          bank_accounts(*)
-        `,
+          `*,
+          categories(id, name, code, category_type),
+          bank_accounts(id, name, bank_name),
+          companies(id, name)`,
         )
         .eq("needs_review", true)
         .order("date", { ascending: false });
 
-      if (error) throw error;
-      setTransactions(data || []);
+      if (error) {
+        console.error("Supabase fetch error:", error);
+        throw error;
+      }
+
+      console.log("Fetched pending transactions:", pendingTransactions);
+      setTransactions(pendingTransactions || []);
 
       // Set first transaction as current if available
-      if (data && data.length > 0) {
-        setCurrentTransaction(data[0]);
+      if (pendingTransactions && pendingTransactions.length > 0) {
+        setCurrentTransaction(pendingTransactions[0]);
         resetForm();
       }
     } catch (error) {
