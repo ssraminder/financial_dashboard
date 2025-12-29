@@ -331,7 +331,7 @@ export default function ReviewQueue() {
           category_id: selectedCategoryId,
           vendor_id: vendorType === "one-time" ? null : finalVendorId,
           needs_review: false,
-          status: "categorized",
+          status: "reviewed",
           human_notes: userNotes || null,
           human_decision_reason:
             reasonForChange || currentTransaction.ai_reasoning || null,
