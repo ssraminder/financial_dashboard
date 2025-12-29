@@ -1,12 +1,15 @@
 # Categories Column Fix Summary
 
 ## Issue
+
 The categories table has a column named `category_type`, but several queries were trying to fetch a column named `type`, which doesn't exist.
 
 ## Files Fixed
 
 ### 1. `client/types/index.ts` - Category Interface
+
 **Before:**
+
 ```typescript
 export interface Category {
   id: string;
@@ -18,12 +21,13 @@ export interface Category {
 ```
 
 **After:**
+
 ```typescript
 export interface Category {
   id: string;
   code: string;
   name: string;
-  category_type: "income" | "expense";  // ← Changed from "type"
+  category_type: "income" | "expense"; // ← Changed from "type"
   tax_deductible_percent: number | null;
   quickbooks_account: string | null;
   description: string | null;
@@ -34,7 +38,9 @@ export interface Category {
 ```
 
 ### 2. `client/pages/ReviewQueue.tsx` - Categories Fetch Query
+
 **Before:**
+
 ```typescript
 const { data: categoriesData, error: categoriesError } = await supabase
   .from("categories")
@@ -43,6 +49,7 @@ const { data: categoriesData, error: categoriesError } = await supabase
 ```
 
 **After:**
+
 ```typescript
 const { data: categoriesData, error: categoriesError } = await supabase
   .from("categories")
@@ -54,21 +61,25 @@ const { data: categoriesData, error: categoriesError } = await supabase
 ### 3. `client/pages/Dashboard.tsx` - Categories Reference (2 changes)
 
 **Before (line 80):**
+
 ```typescript
 .select("amount, category_id, needs_review, categories(type)");
 ```
 
 **After:**
+
 ```typescript
 .select("amount, category_id, needs_review, categories(category_type)");
 ```
 
 **Before (line 110):**
+
 ```typescript
 const categoryType = transaction.categories?.type;
 ```
 
 **After:**
+
 ```typescript
 const categoryType = transaction.categories?.category_type;
 ```
@@ -76,6 +87,7 @@ const categoryType = transaction.categories?.category_type;
 ## Database Column Reference
 
 The actual categories table columns are:
+
 ```sql
 - id (uuid) - Primary key
 - code (text) - Category code
@@ -101,6 +113,7 @@ The actual categories table columns are:
 ## Impact
 
 These fixes ensure:
+
 - ReviewQueue page correctly fetches only active categories
 - Dashboard correctly calculates revenue vs expenses
 - TypeScript types match the actual database schema
@@ -109,6 +122,7 @@ These fixes ensure:
 ## Testing
 
 After these fixes:
+
 1. ✅ ReviewQueue should load categories without errors
 2. ✅ Dashboard should calculate stats correctly
 3. ✅ No TypeScript errors related to Category type
