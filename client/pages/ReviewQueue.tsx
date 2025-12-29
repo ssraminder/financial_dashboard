@@ -153,6 +153,7 @@ export default function ReviewQueue() {
         .select(
           `*,
           categories!transactions_category_id_fkey(id, name, code, category_type),
+          ai_suggested_category:categories!transactions_ai_suggested_category_id_fkey(id, name, code, category_type),
           bank_accounts(id, name, bank_name),
           companies(id, name)`,
         )
