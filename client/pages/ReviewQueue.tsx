@@ -101,6 +101,14 @@ export default function ReviewQueue() {
     }
   }, [user]);
 
+  // Pre-fill category with AI suggestion when transaction changes
+  useEffect(() => {
+    if (currentTransaction?.ai_suggested_category?.id) {
+      setSelectedCategoryId(currentTransaction.ai_suggested_category.id);
+      setReasonForChange("");
+    }
+  }, [currentTransaction?.id]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
