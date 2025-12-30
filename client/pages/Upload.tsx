@@ -581,35 +581,21 @@ export default function Upload() {
     setResult(null);
     setBalanceError(null);
     setEditableTransactions([]);
-    setProcessingStage(1);
-    setStatusMessage("AI is reading the statement...");
-    setStatusDetail("Extracting account info and transactions");
 
-    // Stage 1: Uploading
-    setProcessingStatus({
-      stage: "uploading",
-      message: "Uploading PDF to server...",
-      details: selectedFile.name,
-      progress: 10,
-      attempts: 0,
-    });
+    // Step 1: Uploading - complete immediately when fetch starts
+    setUploadStage("uploading");
+    setStatusMessage("Uploading PDF...");
+    setStatusDetail("");
 
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("bank_account_id", selectedBankAccountId);
 
     try {
-      // Stage 2: Parsing
-      setProcessingStage(2);
-      setStatusMessage("Validating balance...");
-      setStatusDetail("Checking: Opening + Credits - Debits = Closing");
-      setProcessingStatus({
-        stage: "parsing",
-        message: "AI is reading the statement...",
-        details: "Extracting account info and transactions",
-        progress: 30,
-        attempts: 1,
-      });
+      // Step 2: Processing - move to processing stage (API call in progress)
+      setUploadStage("processing");
+      setStatusMessage("AI is reading the statement...");
+      setStatusDetail("Extracting account info and transactions");
 
       const response = await fetch(
         "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/parse-statement",
@@ -619,158 +605,62 @@ export default function Upload() {
         },
       );
 
-      // Stage 3: Validating
-      setProcessingStatus((prev) => ({
-        ...prev,
-        stage: "validating",
-        message: "Checking balance calculation...",
-        details: "Opening + Credits - Debits = Closing",
-        progress: 60,
-      }));
-
       const data: ParseStatementResult = await response.json();
 
-      // Check if correction was needed
-      if (
-        data.success &&
-        (data as Record<string, unknown>).reconciliation &&
-        (
-          (data as Record<string, unknown>).reconciliation as Record<
-            string,
-            unknown
-          >
-        ).attempts > 1
-      ) {
-        const reconciliation = (data as Record<string, unknown>)
-          .reconciliation as Record<string, unknown>;
-        setProcessingStatus((prev) => ({
-          ...prev,
-          stage: "correcting",
-          message: `AI self-corrected (${reconciliation.attempts} attempts)`,
-          details: "Found and fixed transaction direction errors",
-          progress: 80,
-          attempts: (reconciliation.attempts as number) || 1,
-        }));
+      // Step 3: API returned - validation already happened server-side
+      setUploadStage("complete");
+      setStatusMessage("Processing complete!");
+      setStatusDetail("");
 
-        // Brief pause to show correction status
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+      // Brief pause to show completion
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (data.success) {
-        // Check if we should enter review mode or show results
-        if ((data as Record<string, unknown>).action === "review") {
-          // Enter two-step review flow
-          setProcessingStage(4);
-          setStatusMessage("Ready for Review");
-          setStatusDetail("Please verify the parsed transactions below");
-          setProcessingStatus({
-            stage: "complete",
-            message: "Successfully parsed!",
-            details: "Ready for review",
-            progress: 100,
-            attempts:
-              (
-                (data as Record<string, unknown>).reconciliation as Record<
-                  string,
-                  unknown
-                >
-              )?.attempts || 1,
-          });
-
-          // Brief pause to show completion
-          await new Promise((resolve) => setTimeout(resolve, 800));
-
-          // Set review mode with transactions
-          setParsedData(data);
-          setAllTransactions(
-            (
-              (data as Record<string, unknown>).transactions as Array<
-                Record<string, unknown>
-              >
-            ).map((t) => ({
-              ...t,
-              original_type: t.type,
-              original_amount: t.amount as number,
-              changed: false,
-            })),
-          );
-          setIsReviewing(true);
-        } else {
-          // Original flow - direct save
-          setProcessingStage(4);
-          setStatusMessage("Complete!");
-          setStatusDetail(
-            `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
-          );
-          setProcessingStatus({
-            stage: "complete",
-            message: "Successfully processed!",
-            details: `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
-            progress: 100,
-            attempts:
-              (
-                (data as Record<string, unknown>).reconciliation as Record<
-                  string,
-                  unknown
-                >
-              )?.attempts || 1,
-          });
-
-          // Brief pause to show success
-          await new Promise((resolve) => setTimeout(resolve, 800));
-
-          setResult(data);
-          setSelectedFile(null);
-          setSelectedBankAccountId("");
-          if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-          }
+      if (data.success && (data as Record<string, unknown>).action === "review") {
+        // Enter two-step review flow
+        setParsedData(data);
+        setAllTransactions(
+          (
+            (data as Record<string, unknown>).transactions as Array<
+              Record<string, unknown>
+            >
+          ).map((t) => ({
+            ...t,
+            original_type: t.type,
+            original_amount: t.amount as number,
+            changed: false,
+          })),
+        );
+        setIsReviewing(true);
+      } else if (data.success) {
+        // Original flow - direct save
+        setResult(data);
+        setSelectedFile(null);
+        setSelectedBankAccountId("");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
         }
       } else if (data.error === "BALANCE_MISMATCH") {
-        setProcessingStatus({
-          stage: "error",
-          message: "Balance mismatch detected",
-          details: `Off by $${Math.abs((data as Record<string, unknown>).reconciliation ? ((data as Record<string, unknown>).reconciliation as Record<string, unknown>).difference : 0).toFixed(2)}`,
-          progress: 100,
-          attempts: (data as Record<string, unknown>).reconciliation
-            ? (
-                (data as Record<string, unknown>).reconciliation as Record<
-                  string,
-                  unknown
-                >
-              ).attempts
-            : 0,
-        });
+        setUploadStage("error");
         setBalanceError(data);
         setError(
           "Balance mismatch detected. Please review the error details below.",
         );
       } else {
-        setProcessingStatus({
-          stage: "error",
-          message: "Processing failed",
-          details: data.error || "Unknown error",
-          progress: 100,
-          attempts: 0,
-        });
+        setUploadStage("error");
         setError(
           data.error || "Failed to process statement. Please try again.",
         );
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      setProcessingStatus({
-        stage: "error",
-        message: "Upload failed",
-        details: errorMessage,
-        progress: 0,
-        attempts: 0,
-      });
+      setUploadStage("error");
+      const errorMessage =
+        err instanceof Error ? err.message : "Upload failed";
+      setStatusMessage("Upload failed");
+      setStatusDetail(errorMessage);
       console.error("Upload error:", err);
       setError("Upload failed. Please check your file and try again.");
     } finally {
       setLoading(false);
-      setProcessingStage(0);
     }
   };
 
