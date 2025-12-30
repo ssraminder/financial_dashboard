@@ -380,6 +380,107 @@ export default function Upload() {
     setIsRevalidating(false);
   };
 
+  const handleSaveTransactions = async () => {
+    if (!selectedBankAccountId || allTransactions.length === 0) return;
+
+    setIsSaving(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("bank_account_id", selectedBankAccountId);
+      formData.append("action", "save");
+      formData.append(
+        "transactions",
+        JSON.stringify(
+          allTransactions.map((t) => ({
+            date: t.date,
+            posting_date: t.posting_date,
+            description: t.description,
+            amount: t.amount,
+            type: t.type,
+            category_code: t.category_code,
+            payee_name: t.payee_name,
+            has_gst: t.has_gst,
+            gst_amount: t.gst_amount,
+            needs_review: t.needs_review,
+            review_reason: t.review_reason,
+            was_edited: t.changed,
+          })),
+        ),
+      );
+
+      const response = await fetch(
+        "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/parse-statement",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const saveResult = await response.json();
+
+      if (
+        (saveResult as Record<string, unknown>).success ||
+        (saveResult as Record<string, unknown>).inserted_count
+      ) {
+        const insertedCount =
+          (saveResult as Record<string, unknown>).inserted_count ||
+          allTransactions.length;
+
+        // Show success toast (requires toast implementation)
+        console.log(`✓ Saved ${insertedCount} transactions!`);
+
+        // Reset state
+        setIsReviewing(false);
+        setParsedData(null);
+        setAllTransactions([]);
+        setSelectedFile(null);
+        setSelectedBankAccountId("");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+
+        // Show success result
+        setResult({
+          success: true,
+          account_info: {
+            account_holder:
+              (parsedData as Record<string, unknown>)?.account_info?.
+                account_holder || "",
+            account_number:
+              (parsedData as Record<string, unknown>)?.account_info?.
+                account_number || "",
+            statement_period:
+              (parsedData as Record<string, unknown>)?.account_info?.
+                statement_period || "",
+            opening_balance: 0,
+            closing_balance: 0,
+            currency: "CAD",
+          },
+          summary: {
+            total_credits: 0,
+            total_debits: 0,
+            transaction_count: allTransactions.length,
+            hitl_count: 0,
+            inserted_count: insertedCount as number,
+          },
+        });
+      } else {
+        setError(
+          (saveResult as Record<string, unknown>).error ||
+            "Failed to save transactions",
+        );
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to save transactions";
+      setError(errorMessage);
+      console.error("Save error:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
