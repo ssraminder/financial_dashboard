@@ -135,6 +135,52 @@ function StatusStep({ step, label, status, detail, isRetry }: StatusStepProps) {
   );
 }
 
+interface ProgressStepProps {
+  icon: typeof Loader2;
+  label: string;
+  detail?: string;
+  status: "pending" | "active" | "complete";
+}
+
+function ProgressStep({
+  icon: Icon,
+  label,
+  detail,
+  status,
+}: ProgressStepProps) {
+  const colors = {
+    pending: "text-gray-300",
+    active: "text-blue-600",
+    complete: "text-green-600",
+  };
+
+  return (
+    <div
+      className={`flex items-start gap-3 ${status === "pending" ? "opacity-50" : ""}`}
+    >
+      <Icon
+        className={`h-5 w-5 mt-0.5 ${colors[status]} ${status === "active" ? "animate-spin" : ""}`}
+      />
+      <div>
+        <p
+          className={`font-medium ${
+            status === "active"
+              ? "text-blue-700"
+              : status === "complete"
+                ? "text-green-700"
+                : "text-gray-400"
+          }`}
+        >
+          {label}
+        </p>
+        {detail && status === "active" && (
+          <p className="text-sm text-gray-500">{detail}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function StatCard({
   label,
   value,
