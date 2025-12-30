@@ -183,6 +183,27 @@ export default function Upload() {
     attempts: 0,
   });
 
+  const getStepStatus = (
+    step: number,
+  ): "pending" | "active" | "complete" | "error" => {
+    const stages = {
+      uploading: 1,
+      parsing: 2,
+      validating: 3,
+      correcting: 4,
+      saving: 5,
+      complete: 6,
+      error: 7,
+    };
+
+    const currentStage = (stages as Record<string, number>)[processingStatus.stage] || 0;
+
+    if (processingStatus.stage === "error") return "error";
+    if (step < currentStage) return "complete";
+    if (step === currentStage) return "active";
+    return "pending";
+  };
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
