@@ -425,6 +425,7 @@ export default function Upload() {
     setError(null);
     setResult(null);
     setBalanceError(null);
+    setEditableTransactions([]);
 
     // Stage 1: Uploading
     setProcessingStatus({
