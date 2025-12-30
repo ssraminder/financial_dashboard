@@ -28,6 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   AlertCircle,
+  Calendar,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -37,6 +38,7 @@ import {
   Loader2,
   Pencil,
   Search,
+  X as XIcon,
 } from "lucide-react";
 import { format, subDays } from "date-fns";
 
