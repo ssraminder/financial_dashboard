@@ -245,14 +245,16 @@ export default function Upload() {
   };
 
   const toggleTransactionType = (index: number) => {
-    setEditableTransactions((prev) =>
+    setAllTransactions((prev) =>
       prev.map((t, i) => {
         if (i === index) {
           const newType = (t.type as string) === "credit" ? "debit" : "credit";
           return {
             ...t,
             type: newType,
-            changed: newType !== (t.original_type as string),
+            changed:
+              newType !== (t.original_type as string) ||
+              (t.amount as number) !== (t.original_amount as number),
           };
         }
         return t;
