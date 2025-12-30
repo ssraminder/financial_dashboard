@@ -553,7 +553,10 @@ export default function Upload() {
       // Brief pause to show completion
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (data.success && (data as Record<string, unknown>).action === "review") {
+      if (
+        data.success &&
+        (data as Record<string, unknown>).action === "review"
+      ) {
         // Enter two-step review flow
         setParsedData(data);
         setAllTransactions(
@@ -591,8 +594,7 @@ export default function Upload() {
       }
     } catch (err) {
       setUploadStage("error");
-      const errorMessage =
-        err instanceof Error ? err.message : "Upload failed";
+      const errorMessage = err instanceof Error ? err.message : "Upload failed";
       setStatusMessage("Upload failed");
       setStatusDetail(errorMessage);
       console.error("Upload error:", err);
