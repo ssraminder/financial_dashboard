@@ -440,7 +440,8 @@ export default function ReviewQueue() {
     resetForm();
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
+    if (amount === undefined || amount === null) return "$0.00";
     return new Intl.NumberFormat("en-CA", {
       style: "currency",
       currency: "CAD",
