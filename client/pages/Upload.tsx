@@ -24,6 +24,9 @@ import {
   TrendingUp,
   AlertTriangle,
   Package,
+  Circle,
+  XCircle,
+  RefreshCw,
 } from "lucide-react";
 
 interface BankAccount {
