@@ -306,6 +306,7 @@ export default function Upload() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setBalanceError(null);
 
     // Stage 1: Uploading
     setProcessingStatus({
