@@ -818,6 +818,104 @@ export default function Upload() {
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
+
+                {/* Balance Mismatch Error Details */}
+                {balanceError?.reconciliation && (
+                  <div className="mt-4 space-y-4">
+                    {(balanceError.reconciliation as Record<string, unknown>)
+                      .first_error && (
+                      <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+                        <h4 className="font-bold text-yellow-800 mb-2">
+                          🎯 Error Located:{" "}
+                          {
+                            (
+                              (balanceError.reconciliation as Record<string, unknown>)
+                                .first_error as Record<string, unknown>
+                            ).date
+                          }
+                        </h4>
+                        <p className="text-sm text-yellow-700">
+                          Transaction:{" "}
+                          {
+                            (
+                              (balanceError.reconciliation as Record<string, unknown>)
+                                .first_error as Record<string, unknown>
+                            ).transaction
+                          }
+                        </p>
+                        <div className="mt-2 text-sm space-y-1">
+                          <p>
+                            Expected balance: $
+                            {(
+                              (
+                                (balanceError.reconciliation as Record<string, unknown>)
+                                  .first_error as Record<string, unknown>
+                              ).expected as number
+                            ).toFixed(2)}
+                          </p>
+                          <p>
+                            Calculated: $
+                            {(
+                              (
+                                (balanceError.reconciliation as Record<string, unknown>)
+                                  .first_error as Record<string, unknown>
+                              ).calculated as number
+                            ).toFixed(2)}
+                          </p>
+                          <p className="font-bold text-red-600">
+                            Off by: $
+                            {Math.abs(
+                              (
+                                (
+                                  (balanceError.reconciliation as Record<string, unknown>)
+                                    .first_error as Record<string, unknown>
+                                ).difference as number
+                              ) || 0,
+                            ).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {(balanceError.reconciliation as Record<string, unknown>)
+                      .suspect_transactions &&
+                      (
+                        (balanceError.reconciliation as Record<string, unknown>)
+                          .suspect_transactions as Array<Record<string, unknown>>
+                      ).length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-gray-700 mb-2">
+                            Transactions to verify:
+                          </h4>
+                          <div className="space-y-2">
+                            {(
+                              (balanceError.reconciliation as Record<string, unknown>)
+                                .suspect_transactions as Array<Record<string, unknown>>
+                            ).map((t, i) => (
+                              <div
+                                key={i}
+                                className="flex justify-between text-sm bg-white p-2 rounded border"
+                              >
+                                <span>
+                                  {t.date as string} - {t.description as string}
+                                </span>
+                                <span
+                                  className={
+                                    t.type === "credit"
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }
+                                >
+                                  {t.type === "credit" ? "+" : "-"}$
+                                  {(t.amount as number).toFixed(2)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
