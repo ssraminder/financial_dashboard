@@ -908,6 +908,230 @@ export default function Upload() {
             </div>
           )}
 
+          {/* Review Screen */}
+          {isReviewing && parsedData && (
+            <div className="space-y-6 mb-8">
+              {/* Status Header */}
+              <div
+                className={`rounded-lg p-4 mb-6 border ${
+                  (parsedData as Record<string, unknown>).status === "balanced"
+                    ? "bg-green-100 border-green-300"
+                    : (parsedData as Record<string, unknown>).status ===
+                        "unbalanced"
+                      ? "bg-yellow-100 border-yellow-300"
+                      : "bg-blue-100 border-blue-300"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {(parsedData as Record<string, unknown>).status ===
+                    "balanced" && (
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  )}
+                  {(parsedData as Record<string, unknown>).status ===
+                    "unbalanced" && (
+                    <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                  )}
+                  {(parsedData as Record<string, unknown>).status ===
+                    "no_balance_check" && (
+                    <FileText className="h-6 w-6 text-blue-600" />
+                  )}
+
+                  <div className="flex-1">
+                    <h3
+                      className={`font-bold ${
+                        (parsedData as Record<string, unknown>).status ===
+                        "balanced"
+                          ? "text-green-800"
+                          : (parsedData as Record<string, unknown>).status ===
+                              "unbalanced"
+                            ? "text-yellow-800"
+                            : "text-blue-800"
+                      }`}
+                    >
+                      {(parsedData as Record<string, unknown>).status ===
+                        "balanced" && "Balance Verified ✓"}
+                      {(parsedData as Record<string, unknown>).status ===
+                        "unbalanced" &&
+                        "Balance Mismatch - Review Required"}
+                      {(parsedData as Record<string, unknown>).status ===
+                        "no_balance_check" &&
+                        "Credit Card Statement - Review Transactions"}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {(parsedData as Record<string, unknown>)
+                        .status_message || ""}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Info Card */}
+              <Card>
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Statement Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Account Holder
+                      </p>
+                      <p className="font-semibold text-lg">
+                        {(
+                          (parsedData as Record<string, unknown>)
+                            .account_info as Record<string, unknown>
+                        )?.account_holder || "Unknown"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Account Number
+                      </p>
+                      <p className="font-semibold text-lg">
+                        ••••
+                        {(
+                          (parsedData as Record<string, unknown>)
+                            .account_info as Record<string, unknown>
+                        )?.account_number || "****"}
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-sm text-muted-foreground">
+                        Statement Period
+                      </p>
+                      <p className="font-semibold text-lg">
+                        {(
+                          (parsedData as Record<string, unknown>)
+                            .account_info as Record<string, unknown>
+                        )?.statement_period || "Unknown"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Opening Balance
+                        </p>
+                        <p className="text-lg font-semibold">
+                          $
+                          {(
+                            (
+                              (parsedData as Record<string, unknown>)
+                                .account_info as Record<string, unknown>
+                            )?.opening_balance as number
+                          )?.toFixed(2) || "0.00"}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Closing Balance
+                        </p>
+                        <p className="text-lg font-semibold">
+                          $
+                          {(
+                            (
+                              (parsedData as Record<string, unknown>)
+                                .account_info as Record<string, unknown>
+                            )?.closing_balance as number
+                          )?.toFixed(2) || "0.00"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Summary Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Transaction Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <StatCard
+                      label="Total Transactions"
+                      value={allTransactions.length}
+                      icon={<Package className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <StatCard
+                      label="Total Credits"
+                      value={`$${allTransactions
+                        .filter((t) => (t.type as string) === "credit")
+                        .reduce((sum, t) => sum + ((t.amount as number) || 0), 0)
+                        .toFixed(2)}`}
+                      icon={<TrendingUp className="h-6 w-6" />}
+                      color="green"
+                    />
+                    <StatCard
+                      label="Total Debits"
+                      value={`$${allTransactions
+                        .filter((t) => (t.type as string) === "debit")
+                        .reduce((sum, t) => sum + ((t.amount as number) || 0), 0)
+                        .toFixed(2)}`}
+                      icon={<TrendingUp className="h-6 w-6" />}
+                      color="purple"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleSaveTransactions}
+                  disabled={isSaving}
+                  size="lg"
+                  className={`flex-1 text-white ${
+                    (parsedData as Record<string, unknown>).status ===
+                    "balanced"
+                      ? "bg-green-600 hover:bg-green-700"
+                      : (parsedData as Record<string, unknown>).status ===
+                          "unbalanced"
+                        ? "bg-yellow-600 hover:bg-yellow-700"
+                        : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Confirm & Save {allTransactions.length} Transactions
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsReviewing(false);
+                    setParsedData(null);
+                    setAllTransactions([]);
+                    setSelectedFile(null);
+                    setSelectedBankAccountId("");
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = "";
+                    }
+                  }}
+                  disabled={isSaving}
+                  size="lg"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Results Display */}
           {result?.success && (
             <div className="space-y-6 mb-8">
