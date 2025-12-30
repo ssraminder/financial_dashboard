@@ -609,56 +609,66 @@ export default function ReviewQueue() {
                 </CardHeader>
 
                 <CardContent className="pt-8 space-y-8">
-                  {/* AI Suggestion Section */}
+                  {/* AI Suggestion Section - Enhanced */}
                   {currentTransaction.ai_reasoning && (
-                    <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        <h3 className="font-semibold text-blue-900 dark:text-blue-100">
-                          AI's Suggestion
-                        </h3>
-                      </div>
-
-                      <div className="space-y-3">
-                        {currentTransaction.ai_confidence_score !== null && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                              Confidence
-                            </span>
-                            {getConfidenceBadge(
-                              currentTransaction.ai_confidence_score,
-                            )}
+                    <Card className="border-2 border-yellow-300 bg-gradient-to-br from-yellow-50 to-amber-50">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-yellow-200 rounded-lg">
+                              <Zap className="h-5 w-5 text-yellow-700" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-base">AI's Suggestion</CardTitle>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Based on transaction analysis
+                              </p>
+                            </div>
                           </div>
-                        )}
-
-                        <div className="mb-2">
-                          <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                            Suggested Category:{" "}
-                          </span>
-                          <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                          {currentTransaction.ai_confidence_score !== null && (
+                            getConfidenceBadge(currentTransaction.ai_confidence_score)
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Suggested Category - Prominent */}
+                        <div className="bg-white rounded-lg p-4 border-2 border-yellow-200">
+                          <p className="text-xs font-semibold text-muted-foreground mb-1">
+                            SUGGESTED CATEGORY
+                          </p>
+                          <p className="text-xl font-bold text-primary">
                             {currentTransaction.ai_suggested_category?.name ||
                               "Unable to determine"}
-                          </span>
+                          </p>
                         </div>
 
-                        <div>
-                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                            Reasoning:
+                        {/* AI Reasoning */}
+                        <div className="space-y-2">
+                          <p className="text-sm font-semibold text-gray-900">
+                            Why this category?
                           </p>
-                          <p className="text-sm text-blue-800 dark:text-blue-200">
+                          <div className="bg-white rounded-lg p-4 text-sm leading-relaxed">
                             {currentTransaction.ai_reasoning}
-                          </p>
+                          </div>
                         </div>
 
+                        {/* Accept Button */}
                         <Button
                           onClick={handleAcceptSuggestion}
-                          className="w-full bg-green-600 hover:bg-green-700 text-white mt-3"
+                          className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold h-10 gap-2"
+                          disabled={
+                            !currentTransaction.ai_suggested_category?.id ||
+                            approvingId !== null
+                          }
                         >
-                          <Check className="h-4 w-4 mr-2" />
-                          Accept Suggestion
+                          <Check className="h-5 w-5" />
+                          Accept AI Suggestion
+                          <kbd className="ml-2 px-2 py-1 text-xs bg-white/20 rounded">
+                            Alt+A
+                          </kbd>
                         </Button>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   )}
 
                   {/* Your Decision Section */}
