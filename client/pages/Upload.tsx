@@ -251,22 +251,17 @@ export default function Upload() {
     string,
     unknown
   > | null>(null);
-  const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({
-    stage: "",
-    message: "",
-    details: "",
-    progress: 0,
-    attempts: 0,
-  });
+  const [uploadStage, setUploadStage] = useState<
+    "idle" | "uploading" | "processing" | "complete" | "error"
+  >("idle");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusDetail, setStatusDetail] = useState("");
   const [editableTransactions, setEditableTransactions] = useState<
     Array<
       Record<string, unknown> & { original_type?: string; changed?: boolean }
     >
   >([]);
   const [isRevalidating, setIsRevalidating] = useState(false);
-  const [processingStage, setProcessingStage] = useState(0);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [statusDetail, setStatusDetail] = useState("");
   const [parsedData, setParsedData] = useState<Record<string, unknown> | null>(
     null,
   );
