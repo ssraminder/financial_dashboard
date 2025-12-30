@@ -57,6 +57,9 @@ interface ParseStatementResult {
     gst_amount?: number;
     needs_review?: boolean;
     review_reason?: string;
+    running_balance?: number;
+    is_credit_card?: boolean;
+    is_suspect?: boolean;
   }>;
   account_info?: {
     account_holder: string;
