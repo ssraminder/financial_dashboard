@@ -546,28 +546,64 @@ export default function ReviewQueue() {
               </div>
 
               {/* Transaction Card */}
-              <Card className="mb-8 border-2">
-                <CardHeader className="bg-muted/50 border-b">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        {format(
-                          new Date(
-                            currentTransaction.transaction_date ||
-                              currentTransaction.date,
-                          ),
-                          "MMM d, yyyy",
+              <Card className="mb-8 border-2 border-blue-200">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Badge variant="outline" className="bg-white">
+                            {format(
+                              new Date(
+                                currentTransaction.transaction_date ||
+                                  currentTransaction.date,
+                              ),
+                              "MMM d, yyyy",
+                            )}
+                          </Badge>
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                            {currentTransaction.bank_accounts?.bank_name || "Bank"}
+                          </Badge>
+                        </div>
+                        <h2 className="text-2xl font-bold mt-1">
+                          {currentTransaction.description}
+                        </h2>
+                        {currentTransaction.payee_name && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Payee: <span className="font-medium">{currentTransaction.payee_name}</span>
+                          </p>
                         )}
                       </div>
-                      <h2 className="text-2xl font-bold mt-1">
-                        {currentTransaction.description}
-                      </h2>
-                      <div className="text-lg font-semibold mt-2">
-                        {formatCurrency(currentTransaction.amount)}
+                      <div className="text-right">
+                        <p className="text-3xl font-bold">
+                          {formatCurrency(currentTransaction.amount)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {currentTransaction.amount < 0 ? "Expense" : "Income"}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground text-right">
-                      {currentTransaction.bank_accounts?.name}
+
+                    {/* Quick Info Bar */}
+                    <div className="grid grid-cols-3 gap-4 text-sm bg-white rounded-lg p-3">
+                      <div>
+                        <p className="text-muted-foreground">Account</p>
+                        <p className="font-medium">
+                          {currentTransaction.bank_accounts?.name}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Company</p>
+                        <p className="font-medium">
+                          {currentTransaction.companies?.name || "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Current Category</p>
+                        <p className="font-medium">
+                          {currentTransaction.categories?.name || "Uncategorized"}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
