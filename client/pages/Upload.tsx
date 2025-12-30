@@ -411,6 +411,13 @@ export default function Upload() {
     setSelectedFile(null);
     setSelectedBankAccountId("");
     setError(null);
+    setProcessingStatus({
+      stage: "",
+      message: "",
+      details: "",
+      progress: 0,
+      attempts: 0,
+    });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
