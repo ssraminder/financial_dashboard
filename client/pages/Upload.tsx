@@ -1348,8 +1348,8 @@ export default function Upload() {
             </Card>
           )}
 
-          {/* Upload Form - Hidden during processing */}
-          {!loading && !result?.success && !balanceError && (
+          {/* Upload Form - Hidden during processing or review */}
+          {!loading && !result?.success && !balanceError && !isReviewing && (
             <Card className="max-w-2xl">
               <CardHeader>
                 <div className="flex items-center gap-3">
