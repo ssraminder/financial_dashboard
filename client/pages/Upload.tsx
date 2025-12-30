@@ -348,7 +348,9 @@ export default function Upload() {
       const lastTransaction = allTransactions[allTransactions.length - 1];
       // Use the running_balance from the API if available
       if (lastTransaction.running_balance !== undefined) {
-        return Math.round((lastTransaction.running_balance as number) * 100) / 100;
+        return (
+          Math.round((lastTransaction.running_balance as number) * 100) / 100
+        );
       }
     }
     // Fallback to statement closing from parsed data
