@@ -103,14 +103,16 @@ export default function Transactions() {
 
   // Filter state
   const [fromDate, setFromDate] = useState(
-    format(subDays(new Date(), 30), "yyyy-MM-dd")
+    format(subDays(new Date(), 30), "yyyy-MM-dd"),
   );
   const [toDate, setToDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [selectedBankAccounts, setSelectedBankAccounts] = useState<string[]>([]);
+  const [selectedBankAccounts, setSelectedBankAccounts] = useState<string[]>(
+    [],
+  );
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showNeedsReview, setShowNeedsReview] = useState(
-    searchParams.get("filter") === "needs_review"
+    searchParams.get("filter") === "needs_review",
   );
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -138,7 +140,15 @@ export default function Transactions() {
       fetchTransactions();
       setCurrentPage(1);
     }
-  }, [fromDate, toDate, selectedBankAccounts, selectedCompanies, selectedCategories, showNeedsReview, searchTerm]);
+  }, [
+    fromDate,
+    toDate,
+    selectedBankAccounts,
+    selectedCompanies,
+    selectedCategories,
+    showNeedsReview,
+    searchTerm,
+  ]);
 
   const fetchFilterOptions = async () => {
     try {
@@ -183,7 +193,7 @@ export default function Transactions() {
           category:categories!transactions_category_id_fkey(id, code, name, category_type),
           bank_account:bank_accounts(id, name, nickname, bank_name),
           company:companies(id, name),
-          linked_transaction:transactions!linked_to(id, description, amount, transaction_date)`
+          linked_transaction:transactions!linked_to(id, description, amount, transaction_date)`,
         )
         .order("transaction_date", { ascending: false })
         .limit(500);
@@ -227,7 +237,7 @@ export default function Transactions() {
         filteredData = filteredData.filter(
           (t) =>
             t.description?.toLowerCase().includes(term) ||
-            t.payee_name?.toLowerCase().includes(term)
+            t.payee_name?.toLowerCase().includes(term),
         );
       }
 
@@ -251,21 +261,21 @@ export default function Transactions() {
   // Handle bank account toggle
   const toggleBankAccount = (id: string) => {
     setSelectedBankAccounts((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
   // Handle company toggle
   const toggleCompany = (id: string) => {
     setSelectedCompanies((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
   // Handle category toggle
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
@@ -297,7 +307,9 @@ export default function Transactions() {
       t.is_edited ? "Yes" : "No",
     ]);
 
-    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -457,9 +469,14 @@ export default function Transactions() {
                 <Checkbox
                   id="needs-review"
                   checked={showNeedsReview}
-                  onCheckedChange={(checked) => setShowNeedsReview(checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    setShowNeedsReview(checked as boolean)
+                  }
                 />
-                <label htmlFor="needs-review" className="text-sm cursor-pointer">
+                <label
+                  htmlFor="needs-review"
+                  className="text-sm cursor-pointer"
+                >
                   Show only transactions needing review
                 </label>
               </div>
@@ -469,9 +486,7 @@ export default function Transactions() {
           {/* Transactions Table */}
           <Card>
             <CardHeader>
-              <CardTitle>
-                Transactions ({transactions.length})
-              </CardTitle>
+              <CardTitle>Transactions ({transactions.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -491,7 +506,9 @@ export default function Transactions() {
                         <TableHead className="w-24">Date</TableHead>
                         <TableHead className="w-32">Payee</TableHead>
                         <TableHead className="w-48">Description</TableHead>
-                        <TableHead className="w-24 text-right">Amount</TableHead>
+                        <TableHead className="w-24 text-right">
+                          Amount
+                        </TableHead>
                         <TableHead className="w-32">Category</TableHead>
                         <TableHead className="w-24">Account</TableHead>
                         <TableHead className="w-20 text-right">GST</TableHead>
@@ -506,11 +523,16 @@ export default function Transactions() {
                         <TableRow
                           key={transaction.id}
                           className={
-                            transaction.needs_review ? "bg-orange-50 hover:bg-orange-100/50" : ""
+                            transaction.needs_review
+                              ? "bg-orange-50 hover:bg-orange-100/50"
+                              : ""
                           }
                         >
                           <TableCell className="font-medium">
-                            {format(new Date(transaction.transaction_date), "MMM dd")}
+                            {format(
+                              new Date(transaction.transaction_date),
+                              "MMM dd",
+                            )}
                           </TableCell>
                           <TableCell className="text-sm">
                             {transaction.payee_name || "—"}
@@ -540,13 +562,17 @@ export default function Transactions() {
                             {transaction.bank_account?.nickname || "—"}
                           </TableCell>
                           <TableCell className="text-right text-sm">
-                            {transaction.gst_amount && transaction.gst_amount > 0
+                            {transaction.gst_amount &&
+                            transaction.gst_amount > 0
                               ? `$${transaction.gst_amount.toFixed(2)}`
                               : "—"}
                           </TableCell>
                           <TableCell>
                             {transaction.needs_review && (
-                              <Badge variant="destructive" className="bg-orange-600">
+                              <Badge
+                                variant="destructive"
+                                className="bg-orange-600"
+                              >
                                 HITL
                               </Badge>
                             )}
@@ -565,7 +591,10 @@ export default function Transactions() {
                                 className="h-4 w-4 text-gray-600"
                                 title={`Edited: ${
                                   transaction.edited_at
-                                    ? format(new Date(transaction.edited_at), "MMM dd, HH:mm")
+                                    ? format(
+                                        new Date(transaction.edited_at),
+                                        "MMM dd, HH:mm",
+                                      )
                                     : ""
                                 }`}
                               />
@@ -602,7 +631,8 @@ export default function Transactions() {
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-6 pt-6 border-t">
                       <div className="text-sm text-muted-foreground">
-                        Page {currentPage} of {totalPages} ({transactions.length} total)
+                        Page {currentPage} of {totalPages} (
+                        {transactions.length} total)
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -620,7 +650,8 @@ export default function Transactions() {
                             (page) =>
                               page === 1 ||
                               page === totalPages ||
-                              (page >= currentPage - 1 && page <= currentPage + 1)
+                              (page >= currentPage - 1 &&
+                                page <= currentPage + 1),
                           )
                           .map((page, index, arr) => (
                             <div key={page}>
