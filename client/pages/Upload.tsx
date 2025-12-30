@@ -185,6 +185,7 @@ export default function Upload() {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ParseStatementResult | null>(null);
+  const [balanceError, setBalanceError] = useState<Record<string, unknown> | null>(null);
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({
     stage: "",
     message: "",
