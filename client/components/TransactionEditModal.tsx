@@ -220,7 +220,7 @@ export function TransactionEditModal({
               payee_name: payeeName,
             },
           }),
-        }
+        },
       );
 
       const result: AIResult = await response.json();
@@ -254,7 +254,9 @@ export function TransactionEditModal({
 
       const approvedKB = applyAll
         ? aiResults.knowledgebase_updates
-        : (aiResults.knowledgebase_updates || []).filter((_, i) => checkedKB[i]);
+        : (aiResults.knowledgebase_updates || []).filter(
+            (_, i) => checkedKB[i],
+          );
 
       const response = await fetch(
         "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/apply-recommendations",
@@ -266,7 +268,7 @@ export function TransactionEditModal({
             approved_recommendations: approvedRecs,
             knowledgebase_updates: approvedKB,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -327,14 +329,19 @@ export function TransactionEditModal({
                   <div>
                     <p className="text-sm text-muted-foreground">Date</p>
                     <p className="font-semibold">
-                      {format(new Date(transaction.transaction_date), "MMM d, yyyy")}
+                      {format(
+                        new Date(transaction.transaction_date),
+                        "MMM d, yyyy",
+                      )}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Amount</p>
                     <p
                       className={`font-semibold ${
-                        transaction.amount < 0 ? "text-red-600" : "text-green-600"
+                        transaction.amount < 0
+                          ? "text-red-600"
+                          : "text-green-600"
                       }`}
                     >
                       ${Math.abs(transaction.amount).toFixed(2)}
@@ -397,7 +404,9 @@ export function TransactionEditModal({
                     <Checkbox
                       id="has-gst"
                       checked={hasGst}
-                      onCheckedChange={(checked) => setHasGst(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setHasGst(checked as boolean)
+                      }
                     />
                     <Label htmlFor="has-gst" className="cursor-pointer">
                       Has GST
@@ -408,7 +417,9 @@ export function TransactionEditModal({
                       type="number"
                       step="0.01"
                       value={gstAmount}
-                      onChange={(e) => setGstAmount(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setGstAmount(parseFloat(e.target.value) || 0)
+                      }
                       placeholder="GST amount"
                     />
                   )}
