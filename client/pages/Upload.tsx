@@ -185,7 +185,10 @@ export default function Upload() {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ParseStatementResult | null>(null);
-  const [balanceError, setBalanceError] = useState<Record<string, unknown> | null>(null);
+  const [balanceError, setBalanceError] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({
     stage: "",
     message: "",
@@ -407,10 +410,19 @@ export default function Upload() {
           message: "Balance mismatch detected",
           details: `Off by $${Math.abs((data as Record<string, unknown>).reconciliation ? ((data as Record<string, unknown>).reconciliation as Record<string, unknown>).difference : 0).toFixed(2)}`,
           progress: 100,
-          attempts: (data as Record<string, unknown>).reconciliation ? ((data as Record<string, unknown>).reconciliation as Record<string, unknown>).attempts : 0,
+          attempts: (data as Record<string, unknown>).reconciliation
+            ? (
+                (data as Record<string, unknown>).reconciliation as Record<
+                  string,
+                  unknown
+                >
+              ).attempts
+            : 0,
         });
         setBalanceError(data);
-        setError("Balance mismatch detected. Please review the error details below.");
+        setError(
+          "Balance mismatch detected. Please review the error details below.",
+        );
       } else {
         setProcessingStatus({
           stage: "error",
@@ -831,8 +843,12 @@ export default function Upload() {
                           🎯 Error Located:{" "}
                           {
                             (
-                              (balanceError.reconciliation as Record<string, unknown>)
-                                .first_error as Record<string, unknown>
+                              (
+                                balanceError.reconciliation as Record<
+                                  string,
+                                  unknown
+                                >
+                              ).first_error as Record<string, unknown>
                             ).date
                           }
                         </h4>
@@ -840,8 +856,12 @@ export default function Upload() {
                           Transaction:{" "}
                           {
                             (
-                              (balanceError.reconciliation as Record<string, unknown>)
-                                .first_error as Record<string, unknown>
+                              (
+                                balanceError.reconciliation as Record<
+                                  string,
+                                  unknown
+                                >
+                              ).first_error as Record<string, unknown>
                             ).transaction
                           }
                         </p>
@@ -850,8 +870,12 @@ export default function Upload() {
                             Expected balance: $
                             {(
                               (
-                                (balanceError.reconciliation as Record<string, unknown>)
-                                  .first_error as Record<string, unknown>
+                                (
+                                  balanceError.reconciliation as Record<
+                                    string,
+                                    unknown
+                                  >
+                                ).first_error as Record<string, unknown>
                               ).expected as number
                             ).toFixed(2)}
                           </p>
@@ -859,20 +883,26 @@ export default function Upload() {
                             Calculated: $
                             {(
                               (
-                                (balanceError.reconciliation as Record<string, unknown>)
-                                  .first_error as Record<string, unknown>
+                                (
+                                  balanceError.reconciliation as Record<
+                                    string,
+                                    unknown
+                                  >
+                                ).first_error as Record<string, unknown>
                               ).calculated as number
                             ).toFixed(2)}
                           </p>
                           <p className="font-bold text-red-600">
                             Off by: $
                             {Math.abs(
-                              (
+                              ((
                                 (
-                                  (balanceError.reconciliation as Record<string, unknown>)
-                                    .first_error as Record<string, unknown>
-                                ).difference as number
-                              ) || 0,
+                                  balanceError.reconciliation as Record<
+                                    string,
+                                    unknown
+                                  >
+                                ).first_error as Record<string, unknown>
+                              ).difference as number) || 0,
                             ).toFixed(2)}
                           </p>
                         </div>
@@ -883,7 +913,9 @@ export default function Upload() {
                       .suspect_transactions &&
                       (
                         (balanceError.reconciliation as Record<string, unknown>)
-                          .suspect_transactions as Array<Record<string, unknown>>
+                          .suspect_transactions as Array<
+                          Record<string, unknown>
+                        >
                       ).length > 0 && (
                         <div>
                           <h4 className="font-medium text-gray-700 mb-2">
@@ -891,8 +923,14 @@ export default function Upload() {
                           </h4>
                           <div className="space-y-2">
                             {(
-                              (balanceError.reconciliation as Record<string, unknown>)
-                                .suspect_transactions as Array<Record<string, unknown>>
+                              (
+                                balanceError.reconciliation as Record<
+                                  string,
+                                  unknown
+                                >
+                              ).suspect_transactions as Array<
+                                Record<string, unknown>
+                              >
                             ).map((t, i) => (
                               <div
                                 key={i}
