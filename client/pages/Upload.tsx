@@ -1024,51 +1024,185 @@ export default function Upload() {
                       </div>
                     )}
 
-                    {(balanceError.reconciliation as Record<string, unknown>)
-                      .suspect_transactions &&
-                      (
-                        (balanceError.reconciliation as Record<string, unknown>)
-                          .suspect_transactions as Array<
-                          Record<string, unknown>
-                        >
-                      ).length > 0 && (
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">
-                            Transactions to verify:
+                    {editableTransactions.length > 0 && (
+                      <div className="mt-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold text-gray-800">
+                            🔧 Edit &amp; Resubmit Transactions
                           </h4>
-                          <div className="space-y-2">
-                            {(
-                              (
-                                balanceError.reconciliation as Record<
-                                  string,
-                                  unknown
+                          <p className="text-xs text-gray-500">
+                            Click on a transaction to flip Debit ↔ Credit
+                          </p>
+                        </div>
+
+                        {/* Editable Transaction List */}
+                        <div className="space-y-2 mb-4">
+                          {editableTransactions.map((t, i) => (
+                            <div
+                              key={i}
+                              onClick={() => toggleTransactionType(i)}
+                              className={`
+                            flex justify-between items-center p-3 rounded-lg border-2 cursor-pointer
+                            transition-all duration-200 hover:shadow-md
+                            ${
+                              (t.changed as boolean)
+                                ? "border-green-400 bg-green-50"
+                                : "border-gray-200 bg-white hover:border-blue-300"
+                            }
+                          `}
+                            >
+                              <div className="flex items-center gap-3">
+                                {/* Direction Toggle Button */}
+                                <button
+                                  className={`
+                                w-20 px-2 py-1 rounded text-xs font-bold transition-colors
+                                ${
+                                  (t.type as string) === "credit"
+                                    ? "bg-green-500 text-white"
+                                    : "bg-red-500 text-white"
+                                }
+                              `}
                                 >
-                              ).suspect_transactions as Array<
-                                Record<string, unknown>
-                              >
-                            ).map((t, i) => (
-                              <div
-                                key={i}
-                                className="flex justify-between text-sm bg-white p-2 rounded border"
-                              >
-                                <span>
-                                  {t.date as string} - {t.description as string}
-                                </span>
-                                <span
-                                  className={
-                                    t.type === "credit"
+                                  {(t.type as string) === "credit"
+                                    ? "↓ CREDIT"
+                                    : "↑ DEBIT"}
+                                </button>
+
+                                <div>
+                                  <p className="text-sm font-medium text-gray-800">
+                                    {t.description as string}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {t.date as string}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="text-right">
+                                <p
+                                  className={`font-bold ${
+                                    (t.type as string) === "credit"
                                       ? "text-green-600"
                                       : "text-red-600"
-                                  }
+                                  }`}
                                 >
-                                  {t.type === "credit" ? "+" : "-"}$
-                                  {(t.amount as number).toFixed(2)}
-                                </span>
+                                  {(t.type as string) === "credit"
+                                    ? "+"
+                                    : "-"}
+                                  $
+                                  {(
+                                    (t.amount as number) || 0
+                                  ).toLocaleString("en-CA", {
+                                    minimumFractionDigits: 2,
+                                  })}
+                                </p>
+                                {(t.changed as boolean) && (
+                                  <span className="text-xs text-green-600 font-medium">
+                                    ✓ Changed
+                                  </span>
+                                )}
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
                         </div>
-                      )}
+
+                        {/* Balance Preview */}
+                        <div className="bg-gray-100 rounded-lg p-4 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">
+                              Expected Closing Balance:
+                            </span>
+                            <span className="font-bold">
+                              $
+                              {(
+                                (balanceError.reconciliation as Record<
+                                  string,
+                                  unknown
+                                >).statement_closing as number
+                              ).toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="text-gray-600">
+                              After Your Corrections:
+                            </span>
+                            <span
+                              className={`font-bold ${
+                                Math.abs(
+                                  parseFloat(calculateNewBalance()) -
+                                    ((balanceError.reconciliation as Record<
+                                      string,
+                                      unknown
+                                    >).statement_closing as number),
+                                ) < 0.02
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              ${calculateNewBalance()}
+                            </span>
+                          </div>
+                          {Math.abs(
+                            parseFloat(calculateNewBalance()) -
+                              ((balanceError.reconciliation as Record<
+                                string,
+                                unknown
+                              >).statement_closing as number),
+                          ) < 0.02 && (
+                            <p className="text-green-600 text-sm mt-2 font-medium">
+                              ✓ This should balance!
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                          <Button
+                            onClick={handleResubmitWithCorrections}
+                            disabled={
+                              isRevalidating ||
+                              !editableTransactions.some(
+                                (t) => t.changed as boolean,
+                              )
+                            }
+                            className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                          >
+                            {isRevalidating ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Revalidating...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Resubmit with Corrections
+                              </>
+                            )}
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              // Reset to original
+                              setEditableTransactions(
+                                editableTransactions.map((t) => ({
+                                  ...t,
+                                  type: t.original_type,
+                                  changed: false,
+                                })),
+                              );
+                            }}
+                          >
+                            Reset
+                          </Button>
+                        </div>
+
+                        <p className="text-xs text-gray-500 mt-3 text-center">
+                          Click transactions to flip their direction, then
+                          resubmit to verify balance.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
