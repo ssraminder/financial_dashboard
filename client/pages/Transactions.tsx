@@ -270,26 +270,27 @@ export default function Transactions() {
 
   const totalPages = Math.ceil(transactions.length / itemsPerPage);
 
-  // Handle bank account toggle
-  const toggleBankAccount = (id: string) => {
-    setSelectedBankAccounts((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+  // Clear all filters
+  const clearFilters = () => {
+    setFromDate(format(subDays(new Date(), 30), "yyyy-MM-dd"));
+    setToDate(format(new Date(), "yyyy-MM-dd"));
+    setSelectedBankAccount("all");
+    setSelectedCompany("all");
+    setSelectedCategory("all");
+    setSelectedStatus("all");
+    setShowNeedsReview(false);
+    setSearchTerm("");
+    setCurrentPage(1);
   };
 
-  // Handle company toggle
-  const toggleCompany = (id: string) => {
-    setSelectedCompanies((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  };
-
-  // Handle category toggle
-  const toggleCategory = (id: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  };
+  // Count active filters
+  const activeFilterCount = [
+    selectedBankAccount !== "all",
+    selectedCompany !== "all",
+    selectedCategory !== "all",
+    selectedStatus !== "all",
+    showNeedsReview,
+  ].filter(Boolean).length;
 
   // Export CSV
   const exportCSV = () => {
