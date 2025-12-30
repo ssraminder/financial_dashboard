@@ -295,11 +295,29 @@ export default function Upload() {
     setError(null);
     setResult(null);
 
+    // Stage 1: Uploading
+    setProcessingStatus({
+      stage: "uploading",
+      message: "Uploading PDF to server...",
+      details: selectedFile.name,
+      progress: 10,
+      attempts: 0,
+    });
+
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("bank_account_id", selectedBankAccountId);
 
     try {
+      // Stage 2: Parsing
+      setProcessingStatus({
+        stage: "parsing",
+        message: "AI is reading the statement...",
+        details: "Extracting account info and transactions",
+        progress: 30,
+        attempts: 1,
+      });
+
       const response = await fetch(
         "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/parse-statement",
         {
@@ -308,9 +326,51 @@ export default function Upload() {
         },
       );
 
+      // Stage 3: Validating
+      setProcessingStatus((prev) => ({
+        ...prev,
+        stage: "validating",
+        message: "Checking balance calculation...",
+        details: "Opening + Credits - Debits = Closing",
+        progress: 60,
+      }));
+
       const data: ParseStatementResult = await response.json();
 
+      // Check if correction was needed
+      if (
+        data.success &&
+        (data as Record<string, unknown>).reconciliation &&
+        ((data as Record<string, unknown>).reconciliation as Record<string, unknown>).attempts > 1
+      ) {
+        const reconciliation = (data as Record<string, unknown>).reconciliation as Record<string, unknown>;
+        setProcessingStatus((prev) => ({
+          ...prev,
+          stage: "correcting",
+          message: `AI self-corrected (${reconciliation.attempts} attempts)`,
+          details: "Found and fixed transaction direction errors",
+          progress: 80,
+          attempts: (reconciliation.attempts as number) || 1,
+        }));
+
+        // Brief pause to show correction status
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
       if (data.success) {
+        // Stage 5: Complete
+        setProcessingStatus({
+          stage: "complete",
+          message: "Successfully processed!",
+          details: `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
+          progress: 100,
+          attempts:
+            ((data as Record<string, unknown>).reconciliation as Record<string, unknown>)?.attempts || 1,
+        });
+
+        // Brief pause to show success
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         setResult(data);
         setSelectedFile(null);
         setSelectedBankAccountId("");
@@ -318,11 +378,27 @@ export default function Upload() {
           fileInputRef.current.value = "";
         }
       } else {
+        setProcessingStatus({
+          stage: "error",
+          message: "Processing failed",
+          details: data.error || "Unknown error",
+          progress: 100,
+          attempts: 0,
+        });
         setError(
           data.error || "Failed to process statement. Please try again.",
         );
       }
     } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error";
+      setProcessingStatus({
+        stage: "error",
+        message: "Upload failed",
+        details: errorMessage,
+        progress: 0,
+        attempts: 0,
+      });
       console.error("Upload error:", err);
       setError("Upload failed. Please check your file and try again.");
     } finally {
