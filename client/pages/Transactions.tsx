@@ -214,18 +214,23 @@ export default function Transactions() {
       }
 
       // Apply bank account filter
-      if (selectedBankAccounts.length > 0) {
-        query = query.in("bank_account_id", selectedBankAccounts);
+      if (selectedBankAccount !== "all") {
+        query = query.eq("bank_account_id", selectedBankAccount);
       }
 
       // Apply company filter
-      if (selectedCompanies.length > 0) {
-        query = query.in("company_id", selectedCompanies);
+      if (selectedCompany !== "all") {
+        query = query.eq("company_id", selectedCompany);
       }
 
       // Apply category filter
-      if (selectedCategories.length > 0) {
-        query = query.in("category_id", selectedCategories);
+      if (selectedCategory !== "all") {
+        query = query.eq("category_id", selectedCategory);
+      }
+
+      // Apply status filter
+      if (selectedStatus !== "all") {
+        query = query.eq("status", selectedStatus);
       }
 
       // Apply needs review filter
