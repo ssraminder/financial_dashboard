@@ -223,6 +223,98 @@ export default function Upload() {
     return "pending";
   };
 
+  const toggleTransactionType = (index: number) => {
+    setEditableTransactions((prev) =>
+      prev.map((t, i) => {
+        if (i === index) {
+          const newType = (t.type as string) === "credit" ? "debit" : "credit";
+          return {
+            ...t,
+            type: newType,
+            changed: newType !== (t.original_type as string),
+          };
+        }
+        return t;
+      }),
+    );
+  };
+
+  const calculateNewBalance = (): string => {
+    if (!balanceError?.reconciliation) return "0.00";
+
+    const reconciliation = balanceError.reconciliation as Record<
+      string,
+      unknown
+    >;
+    let balance = (reconciliation.statement_opening as number) || 0;
+
+    editableTransactions.forEach((t) => {
+      const amount = (t.amount as number) || 0;
+      if ((t.type as string) === "credit") {
+        balance += amount;
+      } else {
+        balance -= amount;
+      }
+    });
+
+    return balance.toFixed(2);
+  };
+
+  const handleResubmitWithCorrections = async () => {
+    if (!selectedFile || !selectedBankAccountId) return;
+
+    setIsRevalidating(true);
+
+    // Get the corrections (transactions that were flipped)
+    const corrections = editableTransactions
+      .filter((t) => (t.type as string) !== (t.original_type as string))
+      .map((t) => ({
+        description: t.description as string,
+        date: t.date as string,
+        amount: t.amount as number,
+        corrected_type: t.type as string,
+      }));
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("bank_account_id", selectedBankAccountId);
+    formData.append("corrections", JSON.stringify(corrections));
+
+    try {
+      const response = await fetch(
+        "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/parse-statement",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const result: ParseStatementResult = await response.json();
+
+      if (result.success) {
+        setBalanceError(null);
+        setEditableTransactions([]);
+        setResult(result);
+        setSelectedFile(null);
+        setSelectedBankAccountId("");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      } else if (result.error === "BALANCE_MISMATCH") {
+        // Still not balanced, update the error
+        setBalanceError(result);
+      } else {
+        setError(result.error || "Revalidation failed");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Revalidation failed";
+      setError(errorMessage);
+    }
+
+    setIsRevalidating(false);
+  };
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
