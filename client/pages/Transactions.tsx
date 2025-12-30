@@ -375,125 +375,137 @@ export default function Transactions() {
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Date Range */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="from-date">From Date</Label>
+            <CardContent className="space-y-4">
+              {/* Main Filter Bar */}
+              <div className="flex flex-wrap gap-3 items-center">
+                <SearchableDropdown
+                  options={[
+                    { value: "all", label: "All Bank Accounts" },
+                    ...filterOptions.bankAccounts.map((acc) => ({
+                      value: acc.id,
+                      label: acc.name,
+                    })),
+                  ]}
+                  value={selectedBankAccount}
+                  onChange={setSelectedBankAccount}
+                  placeholder="Bank Account"
+                  className="w-[180px]"
+                />
+
+                <SearchableDropdown
+                  options={[
+                    { value: "all", label: "All Companies" },
+                    ...filterOptions.companies.map((c) => ({
+                      value: c.id,
+                      label: c.name,
+                    })),
+                  ]}
+                  value={selectedCompany}
+                  onChange={setSelectedCompany}
+                  placeholder="Company"
+                  className="w-[180px]"
+                />
+
+                <SearchableDropdown
+                  options={[
+                    { value: "all", label: "All Categories" },
+                    { value: "group-expense", label: "── Expenses ──", disabled: true },
+                    ...filterOptions.categories
+                      .filter((c) => c.category_type === "expense")
+                      .map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                        group: "expense",
+                      })),
+                    { value: "group-revenue", label: "── Revenue ──", disabled: true },
+                    ...filterOptions.categories
+                      .filter((c) => c.category_type === "revenue")
+                      .map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                        group: "revenue",
+                      })),
+                  ]}
+                  value={selectedCategory}
+                  onChange={setSelectedCategory}
+                  placeholder="Category"
+                  className="w-[180px]"
+                />
+
+                <SearchableDropdown
+                  options={[
+                    { value: "all", label: "All Statuses" },
+                    { value: "pending", label: "Pending" },
+                    { value: "auto_categorized", label: "Auto Categorized" },
+                    { value: "hitl_required", label: "Needs Review" },
+                    { value: "reviewed", label: "Reviewed" },
+                    { value: "exported", label: "Exported" },
+                  ]}
+                  value={selectedStatus}
+                  onChange={setSelectedStatus}
+                  placeholder="Status"
+                  className="w-[180px]"
+                />
+
+                {/* Date Range */}
+                <div className="flex gap-2 items-center">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="from-date"
                     type="date"
                     value={fromDate}
                     onChange={(e) => setFromDate(e.target.value)}
+                    className="w-[130px] text-sm"
+                    title="From date"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="to-date">To Date</Label>
+                  <span className="text-muted-foreground">to</span>
                   <Input
-                    id="to-date"
                     type="date"
                     value={toDate}
                     onChange={(e) => setToDate(e.target.value)}
+                    className="w-[130px] text-sm"
+                    title="To date"
                   />
                 </div>
+
+                {/* Clear Filters Button */}
+                {activeFilterCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <XIcon className="h-4 w-4 mr-1" />
+                    Clear ({activeFilterCount})
+                  </Button>
+                )}
               </div>
 
-              {/* Search */}
-              <div className="space-y-2">
-                <Label htmlFor="search">Search</Label>
-                <div className="relative">
+              {/* Search and Needs Review Row */}
+              <div className="flex gap-3 items-center">
+                <div className="relative flex-1 max-w-xs">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
                     placeholder="Search description or payee..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-9"
                   />
                 </div>
-              </div>
 
-              {/* Bank Accounts Filter */}
-              <div className="space-y-3">
-                <Label>Bank Accounts</Label>
-                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto">
-                  {filterOptions.bankAccounts.map((account) => (
-                    <div key={account.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`account-${account.id}`}
-                        checked={selectedBankAccounts.includes(account.id)}
-                        onCheckedChange={() => toggleBankAccount(account.id)}
-                      />
-                      <label
-                        htmlFor={`account-${account.id}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {account.nickname || account.name}
-                      </label>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="needs-review"
+                    checked={showNeedsReview}
+                    onCheckedChange={(checked) =>
+                      setShowNeedsReview(checked as boolean)
+                    }
+                  />
+                  <label htmlFor="needs-review" className="text-sm cursor-pointer">
+                    Needs review only
+                  </label>
                 </div>
-              </div>
-
-              {/* Companies Filter */}
-              <div className="space-y-3">
-                <Label>Companies</Label>
-                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto">
-                  {filterOptions.companies.map((company) => (
-                    <div key={company.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`company-${company.id}`}
-                        checked={selectedCompanies.includes(company.id)}
-                        onCheckedChange={() => toggleCompany(company.id)}
-                      />
-                      <label
-                        htmlFor={`company-${company.id}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {company.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Categories Filter */}
-              <div className="space-y-3">
-                <Label>Categories</Label>
-                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto">
-                  {filterOptions.categories.map((category) => (
-                    <div key={category.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`category-${category.id}`}
-                        checked={selectedCategories.includes(category.id)}
-                        onCheckedChange={() => toggleCategory(category.id)}
-                      />
-                      <label
-                        htmlFor={`category-${category.id}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {category.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Needs Review Toggle */}
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="needs-review"
-                  checked={showNeedsReview}
-                  onCheckedChange={(checked) =>
-                    setShowNeedsReview(checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="needs-review"
-                  className="text-sm cursor-pointer"
-                >
-                  Show only transactions needing review
-                </label>
               </div>
             </CardContent>
           </Card>
