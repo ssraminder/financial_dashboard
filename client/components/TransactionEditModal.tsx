@@ -294,11 +294,13 @@ export function TransactionEditModal({
           payee_pattern: kb.payee_pattern,
           category_code: kb.default_category,
           description: kb.notes || "",
+          original_transaction_id: transaction.id,
         });
       });
 
       const requestPayload = {
         transaction_id: transaction.id,
+        original_transaction_id: transaction.id,
         recommendations,
       };
 
