@@ -610,9 +610,10 @@ export default function Transactions() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() =>
-                                navigate(`/transactions/${transaction.id}`)
-                              }
+                              onClick={() => {
+                                setSelectedTransaction(transaction);
+                                setIsModalOpen(true);
+                              }}
                               title="Edit transaction"
                             >
                               <Edit className="h-4 w-4" />
