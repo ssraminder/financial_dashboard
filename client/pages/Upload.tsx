@@ -443,6 +443,7 @@ export default function Upload() {
     setSelectedFile(null);
     setSelectedBankAccountId("");
     setError(null);
+    setBalanceError(null);
     setProcessingStatus({
       stage: "",
       message: "",
