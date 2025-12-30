@@ -702,8 +702,7 @@ export default function Upload() {
   }
 
   const isFormValid = selectedFile && selectedBankAccountId;
-  const hasHitlItems =
-    (result?.summary?.hitl_count ?? 0) > 0;
+  const hasHitlItems = (result?.summary?.hitl_count ?? 0) > 0;
 
   return (
     <div className="flex h-screen bg-background">
