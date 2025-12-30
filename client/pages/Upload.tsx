@@ -891,6 +891,84 @@ export default function Upload() {
             </div>
           )}
 
+          {/* Progress Tracker - Shown only during processing */}
+          {loading && processingStage > 0 && (
+            <Card className="max-w-2xl">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                    Processing Statement
+                  </h2>
+
+                  {/* Show which file is being processed */}
+                  <div className="text-sm text-gray-500 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    {selectedFile?.name}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Progress Steps */}
+                <div className="space-y-4">
+                  <ProgressStep
+                    icon={CheckCircle}
+                    label="Uploading PDF"
+                    status={processingStage >= 1 ? "complete" : "pending"}
+                  />
+                  <ProgressStep
+                    icon={processingStage >= 2 ? CheckCircle : Loader2}
+                    label="AI Reading Statement"
+                    detail="Extracting transactions and balances..."
+                    status={
+                      processingStage >= 2
+                        ? "complete"
+                        : processingStage === 1
+                          ? "active"
+                          : "pending"
+                    }
+                  />
+                  <ProgressStep
+                    icon={processingStage >= 3 ? CheckCircle : Circle}
+                    label="Validating Balance"
+                    detail="Opening + Credits - Debits = Closing"
+                    status={
+                      processingStage >= 3
+                        ? "complete"
+                        : processingStage === 2
+                          ? "active"
+                          : "pending"
+                    }
+                  />
+                  <ProgressStep
+                    icon={processingStage >= 4 ? CheckCircle : Circle}
+                    label="Saving Transactions"
+                    status={
+                      processingStage >= 4
+                        ? "complete"
+                        : processingStage === 3
+                          ? "active"
+                          : "pending"
+                    }
+                  />
+                </div>
+
+                {/* Current status message */}
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-blue-700 font-medium">{statusMessage}</p>
+                  {statusDetail && (
+                    <p className="text-blue-500 text-sm mt-1">{statusDetail}</p>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-400 mt-4 text-center">
+                  This typically takes 30-60 seconds. Scanned PDFs may take
+                  longer.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Upload Form - Hidden during processing */}
           {!loading && !result?.success && !balanceError && (
             <Card className="max-w-2xl">
