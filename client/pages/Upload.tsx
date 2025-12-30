@@ -64,12 +64,65 @@ interface ParseStatementResult {
   error?: string;
 }
 
+interface ProcessingStatus {
+  stage: "" | "uploading" | "parsing" | "validating" | "correcting" | "saving" | "complete" | "error";
+  message: string;
+  details: string;
+  progress: number;
+  attempts: number;
+}
+
 interface StatCardProps {
   label: string;
   value: string | number;
   icon: React.ReactNode;
   highlight?: boolean;
   color?: "green" | "orange" | "blue" | "purple";
+}
+
+interface StatusStepProps {
+  step: number;
+  label: string;
+  status: "pending" | "active" | "complete" | "error";
+  detail?: string;
+  isRetry?: boolean;
+}
+
+function StatusStep({ step, label, status, detail, isRetry }: StatusStepProps) {
+  const icons = {
+    pending: <Circle className="h-5 w-5 text-gray-300" />,
+    active: <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />,
+    complete: <CheckCircle className="h-5 w-5 text-green-600" />,
+    error: <XCircle className="h-5 w-5 text-red-600" />,
+    retry: <RefreshCw className="h-5 w-5 text-orange-500 animate-spin" />,
+  };
+
+  return (
+    <div className={`flex items-start gap-3 ${status === "pending" ? "opacity-50" : ""}`}>
+      {isRetry ? icons.retry : icons[status]}
+      <div className="flex-1">
+        <p
+          className={`text-sm font-medium ${
+            status === "active"
+              ? "text-blue-700"
+              : status === "complete"
+                ? "text-green-700"
+                : status === "error"
+                  ? "text-red-700"
+                  : "text-gray-500"
+          }`}
+        >
+          {label}
+        </p>
+        {detail && status === "active" && (
+          <p className="text-xs text-gray-500">{detail}</p>
+        )}
+      </div>
+      {status === "complete" && (
+        <span className="text-xs text-green-600">✓</span>
+      )}
+    </div>
+  );
 }
 
 function StatCard({
