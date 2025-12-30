@@ -267,9 +267,9 @@ export default function Upload() {
   const [processingStage, setProcessingStage] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusDetail, setStatusDetail] = useState("");
-  const [parsedData, setParsedData] = useState<
-    Record<string, unknown> | null
-  >(null);
+  const [parsedData, setParsedData] = useState<Record<string, unknown> | null>(
+    null,
+  );
   const [allTransactions, setAllTransactions] = useState<
     Array<
       Record<string, unknown> & {
@@ -461,14 +461,14 @@ export default function Upload() {
           success: true,
           account_info: {
             account_holder:
-              (parsedData as Record<string, unknown>)?.account_info?.
-                account_holder || "",
+              (parsedData as Record<string, unknown>)?.account_info
+                ?.account_holder || "",
             account_number:
-              (parsedData as Record<string, unknown>)?.account_info?.
-                account_number || "",
+              (parsedData as Record<string, unknown>)?.account_info
+                ?.account_number || "",
             statement_period:
-              (parsedData as Record<string, unknown>)?.account_info?.
-                statement_period || "",
+              (parsedData as Record<string, unknown>)?.account_info
+                ?.statement_period || "",
             opening_balance: 0,
             closing_balance: 0,
             currency: "CAD",
@@ -967,15 +967,14 @@ export default function Upload() {
                       {(parsedData as Record<string, unknown>).status ===
                         "balanced" && "Balance Verified ✓"}
                       {(parsedData as Record<string, unknown>).status ===
-                        "unbalanced" &&
-                        "Balance Mismatch - Review Required"}
+                        "unbalanced" && "Balance Mismatch - Review Required"}
                       {(parsedData as Record<string, unknown>).status ===
                         "no_balance_check" &&
                         "Credit Card Statement - Review Transactions"}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {(parsedData as Record<string, unknown>)
-                        .status_message || ""}
+                      {(parsedData as Record<string, unknown>).status_message ||
+                        ""}
                     </p>
                   </div>
                 </div>
@@ -1080,7 +1079,10 @@ export default function Upload() {
                       label="Total Credits"
                       value={`$${allTransactions
                         .filter((t) => (t.type as string) === "credit")
-                        .reduce((sum, t) => sum + ((t.amount as number) || 0), 0)
+                        .reduce(
+                          (sum, t) => sum + ((t.amount as number) || 0),
+                          0,
+                        )
                         .toFixed(2)}`}
                       icon={<TrendingUp className="h-6 w-6" />}
                       color="green"
@@ -1089,7 +1091,10 @@ export default function Upload() {
                       label="Total Debits"
                       value={`$${allTransactions
                         .filter((t) => (t.type as string) === "debit")
-                        .reduce((sum, t) => sum + ((t.amount as number) || 0), 0)
+                        .reduce(
+                          (sum, t) => sum + ((t.amount as number) || 0),
+                          0,
+                        )
                         .toFixed(2)}`}
                       icon={<TrendingUp className="h-6 w-6" />}
                       color="purple"
