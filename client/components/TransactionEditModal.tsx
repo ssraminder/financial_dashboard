@@ -248,47 +248,114 @@ export function TransactionEditModal({
     setIsApplying(true);
 
     try {
+      // Get approved recommendations
       const approvedRecs = applyAll
         ? aiResults.recommendations
         : (aiResults.recommendations || []).filter((_, i) => checkedRecs[i]);
 
+      // Get approved KB updates
       const approvedKB = applyAll
         ? aiResults.knowledgebase_updates
         : (aiResults.knowledgebase_updates || []).filter(
             (_, i) => checkedKB[i],
           );
 
+      // Build recommendations array with proper type structure
+      const recommendations: Array<{
+        type: string;
+        [key: string]: unknown;
+      }> = [];
+
+      // Add recategorization recommendations
+      approvedRecs.forEach((rec) => {
+        if (rec.action === "recategorize") {
+          recommendations.push({
+            type: "recategorize",
+            new_category_code: rec.changes?.category_code || "",
+            new_payee_name: rec.changes?.payee_name || "",
+          });
+        } else if (rec.action === "link") {
+          recommendations.push({
+            type: "link_transactions",
+            target_transaction_id: rec.transaction_id || "",
+            reason: rec.reason || "",
+          });
+        }
+      });
+
+      // Add knowledgebase update recommendations
+      approvedKB.forEach((kb) => {
+        recommendations.push({
+          type: "knowledgebase_update",
+          payee_pattern: kb.payee_pattern,
+          category_code: kb.default_category,
+          description: kb.notes || "",
+        });
+      });
+
+      const requestPayload = {
+        transaction_id: transaction.id,
+        recommendations,
+      };
+
+      console.log(
+        "📤 Apply recommendations request payload:",
+        JSON.stringify(requestPayload, null, 2),
+      );
+
       const response = await fetch(
         "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/apply-recommendations",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            original_transaction_id: transaction.id,
-            approved_recommendations: approvedRecs,
-            knowledgebase_updates: approvedKB,
-          }),
+          body: JSON.stringify(requestPayload),
         },
       );
 
+      console.log("📥 Apply recommendations response status:", response.status);
+      console.log("📥 Apply recommendations response headers:", {
+        contentType: response.headers.get("content-type"),
+      });
+
       const result = await response.json();
 
+      console.log("📥 Apply recommendations response body:", result);
+
+      if (!response.ok) {
+        console.error("❌ Error response details:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error || result.message,
+          details: result,
+        });
+        throw new Error(
+          result.error || result.message || "Failed to apply recommendations",
+        );
+      }
+
       if (result.success) {
+        console.log("✅ Recommendations applied successfully");
         toast({
           title: "Success",
           description:
-            `Applied ${result.results.recategorizations_applied} changes, ` +
-            `${result.results.links_created} links, ` +
-            `${result.results.knowledgebase_entries_added} KB entries`,
+            `Applied ${result.results?.recategorizations_applied || 0} changes, ` +
+            `${result.results?.links_created || 0} links, ` +
+            `${result.results?.knowledgebase_entries_added || 0} KB entries`,
         });
         onSave();
         onClose();
       } else {
-        setError("Failed to apply recommendations");
+        console.error("❌ Recommendations apply failed:", result);
+        setError(result.error || "Failed to apply recommendations");
       }
     } catch (err) {
-      setError("Failed to apply recommendations");
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("❌ Apply recommendations error:", {
+        message: errorMessage,
+        error: err,
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+      setError(errorMessage);
     }
 
     setIsApplying(false);
