@@ -108,11 +108,10 @@ export default function Transactions() {
     format(subDays(new Date(), 30), "yyyy-MM-dd"),
   );
   const [toDate, setToDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [selectedBankAccounts, setSelectedBankAccounts] = useState<string[]>(
-    [],
-  );
-  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedBankAccount, setSelectedBankAccount] = useState("all");
+  const [selectedCompany, setSelectedCompany] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [showNeedsReview, setShowNeedsReview] = useState(
     searchParams.get("filter") === "needs_review",
   );
