@@ -639,18 +639,26 @@ export default function Upload() {
       ) {
         // Enter two-step review flow
         setParsedData(data);
-        setAllTransactions(
-          (
-            (data as Record<string, unknown>).transactions as Array<
-              Record<string, unknown>
-            >
-          ).map((t) => ({
-            ...t,
-            original_type: t.type,
-            original_amount: t.amount as number,
-            changed: false,
-          })),
-        );
+        const transactions = (
+          (data as Record<string, unknown>).transactions as Array<
+            Record<string, unknown>
+          >
+        ).map((t) => ({
+          ...t,
+          original_type: t.type,
+          original_amount: t.amount as number,
+          changed: false,
+        }));
+
+        // DEBUG: Log the actual values from API response
+        console.log("=== API RESPONSE TRANSACTIONS ===");
+        transactions.forEach((t, i) => {
+          if (i < 3) {
+            console.log(`[${i}] ${t.description}: running_balance=${t.running_balance}`);
+          }
+        });
+
+        setAllTransactions(transactions);
         setIsReviewing(true);
       } else if (data.success) {
         // Original flow - direct save
