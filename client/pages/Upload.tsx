@@ -202,6 +202,9 @@ export default function Upload() {
     >
   >([]);
   const [isRevalidating, setIsRevalidating] = useState(false);
+  const [processingStage, setProcessingStage] = useState(0);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusDetail, setStatusDetail] = useState("");
 
   const getStepStatus = (
     step: number,
