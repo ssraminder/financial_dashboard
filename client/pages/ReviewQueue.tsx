@@ -491,17 +491,40 @@ export default function ReviewQueue() {
             </Card>
           ) : currentTransaction ? (
             <>
-              {/* Progress */}
-              <div className="mb-6 flex items-center justify-between text-sm text-muted-foreground">
-                <span>
-                  Transaction{" "}
-                  {transactions.length -
-                    transactions.indexOf(currentTransaction)}{" "}
-                  of {transactions.length}
-                </span>
-                <div className="w-48 bg-muted rounded-full h-2">
+              {/* Enhanced Progress Header */}
+              <div className="mb-8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5 text-yellow-600" />
+                      Transaction{" "}
+                      {transactions.length -
+                        transactions.indexOf(currentTransaction)}{" "}
+                      of {transactions.length}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {transactions.length - transactions.indexOf(currentTransaction) === 1
+                        ? "Last transaction in queue"
+                        : `${transactions.length - transactions.indexOf(currentTransaction) - 1} more to go`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-primary">
+                      {Math.round(
+                        ((transactions.length -
+                          transactions.indexOf(currentTransaction)) /
+                          transactions.length) *
+                          100,
+                      )}%
+                    </p>
+                    <p className="text-xs text-muted-foreground">Complete</p>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full bg-muted rounded-full h-3">
                   <div
-                    className="bg-primary h-full rounded-full transition-all"
+                    className="bg-gradient-to-r from-blue-500 to-primary h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${
                         ((transactions.length -
@@ -511,6 +534,14 @@ export default function ReviewQueue() {
                       }%`,
                     }}
                   />
+                </div>
+
+                {/* Keyboard Shortcuts Hint */}
+                <div className="text-xs text-muted-foreground flex items-center justify-center gap-4">
+                  <span>💡 Keyboard shortcuts:</span>
+                  <span>Alt+A Accept</span>
+                  <span>Alt+S Save</span>
+                  <span>Alt+N Skip</span>
                 </div>
               </div>
 
