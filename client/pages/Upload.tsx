@@ -1153,9 +1153,10 @@ export default function Upload() {
                           {/* Running Balance */}
                           <div className="col-span-2 text-right text-gray-600">
                             $
-                            {runningBalance.toLocaleString("en-CA", {
-                              minimumFractionDigits: 2,
-                            })}
+                            {(t.running_balance as number)?.toFixed(2) ||
+                             runningBalance.toLocaleString("en-CA", {
+                               minimumFractionDigits: 2,
+                             })}
                           </div>
 
                           {/* Status */}
