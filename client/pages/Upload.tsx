@@ -710,6 +710,8 @@ export default function Upload() {
 
   const handleResetForm = () => {
     setResult(null);
+    setParsedData(null);
+    setAllTransactions([]);
     setSelectedFile(null);
     setSelectedBankAccountId("");
     setError(null);
