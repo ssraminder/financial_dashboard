@@ -671,16 +671,9 @@ export default function Upload() {
     setError(null);
     setBalanceError(null);
     setEditableTransactions([]);
-    setProcessingStage(0);
     setStatusMessage("");
     setStatusDetail("");
-    setProcessingStatus({
-      stage: "",
-      message: "",
-      details: "",
-      progress: 0,
-      attempts: 0,
-    });
+    setUploadStage("idle");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
