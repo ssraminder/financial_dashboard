@@ -214,6 +214,35 @@ export default function Upload() {
   >([]);
   const [isReviewing, setIsReviewing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+
+  // Transaction editing helpers
+  const startEditAmount = (index: number, amount: number) => {
+    setEditingIndex(index);
+    setEditAmount(amount.toString());
+  };
+
+  const saveAmount = (index: number) => {
+    const newAmount = parseFloat(editAmount);
+    if (!isNaN(newAmount) && newAmount > 0) {
+      setAllTransactions((prev) =>
+        prev.map((t, i) => {
+          if (i === index) {
+            return {
+              ...t,
+              amount: newAmount,
+              changed:
+                (t.type as string) !== (t.original_type as string) ||
+                newAmount !== (t.original_amount as number),
+            };
+          }
+          return t;
+        }),
+      );
+    }
+    setEditingIndex(null);
+  };
 
   const toggleTransactionType = (index: number) => {
     setEditableTransactions((prev) =>
