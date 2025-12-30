@@ -149,9 +149,10 @@ export default function Transactions() {
   }, [
     fromDate,
     toDate,
-    selectedBankAccounts,
-    selectedCompanies,
-    selectedCategories,
+    selectedBankAccount,
+    selectedCompany,
+    selectedCategory,
+    selectedStatus,
     showNeedsReview,
     searchTerm,
   ]);
