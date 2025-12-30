@@ -572,6 +572,7 @@ export default function Upload() {
     setSelectedBankAccountId("");
     setError(null);
     setBalanceError(null);
+    setEditableTransactions([]);
     setProcessingStatus({
       stage: "",
       message: "",
