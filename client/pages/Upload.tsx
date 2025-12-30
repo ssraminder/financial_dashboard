@@ -444,6 +444,79 @@ export default function Upload() {
             </p>
           </div>
 
+          {/* Processing Status Display */}
+          {loading && processingStatus.stage && (
+            <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Loader2 className="h-6 w-6 text-blue-600 animate-spin" />
+                <h3 className="text-lg font-semibold text-blue-800">
+                  Processing Statement
+                </h3>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-blue-100 rounded-full h-2 mb-4">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${processingStatus.progress}%` }}
+                />
+              </div>
+
+              {/* Status Steps */}
+              <div className="space-y-3">
+                <StatusStep
+                  step={1}
+                  label="Uploading PDF"
+                  status={getStepStatus(1)}
+                />
+                <StatusStep
+                  step={2}
+                  label="AI Reading Statement"
+                  status={getStepStatus(2)}
+                  detail="Extracting transactions and balances..."
+                />
+                <StatusStep
+                  step={3}
+                  label="Validating Balance"
+                  status={getStepStatus(3)}
+                  detail="Opening + Credits - Debits = Closing"
+                />
+                {processingStatus.attempts > 1 && (
+                  <StatusStep
+                    step={4}
+                    label={`Self-Correction (Attempt ${processingStatus.attempts})`}
+                    status={getStepStatus(4)}
+                    detail="AI re-checking transactions..."
+                    isRetry
+                  />
+                )}
+                <StatusStep
+                  step={5}
+                  label="Saving Transactions"
+                  status={getStepStatus(5)}
+                />
+              </div>
+
+              {/* Current Action Detail */}
+              <div className="mt-4 p-3 bg-white rounded border border-blue-100">
+                <p className="text-sm text-blue-700 font-medium">
+                  {processingStatus.message}
+                </p>
+                {processingStatus.details && (
+                  <p className="text-xs text-blue-500 mt-1">
+                    {processingStatus.details}
+                  </p>
+                )}
+              </div>
+
+              {/* Time Estimate */}
+              <p className="text-xs text-blue-400 mt-3 text-center">
+                This typically takes 30-60 seconds. Scanned PDFs may take
+                longer.
+              </p>
+            </div>
+          )}
+
           {/* Results Display */}
           {result?.success && (
             <div className="space-y-6 mb-8">
