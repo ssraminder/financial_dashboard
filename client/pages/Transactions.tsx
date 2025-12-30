@@ -695,6 +695,20 @@ export default function Transactions() {
           </Card>
         </div>
       </div>
+
+      {/* Transaction Edit Modal */}
+      <TransactionEditModal
+        transaction={selectedTransaction}
+        categories={filterOptions.categories}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTransaction(null);
+        }}
+        onSave={() => {
+          fetchTransactions();
+        }}
+      />
     </div>
   );
 }
