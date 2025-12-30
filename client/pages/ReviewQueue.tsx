@@ -25,6 +25,12 @@ import {
   Zap,
   Search,
   X,
+  ChevronRight,
+  ChevronLeft,
+  SkipForward,
+  TrendingUp,
+  Lightbulb,
+  FileText,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
