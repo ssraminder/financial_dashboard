@@ -197,7 +197,9 @@ export default function Upload() {
     attempts: 0,
   });
   const [editableTransactions, setEditableTransactions] = useState<
-    Array<Record<string, unknown> & { original_type?: string; changed?: boolean }>
+    Array<
+      Record<string, unknown> & { original_type?: string; changed?: boolean }
+    >
   >([]);
   const [isRevalidating, setIsRevalidating] = useState(false);
 
@@ -1088,15 +1090,13 @@ export default function Upload() {
                                       : "text-red-600"
                                   }`}
                                 >
-                                  {(t.type as string) === "credit"
-                                    ? "+"
-                                    : "-"}
-                                  $
-                                  {(
-                                    (t.amount as number) || 0
-                                  ).toLocaleString("en-CA", {
-                                    minimumFractionDigits: 2,
-                                  })}
+                                  {(t.type as string) === "credit" ? "+" : "-"}$
+                                  {((t.amount as number) || 0).toLocaleString(
+                                    "en-CA",
+                                    {
+                                      minimumFractionDigits: 2,
+                                    },
+                                  )}
                                 </p>
                                 {(t.changed as boolean) && (
                                   <span className="text-xs text-green-600 font-medium">
@@ -1117,10 +1117,12 @@ export default function Upload() {
                             <span className="font-bold">
                               $
                               {(
-                                (balanceError.reconciliation as Record<
-                                  string,
-                                  unknown
-                                >).statement_closing as number
+                                (
+                                  balanceError.reconciliation as Record<
+                                    string,
+                                    unknown
+                                  >
+                                ).statement_closing as number
                               ).toFixed(2)}
                             </span>
                           </div>
@@ -1132,10 +1134,12 @@ export default function Upload() {
                               className={`font-bold ${
                                 Math.abs(
                                   parseFloat(calculateNewBalance()) -
-                                    ((balanceError.reconciliation as Record<
-                                      string,
-                                      unknown
-                                    >).statement_closing as number),
+                                    ((
+                                      balanceError.reconciliation as Record<
+                                        string,
+                                        unknown
+                                      >
+                                    ).statement_closing as number),
                                 ) < 0.02
                                   ? "text-green-600"
                                   : "text-red-600"
@@ -1146,10 +1150,12 @@ export default function Upload() {
                           </div>
                           {Math.abs(
                             parseFloat(calculateNewBalance()) -
-                              ((balanceError.reconciliation as Record<
-                                string,
-                                unknown
-                              >).statement_closing as number),
+                              ((
+                                balanceError.reconciliation as Record<
+                                  string,
+                                  unknown
+                                >
+                              ).statement_closing as number),
                           ) < 0.02 && (
                             <p className="text-green-600 text-sm mt-2 font-medium">
                               ✓ This should balance!
