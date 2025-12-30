@@ -80,22 +80,6 @@ interface ParseStatementResult {
   error?: string;
 }
 
-interface ProcessingStatus {
-  stage:
-    | ""
-    | "uploading"
-    | "parsing"
-    | "validating"
-    | "correcting"
-    | "saving"
-    | "complete"
-    | "error";
-  message: string;
-  details: string;
-  progress: number;
-  attempts: number;
-}
-
 interface StatCardProps {
   label: string;
   value: string | number;
