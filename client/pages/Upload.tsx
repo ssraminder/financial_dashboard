@@ -553,7 +553,12 @@ export default function Upload() {
       }
 
       if (data.success) {
-        // Stage 5: Complete
+        // Stage 4: Complete
+        setProcessingStage(4);
+        setStatusMessage("Complete!");
+        setStatusDetail(
+          `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
+        );
         setProcessingStatus({
           stage: "complete",
           message: "Successfully processed!",
@@ -569,7 +574,7 @@ export default function Upload() {
         });
 
         // Brief pause to show success
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
         setResult(data);
         setSelectedFile(null);
