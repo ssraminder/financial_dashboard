@@ -397,6 +397,19 @@ export default function Upload() {
         ),
       );
 
+      // Include account_info from parsed response
+      if (parsedData?.account_info) {
+        formData.append(
+          "account_info",
+          JSON.stringify(parsedData.account_info),
+        );
+      }
+
+      // Include original file name
+      if (selectedFile) {
+        formData.append("file_name", selectedFile.name);
+      }
+
       const response = await fetch(
         "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/parse-statement",
         {
