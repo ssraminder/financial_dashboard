@@ -503,7 +503,9 @@ export default function ReviewQueue() {
                       of {transactions.length}
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {transactions.length - transactions.indexOf(currentTransaction) === 1
+                      {transactions.length -
+                        transactions.indexOf(currentTransaction) ===
+                      1
                         ? "Last transaction in queue"
                         : `${transactions.length - transactions.indexOf(currentTransaction) - 1} more to go`}
                     </p>
@@ -515,7 +517,8 @@ export default function ReviewQueue() {
                           transactions.indexOf(currentTransaction)) /
                           transactions.length) *
                           100,
-                      )}%
+                      )}
+                      %
                     </p>
                     <p className="text-xs text-muted-foreground">Complete</p>
                   </div>
@@ -561,8 +564,12 @@ export default function ReviewQueue() {
                               "MMM d, yyyy",
                             )}
                           </Badge>
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                            {currentTransaction.bank_accounts?.bank_name || "Bank"}
+                          <Badge
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-700"
+                          >
+                            {currentTransaction.bank_accounts?.bank_name ||
+                              "Bank"}
                           </Badge>
                         </div>
                         <h2 className="text-2xl font-bold mt-1">
@@ -570,7 +577,10 @@ export default function ReviewQueue() {
                         </h2>
                         {currentTransaction.payee_name && (
                           <p className="text-sm text-muted-foreground mt-1">
-                            Payee: <span className="font-medium">{currentTransaction.payee_name}</span>
+                            Payee:{" "}
+                            <span className="font-medium">
+                              {currentTransaction.payee_name}
+                            </span>
                           </p>
                         )}
                       </div>
@@ -599,9 +609,12 @@ export default function ReviewQueue() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Current Category</p>
+                        <p className="text-muted-foreground">
+                          Current Category
+                        </p>
                         <p className="font-medium">
-                          {currentTransaction.categories?.name || "Uncategorized"}
+                          {currentTransaction.categories?.name ||
+                            "Uncategorized"}
                         </p>
                       </div>
                     </div>
@@ -619,15 +632,18 @@ export default function ReviewQueue() {
                               <Zap className="h-5 w-5 text-yellow-700" />
                             </div>
                             <div>
-                              <CardTitle className="text-base">AI's Suggestion</CardTitle>
+                              <CardTitle className="text-base">
+                                AI's Suggestion
+                              </CardTitle>
                               <p className="text-sm text-muted-foreground mt-1">
                                 Based on transaction analysis
                               </p>
                             </div>
                           </div>
-                          {currentTransaction.ai_confidence_score !== null && (
-                            getConfidenceBadge(currentTransaction.ai_confidence_score)
-                          )}
+                          {currentTransaction.ai_confidence_score !== null &&
+                            getConfidenceBadge(
+                              currentTransaction.ai_confidence_score,
+                            )}
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -974,11 +990,17 @@ export default function ReviewQueue() {
                     {selectedCategoryId && (
                       <div className="text-sm text-green-700 bg-green-50 rounded-lg p-3 flex items-center gap-2">
                         <Check className="h-4 w-4" />
-                        Category selected: <span className="font-semibold">{selectedCategory?.name}</span>
+                        Category selected:{" "}
+                        <span className="font-semibold">
+                          {selectedCategory?.name}
+                        </span>
                         {vendorType !== "one-time" && (
                           <>
                             {" "}
-                            | Vendor: <span className="font-semibold">{vendorType === "regular" ? "Tracked" : "New"}</span>
+                            | Vendor:{" "}
+                            <span className="font-semibold">
+                              {vendorType === "regular" ? "Tracked" : "New"}
+                            </span>
                           </>
                         )}
                       </div>
