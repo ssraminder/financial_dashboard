@@ -256,6 +256,25 @@ export default function Upload() {
     }
   }, [user]);
 
+  // Populate editable transactions when balance error occurs
+  useEffect(() => {
+    if (
+      balanceError?.reconciliation &&
+      (balanceError.reconciliation as Record<string, unknown>)
+        .suspect_transactions
+    ) {
+      const suspects = (balanceError.reconciliation as Record<string, unknown>)
+        .suspect_transactions as Array<Record<string, unknown>>;
+      setEditableTransactions(
+        suspects.map((t) => ({
+          ...t,
+          original_type: t.type,
+          changed: false,
+        })),
+      );
+    }
+  }, [balanceError]);
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
