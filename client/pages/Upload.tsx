@@ -437,17 +437,7 @@ export default function Upload() {
         // Show success toast (requires toast implementation)
         console.log(`✓ Saved ${insertedCount} transactions!`);
 
-        // Reset state
-        setIsReviewing(false);
-        setParsedData(null);
-        setAllTransactions([]);
-        setSelectedFile(null);
-        setSelectedBankAccountId("");
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-
-        // Show success result
+        // Show success result FIRST with correct balances from parsedData
         setResult({
           success: true,
           account_info: {
@@ -460,8 +450,20 @@ export default function Upload() {
             statement_period:
               (parsedData as Record<string, unknown>)?.account_info
                 ?.statement_period || "",
-            opening_balance: 0,
-            closing_balance: 0,
+            opening_balance:
+              (
+                (parsedData as Record<string, unknown>)?.account_info as Record<
+                  string,
+                  unknown
+                >
+              )?.opening_balance || 0,
+            closing_balance:
+              (
+                (parsedData as Record<string, unknown>)?.account_info as Record<
+                  string,
+                  unknown
+                >
+              )?.closing_balance || 0,
             currency: "CAD",
           },
           summary: {
@@ -472,6 +474,15 @@ export default function Upload() {
             inserted_count: insertedCount as number,
           },
         });
+
+        // Reset form state but KEEP parsedData for display on success screen
+        setIsReviewing(false);
+        setAllTransactions([]);
+        setSelectedFile(null);
+        setSelectedBankAccountId("");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       } else {
         setError(
           (saveResult as Record<string, unknown>).error ||
