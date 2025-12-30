@@ -342,23 +342,24 @@ export default function Upload() {
     setIsRevalidating(false);
   };
 
-  // Calculate closing balance after user edits
+  // Get the closing balance from API (use last transaction's running_balance or statement closing)
   const calculatedClosing = useMemo(() => {
-    let balance =
+    if (allTransactions.length > 0) {
+      const lastTransaction = allTransactions[allTransactions.length - 1];
+      // Use the running_balance from the API if available
+      if (lastTransaction.running_balance !== undefined) {
+        return Math.round((lastTransaction.running_balance as number) * 100) / 100;
+      }
+    }
+    // Fallback to statement closing from parsed data
+    return (
       (
         (parsedData as Record<string, unknown>)?.validation as Record<
           string,
           unknown
         >
-      )?.statement_opening || 0;
-    allTransactions.forEach((t) => {
-      if ((t.type as string) === "credit") {
-        balance += t.amount as number;
-      } else {
-        balance -= t.amount as number;
-      }
-    });
-    return Math.round(balance * 100) / 100;
+      )?.statement_closing || 0
+    );
   }, [allTransactions, parsedData]);
 
   const statementClosing =
