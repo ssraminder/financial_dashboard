@@ -654,7 +654,12 @@ export default function Upload() {
         console.log("=== API RESPONSE TRANSACTIONS ===");
         transactions.forEach((t, i) => {
           if (i < 3) {
-            console.log(`[${i}] ${t.description}: running_balance=${t.running_balance}`);
+            console.log(`[${i}] ${t.description}:`, {
+              amount: t.amount,
+              type: t.type,
+              running_balance: t.running_balance,
+              keys: Object.keys(t)
+            });
           }
         });
 
