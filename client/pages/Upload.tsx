@@ -668,34 +668,74 @@ export default function Upload() {
       }
 
       if (data.success) {
-        // Stage 4: Complete
-        setProcessingStage(4);
-        setStatusMessage("Complete!");
-        setStatusDetail(
-          `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
-        );
-        setProcessingStatus({
-          stage: "complete",
-          message: "Successfully processed!",
-          details: `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
-          progress: 100,
-          attempts:
+        // Check if we should enter review mode or show results
+        if ((data as Record<string, unknown>).action === "review") {
+          // Enter two-step review flow
+          setProcessingStage(4);
+          setStatusMessage("Ready for Review");
+          setStatusDetail("Please verify the parsed transactions below");
+          setProcessingStatus({
+            stage: "complete",
+            message: "Successfully parsed!",
+            details: "Ready for review",
+            progress: 100,
+            attempts:
+              (
+                (data as Record<string, unknown>).reconciliation as Record<
+                  string,
+                  unknown
+                >
+              )?.attempts || 1,
+          });
+
+          // Brief pause to show completion
+          await new Promise((resolve) => setTimeout(resolve, 800));
+
+          // Set review mode with transactions
+          setParsedData(data);
+          setAllTransactions(
             (
-              (data as Record<string, unknown>).reconciliation as Record<
-                string,
-                unknown
+              (data as Record<string, unknown>).transactions as Array<
+                Record<string, unknown>
               >
-            )?.attempts || 1,
-        });
+            ).map((t) => ({
+              ...t,
+              original_type: t.type,
+              original_amount: t.amount as number,
+              changed: false,
+            })),
+          );
+          setIsReviewing(true);
+        } else {
+          // Original flow - direct save
+          setProcessingStage(4);
+          setStatusMessage("Complete!");
+          setStatusDetail(
+            `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
+          );
+          setProcessingStatus({
+            stage: "complete",
+            message: "Successfully processed!",
+            details: `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
+            progress: 100,
+            attempts:
+              (
+                (data as Record<string, unknown>).reconciliation as Record<
+                  string,
+                  unknown
+                >
+              )?.attempts || 1,
+          });
 
-        // Brief pause to show success
-        await new Promise((resolve) => setTimeout(resolve, 800));
+          // Brief pause to show success
+          await new Promise((resolve) => setTimeout(resolve, 800));
 
-        setResult(data);
-        setSelectedFile(null);
-        setSelectedBankAccountId("");
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
+          setResult(data);
+          setSelectedFile(null);
+          setSelectedBankAccountId("");
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
         }
       } else if (data.error === "BALANCE_MISMATCH") {
         setProcessingStatus({
