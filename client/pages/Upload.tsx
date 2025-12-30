@@ -967,6 +967,216 @@ export default function Upload() {
                 </CardContent>
               </Card>
 
+              {/* Transaction Review Table - MUST BE VISIBLE */}
+              {isReviewing && allTransactions.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-6">
+                  <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-800">
+                      Review Transactions ({allTransactions.length})
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Click type to flip direction • Double-click amount to edit
+                    </p>
+                  </div>
+
+                  {/* Table Header */}
+                  <div className="grid grid-cols-12 gap-2 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 uppercase border-b">
+                    <div className="col-span-1">Date</div>
+                    <div className="col-span-1">Type</div>
+                    <div className="col-span-5">Description</div>
+                    <div className="col-span-2 text-right">Amount</div>
+                    <div className="col-span-2 text-right">Balance</div>
+                    <div className="col-span-1 text-center">Edit</div>
+                  </div>
+
+                  {/* Opening Balance Row */}
+                  <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-gray-50 border-b text-sm">
+                    <div className="col-span-1 text-gray-400">-</div>
+                    <div className="col-span-1">-</div>
+                    <div className="col-span-5 font-medium text-gray-600">
+                      Opening Balance
+                    </div>
+                    <div className="col-span-2 text-right">-</div>
+                    <div className="col-span-2 text-right font-bold text-gray-800">
+                      $
+                      {(
+                        (
+                          (parsedData as Record<string, unknown>)
+                            ?.validation as Record<string, unknown>
+                        )?.statement_opening || 0
+                      ).toLocaleString("en-CA", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </div>
+                    <div className="col-span-1"></div>
+                  </div>
+
+                  {/* Transaction Rows */}
+                  <div className="max-h-96 overflow-y-auto">
+                    {allTransactions.map((t, index) => {
+                      // Calculate running balance
+                      let runningBalance =
+                        (
+                          (parsedData as Record<string, unknown>)
+                            ?.validation as Record<string, unknown>
+                        )?.statement_opening || 0;
+                      for (let i = 0; i <= index; i++) {
+                        const txn = allTransactions[i];
+                        if ((txn.type as string) === "credit") {
+                          runningBalance += (txn.amount as number);
+                        } else {
+                          runningBalance -= (txn.amount as number);
+                        }
+                      }
+
+                      return (
+                        <div
+                          key={index}
+                          className={`grid grid-cols-12 gap-2 px-4 py-2 border-b text-sm items-center transition-colors
+                            ${
+                              (t.is_suspect as boolean)
+                                ? "bg-blue-50 border-l-4 border-l-blue-500"
+                                : "hover:bg-gray-50"
+                            }
+                            ${(t.changed as boolean) ? "bg-yellow-50" : ""}
+                          `}
+                        >
+                          {/* Date */}
+                          <div className="col-span-1 text-gray-500 text-xs">
+                            {(t.date as string)?.substring(5) || "-"}
+                          </div>
+
+                          {/* Type Toggle */}
+                          <div className="col-span-1">
+                            <button
+                              onClick={() => toggleTransactionType(index)}
+                              className={`px-2 py-1 rounded text-xs font-bold transition-all hover:scale-105
+                                ${
+                                  (t.type as string) === "credit"
+                                    ? "bg-green-500 hover:bg-green-600 text-white"
+                                    : "bg-red-500 hover:bg-red-600 text-white"
+                                }
+                              `}
+                            >
+                              {(t.type as string) === "credit" ? "↓ IN" : "↑ OUT"}
+                            </button>
+                          </div>
+
+                          {/* Description */}
+                          <div className="col-span-5 truncate">
+                            <span
+                              className={
+                                (t.is_suspect as boolean)
+                                  ? "font-medium text-blue-800"
+                                  : "text-gray-800"
+                              }
+                            >
+                              {t.description as string}
+                            </span>
+                            {(t.is_suspect as boolean) && (
+                              <span className="ml-2 text-xs bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded">
+                                Check
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Amount */}
+                          <div className="col-span-2 text-right">
+                            {editingIndex === index ? (
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={editAmount}
+                                onChange={(e) => setEditAmount(e.target.value)}
+                                onBlur={() => saveAmount(index)}
+                                onKeyDown={(e) =>
+                                  e.key === "Enter" && saveAmount(index)
+                                }
+                                className="w-24 px-2 py-1 border rounded text-right text-sm"
+                                autoFocus
+                              />
+                            ) : (
+                              <span
+                                onDoubleClick={() =>
+                                  startEditAmount(index, t.amount as number)
+                                }
+                                className={`cursor-pointer hover:bg-gray-100 px-2 py-1 rounded font-medium
+                                  ${
+                                    (t.type as string) === "credit"
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }
+                                `}
+                                title="Double-click to edit"
+                              >
+                                {(t.type as string) === "credit" ? "+" : "-"}$
+                                {((t.amount as number) || 0).toLocaleString(
+                                  "en-CA",
+                                  {
+                                    minimumFractionDigits: 2,
+                                  },
+                                )}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Running Balance */}
+                          <div className="col-span-2 text-right text-gray-600">
+                            $
+                            {runningBalance.toLocaleString("en-CA", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </div>
+
+                          {/* Status */}
+                          <div className="col-span-1 text-center">
+                            {(t.changed as boolean) && (
+                              <span className="text-xs text-yellow-600">✎</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Closing Balance Row */}
+                  <div
+                    className={`grid grid-cols-12 gap-2 px-4 py-3 text-sm ${
+                      isBalanced ? "bg-green-50" : "bg-yellow-50"
+                    }`}
+                  >
+                    <div className="col-span-1 text-gray-400">-</div>
+                    <div className="col-span-1">-</div>
+                    <div className="col-span-5 font-medium text-gray-600">
+                      Closing Balance
+                    </div>
+                    <div className="col-span-2 text-right text-gray-500 text-xs">
+                      Target: $
+                      {(statementClosing as number).toLocaleString("en-CA", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </div>
+                    <div
+                      className={`col-span-2 text-right font-bold ${
+                        isBalanced ? "text-green-700" : "text-red-600"
+                      }`}
+                    >
+                      $
+                      {calculatedClosing.toLocaleString("en-CA", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </div>
+                    <div className="col-span-1 text-center">
+                      {isBalanced ? (
+                        <CheckCircle className="h-4 w-4 text-green-600 inline" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-600 inline" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <Button
