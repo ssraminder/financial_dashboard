@@ -477,6 +477,9 @@ export default function Upload() {
     setResult(null);
     setBalanceError(null);
     setEditableTransactions([]);
+    setProcessingStage(1);
+    setStatusMessage("AI is reading the statement...");
+    setStatusDetail("Extracting account info and transactions");
 
     // Stage 1: Uploading
     setProcessingStatus({
@@ -493,6 +496,9 @@ export default function Upload() {
 
     try {
       // Stage 2: Parsing
+      setProcessingStage(2);
+      setStatusMessage("Validating balance...");
+      setStatusDetail("Checking: Opening + Credits - Debits = Closing");
       setProcessingStatus({
         stage: "parsing",
         message: "AI is reading the statement...",
