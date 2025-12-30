@@ -350,9 +350,9 @@ export default function Upload() {
       )?.statement_opening || 0;
     allTransactions.forEach((t) => {
       if ((t.type as string) === "credit") {
-        balance += (t.amount as number);
+        balance += t.amount as number;
       } else {
-        balance -= (t.amount as number);
+        balance -= t.amount as number;
       }
     });
     return Math.round(balance * 100) / 100;
@@ -785,8 +785,7 @@ export default function Upload() {
               {/* Status Header - Dynamic based on account type */}
               <div
                 className={`rounded-lg p-4 mb-6 flex items-start gap-3 ${
-                  (parsedData as Record<string, unknown>).status ===
-                  "balanced"
+                  (parsedData as Record<string, unknown>).status === "balanced"
                     ? "bg-green-50 border border-green-200"
                     : (parsedData as Record<string, unknown>).status ===
                         "unbalanced"
@@ -819,8 +818,10 @@ export default function Upload() {
                           : "text-blue-800"
                     }`}
                   >
-                    {((parsedData as Record<string, unknown>).bank_account as Record<string, unknown>)?.account_type ===
-                    "credit_card"
+                    {(
+                      (parsedData as Record<string, unknown>)
+                        .bank_account as Record<string, unknown>
+                    )?.account_type === "credit_card"
                       ? "Credit Card Statement"
                       : "Bank Statement"}{" "}
                     - Review Transactions
@@ -832,10 +833,10 @@ export default function Upload() {
                     {(parsedData as Record<string, unknown>).status ===
                       "unbalanced" &&
                       `Balance mismatch (off by $${Math.abs(
-                        ((
-                          parsedData as Record<string, unknown>
-                        ).validation as Record<string, unknown>)
-                          ?.difference || 0,
+                        (
+                          (parsedData as Record<string, unknown>)
+                            .validation as Record<string, unknown>
+                        )?.difference || 0,
                       ).toFixed(2)}) - Please review highlighted transactions`}
                     {(parsedData as Record<string, unknown>).status ===
                       "no_balance_check" &&
@@ -1023,9 +1024,9 @@ export default function Upload() {
                       for (let i = 0; i <= index; i++) {
                         const txn = allTransactions[i];
                         if ((txn.type as string) === "credit") {
-                          runningBalance += (txn.amount as number);
+                          runningBalance += txn.amount as number;
                         } else {
-                          runningBalance -= (txn.amount as number);
+                          runningBalance -= txn.amount as number;
                         }
                       }
 
@@ -1058,7 +1059,9 @@ export default function Upload() {
                                 }
                               `}
                             >
-                              {(t.type as string) === "credit" ? "↓ IN" : "↑ OUT"}
+                              {(t.type as string) === "credit"
+                                ? "↓ IN"
+                                : "↑ OUT"}
                             </button>
                           </div>
 
