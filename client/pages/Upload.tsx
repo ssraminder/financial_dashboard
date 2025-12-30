@@ -1045,6 +1045,13 @@ export default function Upload() {
                       // The Edge Function already calculates this correctly for both bank accounts and credit cards
                       const runningBalance = (t.running_balance as number) ?? 0;
 
+                      // DEBUG: Log what we're displaying
+                      if (index < 3) {
+                        console.log(
+                          `[${index}] ${t.description}: t.running_balance=${t.running_balance}, runningBalance=${runningBalance}`
+                        );
+                      }
+
                       return (
                         <div
                           key={index}
