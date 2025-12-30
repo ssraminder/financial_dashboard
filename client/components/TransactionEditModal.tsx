@@ -406,12 +406,12 @@ export function TransactionEditModal({
                     <p className="text-sm text-muted-foreground">Amount</p>
                     <p
                       className={`font-semibold ${
-                        transaction.amount < 0
+                        (transaction.amount || 0) < 0
                           ? "text-red-600"
                           : "text-green-600"
                       }`}
                     >
-                      ${Math.abs(transaction.amount).toFixed(2)}
+                      ${Math.abs(transaction.amount || 0).toFixed(2)}
                     </p>
                   </div>
                   <div className="col-span-2">
