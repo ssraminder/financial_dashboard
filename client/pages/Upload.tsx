@@ -251,6 +251,20 @@ export default function Upload() {
   const [processingStage, setProcessingStage] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusDetail, setStatusDetail] = useState("");
+  const [parsedData, setParsedData] = useState<
+    Record<string, unknown> | null
+  >(null);
+  const [allTransactions, setAllTransactions] = useState<
+    Array<
+      Record<string, unknown> & {
+        original_type?: string;
+        original_amount?: number;
+        changed?: boolean;
+      }
+    >
+  >([]);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const getStepStatus = (
     step: number,
