@@ -69,7 +69,13 @@ interface StatCardProps {
   color?: "green" | "orange" | "blue" | "purple";
 }
 
-function StatCard({ label, value, icon, highlight, color = "blue" }: StatCardProps) {
+function StatCard({
+  label,
+  value,
+  icon,
+  highlight,
+  color = "blue",
+}: StatCardProps) {
   const bgColor = {
     green: "bg-green-50",
     orange: "bg-orange-50",
@@ -106,7 +112,8 @@ export default function Upload() {
 
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>("");
+  const [selectedBankAccountId, setSelectedBankAccountId] =
+    useState<string>("");
   const [loading, setLoading] = useState(false);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [dragActive, setDragActive] = useState(false);
@@ -125,7 +132,9 @@ export default function Upload() {
       try {
         const { data, error } = await supabase
           .from("bank_accounts")
-          .select("id, name, account_number, company_id, bank_name, currency, is_active")
+          .select(
+            "id, name, account_number, company_id, bank_name, currency, is_active",
+          )
           .eq("is_active", true)
           .order("name");
 
@@ -212,7 +221,7 @@ export default function Upload() {
         {
           method: "POST",
           body: formData,
-        }
+        },
       );
 
       const data: ParseStatementResult = await response.json();
@@ -225,7 +234,9 @@ export default function Upload() {
           fileInputRef.current.value = "";
         }
       } else {
-        setError(data.error || "Failed to process statement. Please try again.");
+        setError(
+          data.error || "Failed to process statement. Please try again.",
+        );
       }
     } catch (err) {
       console.error("Upload error:", err);
@@ -254,7 +265,8 @@ export default function Upload() {
   }
 
   const isFormValid = selectedFile && selectedBankAccountId;
-  const hasHitlItems = result?.summary?.hitl_count && result.summary.hitl_count > 0;
+  const hasHitlItems =
+    result?.summary?.hitl_count && result.summary.hitl_count > 0;
 
   return (
     <div className="flex h-screen bg-background">
@@ -263,9 +275,12 @@ export default function Upload() {
       <div className="flex-1 overflow-auto">
         <div className="p-8 max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Upload Bank Statement</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Upload Bank Statement
+            </h1>
             <p className="text-muted-foreground mt-1">
-              Upload PDF statements to automatically parse and categorize transactions
+              Upload PDF statements to automatically parse and categorize
+              transactions
             </p>
           </div>
 
@@ -283,19 +298,25 @@ export default function Upload() {
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
-                      <p className="text-sm text-muted-foreground">Account Holder</p>
+                      <p className="text-sm text-muted-foreground">
+                        Account Holder
+                      </p>
                       <p className="font-semibold text-lg">
                         {result.account_info?.account_holder}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Account Number</p>
+                      <p className="text-sm text-muted-foreground">
+                        Account Number
+                      </p>
                       <p className="font-semibold text-lg">
                         ••••{result.account_info?.account_number}
                       </p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-sm text-muted-foreground">Statement Period</p>
+                      <p className="text-sm text-muted-foreground">
+                        Statement Period
+                      </p>
                       <p className="font-semibold text-lg">
                         {result.account_info?.statement_period}
                       </p>
@@ -305,14 +326,18 @@ export default function Upload() {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Opening Balance</p>
+                        <p className="text-sm text-muted-foreground">
+                          Opening Balance
+                        </p>
                         <p className="text-lg font-semibold">
                           ${result.account_info?.opening_balance?.toFixed(2)}
                         </p>
                       </div>
                       <ArrowRight className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Closing Balance</p>
+                        <p className="text-sm text-muted-foreground">
+                          Closing Balance
+                        </p>
                         <p className="text-lg font-semibold">
                           ${result.account_info?.closing_balance?.toFixed(2)}
                         </p>
@@ -390,11 +415,7 @@ export default function Upload() {
                     <AlertTriangle className="ml-2 h-4 w-4" />
                   </Button>
                 )}
-                <Button
-                  onClick={handleResetForm}
-                  variant="outline"
-                  size="lg"
-                >
+                <Button onClick={handleResetForm} variant="outline" size="lg">
                   Upload Another
                 </Button>
               </div>
@@ -436,7 +457,8 @@ export default function Upload() {
                     Drag & drop your bank statement PDF here, or click to browse
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    PDF files only, max 10MB. Supports both digital and scanned PDFs.
+                    PDF files only, max 10MB. Supports both digital and scanned
+                    PDFs.
                   </p>
                 </div>
 
@@ -446,7 +468,9 @@ export default function Upload() {
                     <div className="flex items-center gap-3">
                       <FileText className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="text-sm font-medium">{selectedFile.name}</p>
+                        <p className="text-sm font-medium">
+                          {selectedFile.name}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                         </p>
@@ -471,7 +495,10 @@ export default function Upload() {
                   <label className="text-sm font-medium text-foreground">
                     Select Bank Account *
                   </label>
-                  <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
+                  <Select
+                    value={selectedBankAccountId}
+                    onValueChange={setSelectedBankAccountId}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose a bank account..." />
                     </SelectTrigger>
@@ -483,7 +510,8 @@ export default function Upload() {
                       ) : (
                         bankAccounts.map((account) => (
                           <SelectItem key={account.id} value={account.id}>
-                            {account.name} ({account.bank_name} - {account.currency})
+                            {account.name} ({account.bank_name} -{" "}
+                            {account.currency})
                           </SelectItem>
                         ))
                       )}
