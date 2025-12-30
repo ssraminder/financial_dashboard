@@ -867,31 +867,77 @@ export default function ReviewQueue() {
                   </div>
                 </CardContent>
 
-                <div className="border-t bg-muted/50 px-6 py-4 flex gap-3 justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={handleReject}
-                    disabled={approvingId !== null}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Skip
-                  </Button>
-                  <Button
-                    onClick={handleApprove}
-                    disabled={approvingId !== null || !selectedCategoryId}
-                  >
-                    {approvingId ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Approve & Save
-                      </>
+                <div className="border-t bg-gradient-to-r from-muted/50 to-muted/25 px-6 py-6">
+                  <div className="space-y-4">
+                    {/* Quick Actions Row */}
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleReject}
+                          disabled={approvingId !== null}
+                          title="Skip to next transaction (Alt+N)"
+                          className="gap-2"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                          Skip
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAcceptSuggestion}
+                          disabled={
+                            approvingId !== null ||
+                            !currentTransaction.ai_suggested_category?.id
+                          }
+                          title="Accept AI suggestion (Alt+A)"
+                          className="gap-2"
+                        >
+                          <Zap className="h-4 w-4" />
+                          Accept AI
+                        </Button>
+                      </div>
+
+                      {/* Main Action Button */}
+                      <Button
+                        onClick={handleApprove}
+                        disabled={approvingId !== null || !selectedCategoryId}
+                        size="lg"
+                        className="gap-2 bg-gradient-to-r from-blue-600 to-primary hover:from-blue-700 hover:to-primary"
+                        title="Save and approve transaction (Alt+S)"
+                      >
+                        {approvingId ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Approve & Save
+                            <kbd className="ml-2 px-2 py-1 text-xs bg-white/20 rounded">
+                              Alt+S
+                            </kbd>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Status Info */}
+                    {selectedCategoryId && (
+                      <div className="text-sm text-green-700 bg-green-50 rounded-lg p-3 flex items-center gap-2">
+                        <Check className="h-4 w-4" />
+                        Category selected: <span className="font-semibold">{selectedCategory?.name}</span>
+                        {vendorType !== "one-time" && (
+                          <>
+                            {" "}
+                            | Vendor: <span className="font-semibold">{vendorType === "regular" ? "Tracked" : "New"}</span>
+                          </>
+                        )}
+                      </div>
                     )}
-                  </Button>
+                  </div>
                 </div>
               </Card>
             </>
