@@ -41,6 +41,22 @@ interface BankAccount {
 
 interface ParseStatementResult {
   success: boolean;
+  action?: "review" | "save";
+  status?: "balanced" | "unbalanced" | "no_balance_check";
+  status_message?: string;
+  transactions?: Array<{
+    date: string;
+    posting_date?: string;
+    description: string;
+    amount: number;
+    type: "credit" | "debit";
+    category_code?: string;
+    payee_name?: string;
+    has_gst?: boolean;
+    gst_amount?: number;
+    needs_review?: boolean;
+    review_reason?: string;
+  }>;
   account_info?: {
     account_holder: string;
     account_number: string;
