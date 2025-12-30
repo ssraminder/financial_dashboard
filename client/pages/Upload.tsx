@@ -708,7 +708,7 @@ export default function Upload() {
           </div>
 
           {/* Processing Status Display */}
-          {loading && processingStatus.stage && (
+          {loading && uploadStage !== "idle" && (
             <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Loader2 className="h-6 w-6 text-blue-600 animate-spin" />
@@ -717,58 +717,56 @@ export default function Upload() {
                 </h3>
               </div>
 
-              {/* Progress Bar */}
-              <div className="w-full bg-blue-100 rounded-full h-2 mb-4">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${processingStatus.progress}%` }}
-                />
-              </div>
-
               {/* Status Steps */}
               <div className="space-y-3">
+                {/* Step 1: Upload - completes when fetch starts */}
                 <StatusStep
                   step={1}
                   label="Uploading PDF"
-                  status={getStepStatus(1)}
+                  status={uploadStage === "idle" ? "pending" : "complete"}
                 />
+
+                {/* Step 2: AI Reading - spinner during processing */}
                 <StatusStep
                   step={2}
                   label="AI Reading Statement"
-                  status={getStepStatus(2)}
                   detail="Extracting transactions and balances..."
+                  status={
+                    uploadStage === "idle" || uploadStage === "uploading"
+                      ? "pending"
+                      : uploadStage === "processing"
+                        ? "active"
+                        : "complete"
+                  }
                 />
+
+                {/* Step 3: Validating - only shows complete after API returns */}
                 <StatusStep
                   step={3}
                   label="Validating Balance"
-                  status={getStepStatus(3)}
                   detail="Opening + Credits - Debits = Closing"
+                  status={
+                    uploadStage === "complete" || uploadStage === "error"
+                      ? "complete"
+                      : uploadStage === "processing"
+                        ? "active"
+                        : "pending"
+                  }
                 />
-                {processingStatus.attempts > 1 && (
-                  <StatusStep
-                    step={4}
-                    label={`Self-Correction (Attempt ${processingStatus.attempts})`}
-                    status={getStepStatus(4)}
-                    detail="AI re-checking transactions..."
-                    isRetry
-                  />
-                )}
+
+                {/* Step 4: Ready for Review */}
                 <StatusStep
-                  step={5}
-                  label="Saving Transactions"
-                  status={getStepStatus(5)}
+                  step={4}
+                  label="Ready for Review"
+                  status={uploadStage === "complete" ? "complete" : "pending"}
                 />
               </div>
 
               {/* Current Action Detail */}
-              <div className="mt-4 p-3 bg-white rounded border border-blue-100">
-                <p className="text-sm text-blue-700 font-medium">
-                  {processingStatus.message}
-                </p>
-                {processingStatus.details && (
-                  <p className="text-xs text-blue-500 mt-1">
-                    {processingStatus.details}
-                  </p>
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                <p className="text-blue-700 font-medium">{statusMessage}</p>
+                {statusDetail && (
+                  <p className="text-blue-500 text-sm mt-1">{statusDetail}</p>
                 )}
               </div>
 
