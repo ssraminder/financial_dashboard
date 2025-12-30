@@ -209,21 +209,26 @@ export function TransactionEditModal({
     setError(null);
 
     try {
+      const aiPayload = {
+        transaction_id: transaction.id,
+        original_transaction_id: transaction.id,
+        user_context: contextText,
+        changes: {
+          category_code:
+            categories.find((c) => c.id === selectedCategoryId)?.code ||
+            transaction.category?.code,
+          payee_name: payeeName,
+        },
+      };
+
+      console.log("DEBUG: AI processing payload:", aiPayload);
+
       const response = await fetch(
         "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/process-transaction-context",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            transaction_id: transaction.id,
-            user_context: contextText,
-            changes: {
-              category_code:
-                categories.find((c) => c.id === selectedCategoryId)?.code ||
-                transaction.category?.code,
-              payee_name: payeeName,
-            },
-          }),
+          body: JSON.stringify(aiPayload),
         },
       );
 
