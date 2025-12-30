@@ -626,6 +626,7 @@ export default function Upload() {
       setError("Upload failed. Please check your file and try again.");
     } finally {
       setLoading(false);
+      setProcessingStage(0);
     }
   };
 
