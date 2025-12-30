@@ -65,7 +65,15 @@ interface ParseStatementResult {
 }
 
 interface ProcessingStatus {
-  stage: "" | "uploading" | "parsing" | "validating" | "correcting" | "saving" | "complete" | "error";
+  stage:
+    | ""
+    | "uploading"
+    | "parsing"
+    | "validating"
+    | "correcting"
+    | "saving"
+    | "complete"
+    | "error";
   message: string;
   details: string;
   progress: number;
@@ -98,7 +106,9 @@ function StatusStep({ step, label, status, detail, isRetry }: StatusStepProps) {
   };
 
   return (
-    <div className={`flex items-start gap-3 ${status === "pending" ? "opacity-50" : ""}`}>
+    <div
+      className={`flex items-start gap-3 ${status === "pending" ? "opacity-50" : ""}`}
+    >
       {isRetry ? icons.retry : icons[status]}
       <div className="flex-1">
         <p
@@ -196,7 +206,8 @@ export default function Upload() {
       error: 7,
     };
 
-    const currentStage = (stages as Record<string, number>)[processingStatus.stage] || 0;
+    const currentStage =
+      (stages as Record<string, number>)[processingStatus.stage] || 0;
 
     if (processingStatus.stage === "error") return "error";
     if (step < currentStage) return "complete";
@@ -341,9 +352,15 @@ export default function Upload() {
       if (
         data.success &&
         (data as Record<string, unknown>).reconciliation &&
-        ((data as Record<string, unknown>).reconciliation as Record<string, unknown>).attempts > 1
+        (
+          (data as Record<string, unknown>).reconciliation as Record<
+            string,
+            unknown
+          >
+        ).attempts > 1
       ) {
-        const reconciliation = (data as Record<string, unknown>).reconciliation as Record<string, unknown>;
+        const reconciliation = (data as Record<string, unknown>)
+          .reconciliation as Record<string, unknown>;
         setProcessingStatus((prev) => ({
           ...prev,
           stage: "correcting",
@@ -365,7 +382,12 @@ export default function Upload() {
           details: `${data.summary?.inserted_count || data.summary?.transaction_count || 0} transactions saved`,
           progress: 100,
           attempts:
-            ((data as Record<string, unknown>).reconciliation as Record<string, unknown>)?.attempts || 1,
+            (
+              (data as Record<string, unknown>).reconciliation as Record<
+                string,
+                unknown
+              >
+            )?.attempts || 1,
         });
 
         // Brief pause to show success
@@ -390,8 +412,7 @@ export default function Upload() {
         );
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error";
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setProcessingStatus({
         stage: "error",
         message: "Upload failed",
