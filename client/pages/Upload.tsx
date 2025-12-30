@@ -175,6 +175,13 @@ export default function Upload() {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ParseStatementResult | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({
+    stage: "",
+    message: "",
+    details: "",
+    progress: 0,
+    attempts: 0,
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
