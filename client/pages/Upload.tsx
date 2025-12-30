@@ -1353,6 +1353,15 @@ export default function Upload() {
                         </p>
                       </div>
                     )}
+
+                    {/* Reset Button */}
+                    <Button
+                      variant="outline"
+                      onClick={handleResetForm}
+                      className="w-full mt-4"
+                    >
+                      Upload Different Statement
+                    </Button>
                   </div>
                 )}
               </CardContent>
