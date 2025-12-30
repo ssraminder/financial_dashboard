@@ -107,6 +107,34 @@ export default function ReviewQueue() {
     }
   }, [user]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!currentTransaction) return;
+
+      // Alt+S: Save/Approve
+      if (e.altKey && e.key === "s") {
+        e.preventDefault();
+        handleApprove();
+      }
+
+      // Alt+N: Next/Skip
+      if (e.altKey && e.key === "n") {
+        e.preventDefault();
+        handleReject();
+      }
+
+      // Alt+A: Accept suggestion
+      if (e.altKey && e.key === "a") {
+        e.preventDefault();
+        handleAcceptSuggestion();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [currentTransaction, selectedCategoryId]);
+
   // Pre-fill category with AI suggestion when transaction changes
   useEffect(() => {
     if (currentTransaction?.ai_suggested_category?.id) {
