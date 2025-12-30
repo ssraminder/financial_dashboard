@@ -409,7 +409,11 @@ export default function Transactions() {
                 <SearchableDropdown
                   options={[
                     { value: "all", label: "All Categories" },
-                    { value: "group-expense", label: "── Expenses ──", disabled: true },
+                    {
+                      value: "group-expense",
+                      label: "── Expenses ──",
+                      disabled: true,
+                    },
                     ...filterOptions.categories
                       .filter((c) => c.category_type === "expense")
                       .map((c) => ({
@@ -417,7 +421,11 @@ export default function Transactions() {
                         label: c.name,
                         group: "expense",
                       })),
-                    { value: "group-revenue", label: "── Revenue ──", disabled: true },
+                    {
+                      value: "group-revenue",
+                      label: "── Revenue ──",
+                      disabled: true,
+                    },
                     ...filterOptions.categories
                       .filter((c) => c.category_type === "revenue")
                       .map((c) => ({
@@ -502,7 +510,10 @@ export default function Transactions() {
                       setShowNeedsReview(checked as boolean)
                     }
                   />
-                  <label htmlFor="needs-review" className="text-sm cursor-pointer">
+                  <label
+                    htmlFor="needs-review"
+                    className="text-sm cursor-pointer"
+                  >
                     Needs review only
                   </label>
                 </div>

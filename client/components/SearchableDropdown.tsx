@@ -44,8 +44,7 @@ export function SearchableDropdown({
 
   const filteredOptions = options.filter(
     (opt) =>
-      !opt.disabled &&
-      opt.label.toLowerCase().includes(search.toLowerCase())
+      !opt.disabled && opt.label.toLowerCase().includes(search.toLowerCase()),
   );
 
   const selectedLabel =
@@ -79,7 +78,9 @@ export function SearchableDropdown({
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandInput
-            placeholder={searchPlaceholder || `Search ${placeholder.toLowerCase()}...`}
+            placeholder={
+              searchPlaceholder || `Search ${placeholder.toLowerCase()}...`
+            }
             value={search}
             onValueChange={setSearch}
           />
@@ -101,7 +102,7 @@ export function SearchableDropdown({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        value === option.value ? "opacity-100" : "opacity-0"
+                        value === option.value ? "opacity-100" : "opacity-0",
                       )}
                     />
                     {option.label}
