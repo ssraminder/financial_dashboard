@@ -658,7 +658,7 @@ export default function Upload() {
               amount: t.amount,
               type: t.type,
               running_balance: t.running_balance,
-              keys: Object.keys(t)
+              keys: Object.keys(t),
             });
           }
         });
@@ -1053,7 +1053,7 @@ export default function Upload() {
                       // DEBUG: Log what we're displaying
                       if (index < 3) {
                         console.log(
-                          `[${index}] ${t.description}: t.running_balance=${t.running_balance}, runningBalance=${runningBalance}`
+                          `[${index}] ${t.description}: t.running_balance=${t.running_balance}, runningBalance=${runningBalance}`,
                         );
                       }
 
@@ -1154,9 +1154,9 @@ export default function Upload() {
                           <div className="col-span-2 text-right text-gray-600">
                             $
                             {(t.running_balance as number)?.toFixed(2) ||
-                             runningBalance.toLocaleString("en-CA", {
-                               minimumFractionDigits: 2,
-                             })}
+                              runningBalance.toLocaleString("en-CA", {
+                                minimumFractionDigits: 2,
+                              })}
                           </div>
 
                           {/* Status */}
