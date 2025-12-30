@@ -181,6 +181,10 @@ export function TransactionEditModal({
   const handleSaveAndProcessAI = async () => {
     if (!transaction) return;
 
+    // DEBUG: Log the transaction being edited
+    console.log("Transaction being edited:", transaction);
+    console.log("Transaction ID:", transaction.id);
+
     // First save the basic changes
     try {
       await supabase
