@@ -753,56 +753,65 @@ export default function Upload() {
           {/* Review Screen */}
           {isReviewing && parsedData && (
             <div className="space-y-6 mb-8">
-              {/* Status Header */}
+              {/* Status Header - Dynamic based on account type */}
               <div
-                className={`rounded-lg p-4 mb-6 border ${
-                  (parsedData as Record<string, unknown>).status === "balanced"
-                    ? "bg-green-100 border-green-300"
+                className={`rounded-lg p-4 mb-6 flex items-start gap-3 ${
+                  (parsedData as Record<string, unknown>).status ===
+                  "balanced"
+                    ? "bg-green-50 border border-green-200"
                     : (parsedData as Record<string, unknown>).status ===
                         "unbalanced"
-                      ? "bg-yellow-100 border-yellow-300"
-                      : "bg-blue-100 border-blue-300"
+                      ? "bg-yellow-50 border border-yellow-200"
+                      : "bg-blue-50 border border-blue-200"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  {(parsedData as Record<string, unknown>).status ===
-                    "balanced" && (
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  )}
-                  {(parsedData as Record<string, unknown>).status ===
-                    "unbalanced" && (
-                    <AlertTriangle className="h-6 w-6 text-yellow-600" />
-                  )}
-                  {(parsedData as Record<string, unknown>).status ===
-                    "no_balance_check" && (
-                    <FileText className="h-6 w-6 text-blue-600" />
-                  )}
+                {(parsedData as Record<string, unknown>).status ===
+                  "balanced" && (
+                  <CheckCircle className="h-6 w-6 text-green-600 mt-0.5" />
+                )}
+                {(parsedData as Record<string, unknown>).status ===
+                  "unbalanced" && (
+                  <AlertTriangle className="h-6 w-6 text-yellow-600 mt-0.5" />
+                )}
+                {(parsedData as Record<string, unknown>).status ===
+                  "no_balance_check" && (
+                  <CreditCard className="h-6 w-6 text-blue-600 mt-0.5" />
+                )}
 
-                  <div className="flex-1">
-                    <h3
-                      className={`font-bold ${
-                        (parsedData as Record<string, unknown>).status ===
-                        "balanced"
-                          ? "text-green-800"
-                          : (parsedData as Record<string, unknown>).status ===
-                              "unbalanced"
-                            ? "text-yellow-800"
-                            : "text-blue-800"
-                      }`}
-                    >
-                      {(parsedData as Record<string, unknown>).status ===
-                        "balanced" && "Balance Verified ✓"}
-                      {(parsedData as Record<string, unknown>).status ===
-                        "unbalanced" && "Balance Mismatch - Review Required"}
-                      {(parsedData as Record<string, unknown>).status ===
-                        "no_balance_check" &&
-                        "Credit Card Statement - Review Transactions"}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {(parsedData as Record<string, unknown>).status_message ||
-                        ""}
-                    </p>
-                  </div>
+                <div>
+                  <h3
+                    className={`font-bold ${
+                      (parsedData as Record<string, unknown>).status ===
+                      "balanced"
+                        ? "text-green-800"
+                        : (parsedData as Record<string, unknown>).status ===
+                            "unbalanced"
+                          ? "text-yellow-800"
+                          : "text-blue-800"
+                    }`}
+                  >
+                    {((parsedData as Record<string, unknown>).bank_account as Record<string, unknown>)?.account_type ===
+                    "credit_card"
+                      ? "Credit Card Statement"
+                      : "Bank Statement"}{" "}
+                    - Review Transactions
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {(parsedData as Record<string, unknown>).status ===
+                      "balanced" &&
+                      "Balance verified ✓ - Review transactions below"}
+                    {(parsedData as Record<string, unknown>).status ===
+                      "unbalanced" &&
+                      `Balance mismatch (off by $${Math.abs(
+                        ((
+                          parsedData as Record<string, unknown>
+                        ).validation as Record<string, unknown>)
+                          ?.difference || 0,
+                      ).toFixed(2)}) - Please review highlighted transactions`}
+                    {(parsedData as Record<string, unknown>).status ===
+                      "no_balance_check" &&
+                      "Please review all transactions before saving"}
+                  </p>
                 </div>
               </div>
 
