@@ -20,16 +20,83 @@ import {
   X,
   CheckCircle,
   AlertCircle,
+  ArrowRight,
+  TrendingUp,
+  AlertTriangle,
+  Package,
 } from "lucide-react";
 
 interface BankAccount {
   id: string;
   name: string;
-  account_number: string;
+  account_number?: string;
   company_id: string;
   bank_name: string;
   currency: string;
   is_active?: boolean;
+}
+
+interface ParseStatementResult {
+  success: boolean;
+  account_info?: {
+    account_holder: string;
+    account_number: string;
+    statement_period: string;
+    opening_balance: number;
+    closing_balance: number;
+    currency: string;
+  };
+  summary?: {
+    total_credits: number;
+    total_debits: number;
+    transaction_count: number;
+    hitl_count: number;
+    inserted_count: number;
+  };
+  bank_account?: {
+    id: string;
+    name: string;
+    company: string;
+  };
+  error?: string;
+}
+
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  icon: React.ReactNode;
+  highlight?: boolean;
+  color?: "green" | "orange" | "blue" | "purple";
+}
+
+function StatCard({ label, value, icon, highlight, color = "blue" }: StatCardProps) {
+  const bgColor = {
+    green: "bg-green-50",
+    orange: "bg-orange-50",
+    blue: "bg-blue-50",
+    purple: "bg-purple-50",
+  }[color];
+
+  const iconColor = {
+    green: "text-green-600",
+    orange: "text-orange-600",
+    blue: "text-blue-600",
+    purple: "text-purple-600",
+  }[color];
+
+  return (
+    <div
+      className={`${bgColor} rounded-lg p-4 ${highlight ? "ring-2 ring-offset-2 ring-orange-400" : ""}`}
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-gray-600 mb-1">{label}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+        </div>
+        <div className={`${iconColor} p-2 rounded-lg`}>{icon}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function Upload() {
@@ -39,13 +106,12 @@ export default function Upload() {
 
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedBankAccountId, setSelectedBankAccountId] =
-    useState<string>("");
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [dragActive, setDragActive] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ParseStatementResult | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -59,14 +125,11 @@ export default function Upload() {
       try {
         const { data, error } = await supabase
           .from("bank_accounts")
-          .select(
-            "id, name, account_number, company_id, bank_name, currency, is_active",
-          )
+          .select("id, name, account_number, company_id, bank_name, currency, is_active")
           .eq("is_active", true)
           .order("name");
 
         if (error) throw error;
-        console.log("Bank accounts data:", data);
         setBankAccounts(data || []);
       } catch (err) {
         console.error("Error fetching bank accounts:", err);
@@ -117,7 +180,6 @@ export default function Upload() {
 
     setSelectedFile(file);
     setError(null);
-    setSuccess(null);
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,48 +200,48 @@ export default function Upload() {
 
     setLoading(true);
     setError(null);
-    setSuccess(null);
-
-    const selectedAccount = bankAccounts.find(
-      (acc) => acc.id === selectedBankAccountId,
-    );
+    setResult(null);
 
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("bank_account_id", selectedBankAccountId);
-    formData.append("bank_account_name", selectedAccount?.name || "");
 
     try {
-      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+      const response = await fetch(
+        "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/parse-statement",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-      if (!webhookUrl) {
-        throw new Error("N8N webhook URL not configured");
-      }
+      const data: ParseStatementResult = await response.json();
 
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        const transactionCount = result.transactionCount || result.count || "";
-        setSuccess(
-          `Successfully processed ${transactionCount ? `${transactionCount} ` : ""}transactions`,
-        );
+      if (data.success) {
+        setResult(data);
         setSelectedFile(null);
         setSelectedBankAccountId("");
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
       } else {
-        setError("Failed to process statement. Please try again.");
+        setError(data.error || "Failed to process statement. Please try again.");
       }
     } catch (err) {
       console.error("Upload error:", err);
-      setError("Connection error. Please try again.");
+      setError("Upload failed. Please check your file and try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetForm = () => {
+    setResult(null);
+    setSelectedFile(null);
+    setSelectedBankAccountId("");
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -191,155 +253,274 @@ export default function Upload() {
     );
   }
 
-  const selectedAccount = bankAccounts.find(
-    (acc) => acc.id === selectedBankAccountId,
-  );
   const isFormValid = selectedFile && selectedBankAccountId;
+  const hasHitlItems = result?.summary?.hitl_count && result.summary.hitl_count > 0;
 
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
 
       <div className="flex-1 overflow-auto">
-        <div className="p-8">
+        <div className="p-8 max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Upload</h1>
+            <h1 className="text-3xl font-bold text-foreground">Upload Bank Statement</h1>
             <p className="text-muted-foreground mt-1">
-              Upload bank statements and transaction data
+              Upload PDF statements to automatically parse and categorize transactions
             </p>
           </div>
 
-          <Card className="max-w-2xl">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <UploadIcon className="h-6 w-6 text-primary" />
-                <CardTitle>Upload Bank Statement</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Drag and Drop Zone */}
-              <div
-                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-                  dragActive
-                    ? "border-primary bg-primary/5"
-                    : "border-muted-foreground/25 hover:border-primary/50"
-                }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-                <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-sm text-foreground font-medium mb-1">
-                  Drag & drop your bank statement PDF here, or click to browse
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  PDF files only, max 10MB
-                </p>
-              </div>
-
-              {/* Selected File Display */}
-              {selectedFile && (
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-primary" />
+          {/* Results Display */}
+          {result?.success && (
+            <div className="space-y-6 mb-8">
+              {/* Account Info */}
+              <Card>
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    Statement Processed Successfully
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
-                      <p className="text-sm font-medium">{selectedFile.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      <p className="text-sm text-muted-foreground">Account Holder</p>
+                      <p className="font-semibold text-lg">
+                        {result.account_info?.account_holder}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Account Number</p>
+                      <p className="font-semibold text-lg">
+                        ••••{result.account_info?.account_number}
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-sm text-muted-foreground">Statement Period</p>
+                      <p className="font-semibold text-lg">
+                        {result.account_info?.statement_period}
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveFile();
-                    }}
-                    className="h-8 w-8"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
 
-              {/* Bank Account Dropdown */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Select Bank Account
-                </label>
-                <Select
-                  value={selectedBankAccountId}
-                  onValueChange={setSelectedBankAccountId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a bank account..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bankAccounts.length === 0 ? (
-                      <div className="p-2 text-sm text-muted-foreground">
-                        No bank accounts found
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Opening Balance</p>
+                        <p className="text-lg font-semibold">
+                          ${result.account_info?.opening_balance?.toFixed(2)}
+                        </p>
                       </div>
-                    ) : (
-                      bankAccounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id}>
-                          {account.name} ({account.bank_name} -{" "}
-                          {account.currency})
-                        </SelectItem>
-                      ))
+                      <ArrowRight className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Closing Balance</p>
+                        <p className="text-lg font-semibold">
+                          ${result.account_info?.closing_balance?.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Summary Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <StatCard
+                      label="Total Transactions"
+                      value={result.summary?.transaction_count || 0}
+                      icon={<Package className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <StatCard
+                      label="Successfully Categorized"
+                      value={
+                        (result.summary?.transaction_count || 0) -
+                        (result.summary?.hitl_count || 0)
+                      }
+                      icon={<CheckCircle className="h-6 w-6" />}
+                      color="green"
+                    />
+                    {hasHitlItems && (
+                      <StatCard
+                        label="Needs Review"
+                        value={result.summary?.hitl_count || 0}
+                        icon={<AlertTriangle className="h-6 w-6" />}
+                        highlight
+                        color="orange"
+                      />
                     )}
-                  </SelectContent>
-                </Select>
-              </div>
+                    <StatCard
+                      label="Total Credits"
+                      value={`$${result.summary?.total_credits?.toFixed(2)}`}
+                      icon={<TrendingUp className="h-6 w-6" />}
+                      color="green"
+                    />
+                    <StatCard
+                      label="Total Debits"
+                      value={`$${result.summary?.total_debits?.toFixed(2)}`}
+                      icon={<TrendingUp className="h-6 w-6" />}
+                      color="purple"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-              {/* Submit Button */}
-              <Button
-                onClick={handleSubmit}
-                disabled={!isFormValid || loading}
-                className="w-full"
-                size="lg"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <UploadIcon className="h-4 w-4" />
-                    Process Statement
-                  </>
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => navigate("/transactions")}
+                  size="lg"
+                  className="flex-1"
+                >
+                  View Transactions
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                {hasHitlItems && (
+                  <Button
+                    onClick={() => navigate("/review-queue")}
+                    variant="secondary"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    Review {result.summary?.hitl_count} Items
+                    <AlertTriangle className="ml-2 h-4 w-4" />
+                  </Button>
                 )}
-              </Button>
+                <Button
+                  onClick={handleResetForm}
+                  variant="outline"
+                  size="lg"
+                >
+                  Upload Another
+                </Button>
+              </div>
+            </div>
+          )}
 
-              {/* Success Message */}
-              {success && (
-                <Alert className="bg-green-50 border-green-200">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800">
-                    {success}
-                  </AlertDescription>
-                </Alert>
-              )}
+          {/* Upload Form */}
+          {!result?.success && (
+            <Card className="max-w-2xl">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <UploadIcon className="h-6 w-6 text-primary" />
+                  <CardTitle>Upload Bank Statement</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Drag and Drop Zone */}
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+                    dragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-muted-foreground/25 hover:border-primary/50"
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+                  <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-sm text-foreground font-medium mb-1">
+                    Drag & drop your bank statement PDF here, or click to browse
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    PDF files only, max 10MB. Supports both digital and scanned PDFs.
+                  </p>
+                </div>
 
-              {/* Error Message */}
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
+                {/* Selected File Display */}
+                {selectedFile && (
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">{selectedFile.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFile();
+                      }}
+                      className="h-8 w-8"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Bank Account Dropdown */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Select Bank Account *
+                  </label>
+                  <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a bank account..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bankAccounts.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          No bank accounts found. Create one in Settings.
+                        </div>
+                      ) : (
+                        bankAccounts.map((account) => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.name} ({account.bank_name} - {account.currency})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!isFormValid || loading}
+                  className="w-full"
+                  size="lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Processing... This may take 30-60 seconds
+                    </>
+                  ) : (
+                    <>
+                      <UploadIcon className="h-4 w-4 mr-2" />
+                      Process Statement
+                    </>
+                  )}
+                </Button>
+
+                {/* Error Message */}
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
