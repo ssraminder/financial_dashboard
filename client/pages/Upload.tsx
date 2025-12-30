@@ -196,6 +196,10 @@ export default function Upload() {
     progress: 0,
     attempts: 0,
   });
+  const [editableTransactions, setEditableTransactions] = useState<
+    Array<Record<string, unknown> & { original_type?: string; changed?: boolean }>
+  >([]);
+  const [isRevalidating, setIsRevalidating] = useState(false);
 
   const getStepStatus = (
     step: number,
