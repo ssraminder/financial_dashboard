@@ -1031,20 +1031,9 @@ export default function Upload() {
                   {/* Transaction Rows */}
                   <div className="max-h-96 overflow-y-auto">
                     {allTransactions.map((t, index) => {
-                      // Calculate running balance
-                      let runningBalance =
-                        (
-                          (parsedData as Record<string, unknown>)
-                            ?.validation as Record<string, unknown>
-                        )?.statement_opening || 0;
-                      for (let i = 0; i <= index; i++) {
-                        const txn = allTransactions[i];
-                        if ((txn.type as string) === "credit") {
-                          runningBalance += txn.amount as number;
-                        } else {
-                          runningBalance -= txn.amount as number;
-                        }
-                      }
+                      // Use running_balance from API response
+                      // The Edge Function already calculates this correctly for both bank accounts and credit cards
+                      const runningBalance = (t.running_balance as number) ?? 0;
 
                       return (
                         <div
