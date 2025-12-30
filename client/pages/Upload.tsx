@@ -339,6 +339,35 @@ export default function Upload() {
     setIsRevalidating(false);
   };
 
+  // Calculate closing balance after user edits
+  const calculatedClosing = useMemo(() => {
+    let balance =
+      (
+        (parsedData as Record<string, unknown>)?.validation as Record<
+          string,
+          unknown
+        >
+      )?.statement_opening || 0;
+    allTransactions.forEach((t) => {
+      if ((t.type as string) === "credit") {
+        balance += (t.amount as number);
+      } else {
+        balance -= (t.amount as number);
+      }
+    });
+    return Math.round(balance * 100) / 100;
+  }, [allTransactions, parsedData]);
+
+  const statementClosing =
+    (
+      (parsedData as Record<string, unknown>)?.validation as Record<
+        string,
+        unknown
+      >
+    )?.statement_closing || 0;
+
+  const isBalanced = Math.abs(calculatedClosing - statementClosing) < 0.02;
+
   const handleSaveTransactions = async () => {
     if (!selectedBankAccountId || allTransactions.length === 0) return;
 
