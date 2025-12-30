@@ -400,6 +400,16 @@ export default function Upload() {
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
+      } else if (data.error === "BALANCE_MISMATCH") {
+        setProcessingStatus({
+          stage: "error",
+          message: "Balance mismatch detected",
+          details: `Off by $${Math.abs((data as Record<string, unknown>).reconciliation ? ((data as Record<string, unknown>).reconciliation as Record<string, unknown>).difference : 0).toFixed(2)}`,
+          progress: 100,
+          attempts: (data as Record<string, unknown>).reconciliation ? ((data as Record<string, unknown>).reconciliation as Record<string, unknown>).attempts : 0,
+        });
+        setBalanceError(data);
+        setError("Balance mismatch detected. Please review the error details below.");
       } else {
         setProcessingStatus({
           stage: "error",
