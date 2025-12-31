@@ -248,7 +248,7 @@ export function KBEntryEditorDetails({
                   <SelectValue placeholder="Select company" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {companies.map((comp) => (
                     <SelectItem key={comp.id} value={comp.id}>
                       {comp.name}
@@ -278,7 +278,7 @@ export function KBEntryEditorDetails({
                   <SelectValue placeholder="Search vendors..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {vendors.map((v) => (
                     <SelectItem key={v.id} value={v.id}>
                       {v.legal_name}
@@ -303,7 +303,7 @@ export function KBEntryEditorDetails({
                   <SelectValue placeholder="Search clients..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {clients.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
