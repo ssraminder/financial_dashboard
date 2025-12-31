@@ -1192,23 +1192,24 @@ export default function Upload() {
 
                   {/* Closing Balance Row */}
                   <div
-                    className={`grid grid-cols-12 gap-2 px-4 py-3 text-sm ${
+                    className={`grid grid-cols-[auto_1fr_auto_4fr_2fr_2fr_auto] gap-2 px-4 py-3 text-sm ${
                       isBalanced ? "bg-green-50" : "bg-yellow-50"
                     }`}
                   >
-                    <div className="col-span-1 text-gray-400">-</div>
-                    <div className="col-span-1">-</div>
-                    <div className="col-span-5 font-medium text-gray-600">
+                    <div className="w-12 text-center text-gray-400">-</div>
+                    <div className="text-gray-400">-</div>
+                    <div className="w-20">-</div>
+                    <div className="font-medium text-gray-600">
                       Closing Balance
                     </div>
-                    <div className="col-span-2 text-right text-gray-500 text-xs">
+                    <div className="text-right text-gray-500 text-xs">
                       Target: $
                       {(statementClosing as number).toLocaleString("en-CA", {
                         minimumFractionDigits: 2,
                       })}
                     </div>
                     <div
-                      className={`col-span-2 text-right font-bold ${
+                      className={`text-right font-bold ${
                         isBalanced ? "text-green-700" : "text-red-600"
                       }`}
                     >
@@ -1217,7 +1218,7 @@ export default function Upload() {
                         minimumFractionDigits: 2,
                       })}
                     </div>
-                    <div className="col-span-1 text-center">
+                    <div className="w-16 text-center">
                       {isBalanced ? (
                         <CheckCircle className="h-4 w-4 text-green-600 inline" />
                       ) : (
