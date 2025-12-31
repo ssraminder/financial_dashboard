@@ -407,24 +407,64 @@ export default function ViewStatements() {
 
   // Timezone-safe date formatting - parses date string directly without Date() conversion
   const formatDateSafe = (dateStr: string, options?: { short?: boolean }) => {
-    if (!dateStr) return '';
-    const [year, month, day] = dateStr.split('-');
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
     if (!year || !month || !day) return dateStr;
 
     const months = options?.short
-      ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      ? [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ]
+      : [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
 
     return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
   };
 
-  const formatDate = (dateStr: string) => formatDateSafe(dateStr, { short: true });
+  const formatDate = (dateStr: string) =>
+    formatDateSafe(dateStr, { short: true });
 
   const formatDateShort = (dateStr: string) => {
-    if (!dateStr) return '';
-    const [year, month, day] = dateStr.split('-');
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
     if (!year || !month || !day) return dateStr;
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     return `${months[parseInt(month) - 1]} ${parseInt(day)}`;
   };
 
@@ -812,7 +852,10 @@ export default function ViewStatements() {
                   <div className="text-right text-sm text-gray-500">
                     <p>
                       Imported:{" "}
-                      {formatDateSafe(selectedStatement.imported_at.split('T')[0], { short: true })}
+                      {formatDateSafe(
+                        selectedStatement.imported_at.split("T")[0],
+                        { short: true },
+                      )}
                     </p>
                     <p>
                       {selectedStatement.total_transactions ||
