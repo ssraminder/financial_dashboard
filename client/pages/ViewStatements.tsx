@@ -15,7 +15,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, CheckCircle, Loader2, XCircle, AlertTriangle, Pencil, Save } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  XCircle,
+  AlertTriangle,
+  Pencil,
+  Save,
+} from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
 interface BankAccount {
@@ -110,10 +118,14 @@ export default function ViewStatements() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Editable transactions state
-  const [editableTransactions, setEditableTransactions] = useState<EditableTransaction[]>([]);
+  const [editableTransactions, setEditableTransactions] = useState<
+    EditableTransaction[]
+  >([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingChanges, setSavingChanges] = useState(false);
-  const [editingAmountIndex, setEditingAmountIndex] = useState<number | null>(null);
+  const [editingAmountIndex, setEditingAmountIndex] = useState<number | null>(
+    null,
+  );
   const [editingAmountValue, setEditingAmountValue] = useState("");
 
   useEffect(() => {
@@ -158,7 +170,7 @@ export default function ViewStatements() {
           edited_type: t.transaction_type,
           edited_amount: t.total_amount || Math.abs(t.amount) || 0,
           changed: false,
-        }))
+        })),
       );
       setHasUnsavedChanges(false);
     } else {
@@ -463,7 +475,7 @@ export default function ViewStatements() {
           };
         }
         return t;
-      })
+      }),
     );
     setHasUnsavedChanges(true);
   };
@@ -490,7 +502,7 @@ export default function ViewStatements() {
             };
           }
           return t;
-        })
+        }),
       );
       setHasUnsavedChanges(true);
     }
@@ -534,7 +546,9 @@ export default function ViewStatements() {
         console.error("Some updates failed:", errors);
         sonnerToast.error(`${errors.length} transactions failed to save`);
       } else {
-        sonnerToast.success(`${changedTransactions.length} transactions updated`);
+        sonnerToast.success(
+          `${changedTransactions.length} transactions updated`,
+        );
 
         // Reset changed flags
         setEditableTransactions((prev) =>
@@ -543,7 +557,7 @@ export default function ViewStatements() {
             original_type: t.edited_type,
             original_amount: t.edited_amount,
             changed: false,
-          }))
+          })),
         );
         setHasUnsavedChanges(false);
 
@@ -566,7 +580,7 @@ export default function ViewStatements() {
         edited_type: t.original_type,
         edited_amount: t.original_amount,
         changed: false,
-      }))
+      })),
     );
     setHasUnsavedChanges(false);
     setEditingAmountIndex(null);
@@ -768,7 +782,7 @@ export default function ViewStatements() {
                         $
                         {selectedStatement.opening_balance?.toLocaleString(
                           "en-CA",
-                          { minimumFractionDigits: 2 }
+                          { minimumFractionDigits: 2 },
                         )}
                       </span>
                     </div>
@@ -809,7 +823,7 @@ export default function ViewStatements() {
                       <span className="text-red-600 flex items-center gap-1">
                         <XCircle className="h-4 w-4" /> Off by $
                         {Math.abs(calculatedClosing - expectedClosing).toFixed(
-                          2
+                          2,
                         )}
                       </span>
                     )}
@@ -826,7 +840,11 @@ export default function ViewStatements() {
                     transaction(s) have unsaved changes
                   </span>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={resetAllChanges}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetAllChanges}
+                    >
                       Reset
                     </Button>
                     <Button
@@ -890,7 +908,7 @@ export default function ViewStatements() {
                           <div className="col-span-1 text-gray-600">
                             {new Date(t.transaction_date).toLocaleDateString(
                               "en-CA",
-                              { month: "short", day: "numeric" }
+                              { month: "short", day: "numeric" },
                             )}
                           </div>
 
@@ -912,16 +930,18 @@ export default function ViewStatements() {
                           </div>
 
                           {/* Description */}
-                          <div className="col-span-5 truncate" title={t.description}>
+                          <div
+                            className="col-span-5 truncate"
+                            title={t.description}
+                          >
                             <span className="font-medium">
                               {t.payee_name || t.description}
                             </span>
-                            {t.payee_name &&
-                              t.payee_name !== t.description && (
-                                <span className="text-gray-400 text-xs block truncate">
-                                  {t.description}
-                                </span>
-                              )}
+                            {t.payee_name && t.payee_name !== t.description && (
+                              <span className="text-gray-400 text-xs block truncate">
+                                {t.description}
+                              </span>
+                            )}
                           </div>
 
                           {/* Editable Amount */}
@@ -939,7 +959,8 @@ export default function ViewStatements() {
                                   }
                                   onBlur={() => saveEditAmount(index)}
                                   onKeyDown={(e) => {
-                                    if (e.key === "Enter") saveEditAmount(index);
+                                    if (e.key === "Enter")
+                                      saveEditAmount(index);
                                     if (e.key === "Escape") {
                                       setEditingAmountIndex(null);
                                       setEditingAmountValue("");
@@ -975,10 +996,13 @@ export default function ViewStatements() {
                           {/* Running Balance */}
                           <div className="col-span-2 text-right font-mono">
                             $
-                            {(t.calculated_balance || 0).toLocaleString("en-CA", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            {(t.calculated_balance || 0).toLocaleString(
+                              "en-CA",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              },
+                            )}
                           </div>
 
                           {/* Status Indicators */}
