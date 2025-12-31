@@ -803,21 +803,9 @@ export default function ViewStatements() {
                   <div>
                     <p className="text-sm text-gray-500">Statement Period</p>
                     <p className="text-lg font-bold text-gray-800">
-                      {new Date(
-                        selectedStatement.statement_period_start,
-                      ).toLocaleDateString("en-CA", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}{" "}
+                      {formatDateSafe(selectedStatement.statement_period_start)}{" "}
                       &mdash;{" "}
-                      {new Date(
-                        selectedStatement.statement_period_end,
-                      ).toLocaleDateString("en-CA", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      {formatDateSafe(selectedStatement.statement_period_end)}
                     </p>
                   </div>
                   <div className="text-right text-sm text-gray-500">
