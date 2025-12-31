@@ -44,9 +44,7 @@ export function KBEntryEditorHistory({ entryId }: KBEntryEditorHistoryProps) {
 
       setHistory((data as HistoryRecord[]) || []);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch history"
-      );
+      setError(err instanceof Error ? err.message : "Failed to fetch history");
       console.error("Error fetching history:", err);
     } finally {
       setLoading(false);
@@ -149,7 +147,7 @@ export function KBEntryEditorHistory({ entryId }: KBEntryEditorHistoryProps) {
                                 : String(value)}
                           </span>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>

@@ -119,9 +119,11 @@ export function KBEntryEditor({
       newErrors.category_id = "Category is required";
     }
 
-    if (formData.amount_min !== undefined &&
+    if (
+      formData.amount_min !== undefined &&
       formData.amount_max !== undefined &&
-      formData.amount_min > formData.amount_max) {
+      formData.amount_min > formData.amount_max
+    ) {
       newErrors.amount_range = "Minimum amount cannot be greater than maximum";
     }
 
@@ -159,9 +161,7 @@ export function KBEntryEditor({
       onClose();
       onSave();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to save entry"
-      );
+      setError(err instanceof Error ? err.message : "Failed to save entry");
       console.error("Error saving entry:", err);
     } finally {
       setIsSaving(false);
@@ -234,18 +234,10 @@ export function KBEntryEditor({
 
         {/* Action Buttons */}
         <div className="flex gap-3 justify-end pt-4 border-t">
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isSaving}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="gap-2"
-          >
+          <Button onClick={handleSave} disabled={isSaving} className="gap-2">
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />

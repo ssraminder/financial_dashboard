@@ -164,9 +164,7 @@ export function KBEntryEditorMatching({
               setFormData({
                 ...formData,
                 transaction_type:
-                  value === "null"
-                    ? null
-                    : (value as "debit" | "credit"),
+                  value === "null" ? null : (value as "debit" | "credit"),
               })
             }
           >
@@ -264,21 +262,20 @@ export function KBEntryEditorMatching({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription
                 className={
-                  testResult.matches
-                    ? "text-green-800"
-                    : "text-red-800"
+                  testResult.matches ? "text-green-800" : "text-red-800"
                 }
               >
                 {testResult.matches ? "✓ Would match" : "✗ Would not match"} (
                 {testResult.reason})
-                {formData.pattern_type !== "exact" && formData.pattern_type !== "regex" && (
-                  <>
-                    <br />
-                    <span className="text-xs">
-                      Pattern type: {patternTypeLabels[formData.pattern_type]}
-                    </span>
-                  </>
-                )}
+                {formData.pattern_type !== "exact" &&
+                  formData.pattern_type !== "regex" && (
+                    <>
+                      <br />
+                      <span className="text-xs">
+                        Pattern type: {patternTypeLabels[formData.pattern_type]}
+                      </span>
+                    </>
+                  )}
               </AlertDescription>
             </Alert>
           )}
@@ -289,13 +286,15 @@ export function KBEntryEditorMatching({
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          <strong>Pattern Type: {patternTypeLabels[formData.pattern_type]}</strong>
+          <strong>
+            Pattern Type: {patternTypeLabels[formData.pattern_type]}
+          </strong>
           {formData.pattern_type === "regex" && (
             <>
               <br />
               <span className="text-sm">
-                Use standard regex syntax. Example: ^AMAZON.*\.CA$ matches Amazon
-                Canadian transactions.
+                Use standard regex syntax. Example: ^AMAZON.*\.CA$ matches
+                Amazon Canadian transactions.
               </span>
             </>
           )}

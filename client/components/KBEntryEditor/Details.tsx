@@ -68,18 +68,9 @@ export function KBEntryEditorDetails({
             .select("id, name, code")
             .eq("is_active", true)
             .order("name"),
-          supabase
-            .from("companies")
-            .select("id, name")
-            .order("name"),
-          supabase
-            .from("vendors")
-            .select("id, legal_name")
-            .order("legal_name"),
-          supabase
-            .from("clients")
-            .select("id, name")
-            .order("name"),
+          supabase.from("companies").select("id, name").order("name"),
+          supabase.from("vendors").select("id, legal_name").order("legal_name"),
+          supabase.from("clients").select("id, name").order("name"),
         ]);
 
       if (categoriesRes.data) setCategories(categoriesRes.data);
