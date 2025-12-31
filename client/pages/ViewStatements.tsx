@@ -201,7 +201,9 @@ export default function ViewStatements() {
     try {
       const { data, error } = await supabase
         .from("bank_accounts")
-        .select("id, name, bank_name, account_number, currency, account_type, balance_type")
+        .select(
+          "id, name, bank_name, account_number, currency, account_type, balance_type",
+        )
         .eq("is_active", true)
         .order("name");
 
