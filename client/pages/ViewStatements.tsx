@@ -37,6 +37,7 @@ interface BankAccount {
   account_number?: string;
   currency: string;
   account_type?: string;
+  balance_type?: string;
 }
 
 interface Statement {
@@ -200,7 +201,7 @@ export default function ViewStatements() {
     try {
       const { data, error } = await supabase
         .from("bank_accounts")
-        .select("id, name, bank_name, account_number, currency, account_type")
+        .select("id, name, bank_name, account_number, currency, account_type, balance_type")
         .eq("is_active", true)
         .order("name");
 
@@ -303,21 +304,20 @@ export default function ViewStatements() {
       const selectedAccount = bankAccounts.find(
         (a) => a.id === selectedBankAccountId,
       );
-      const isCreditCard =
-        selectedAccount?.account_type?.toLowerCase() === "credit card";
+      const isLiability = selectedAccount?.balance_type === "liability";
 
       let runningBalance = statement.opening_balance;
       const transactionsWithCategory = (transactions || []).map((t) => {
         const amount = Math.abs(t.total_amount);
-        if (isCreditCard) {
-          // Credit card: debits increase balance, credits decrease
+        if (isLiability) {
+          // Credit Card, LOC: debits increase balance, credits decrease
           if (t.transaction_type === "debit") {
             runningBalance += amount;
           } else {
             runningBalance -= amount;
           }
         } else {
-          // Bank account: credits increase balance, debits decrease
+          // Chequing, Savings: credits increase balance, debits decrease
           if (t.transaction_type === "credit") {
             runningBalance += amount;
           } else {
@@ -338,7 +338,7 @@ export default function ViewStatements() {
       const check = calculateBalanceCheck(
         transactionsWithCategory,
         statement,
-        isCreditCard,
+        isLiability,
       );
       setBalanceCheck(check);
     } catch (err) {
@@ -356,21 +356,21 @@ export default function ViewStatements() {
   const calculateBalanceCheck = (
     txns: Transaction[],
     statement: Statement,
-    isCreditCard: boolean,
+    isLiability: boolean,
   ): BalanceCheck => {
     let calculatedBalance = statement.opening_balance;
 
     txns.forEach((t) => {
       const amount = Math.abs(t.total_amount);
-      if (isCreditCard) {
-        // Credit card: debits increase balance, credits decrease
+      if (isLiability) {
+        // Credit Card, LOC: debits increase balance, credits decrease
         if (t.transaction_type === "debit") {
           calculatedBalance += amount;
         } else {
           calculatedBalance -= amount;
         }
       } else {
-        // Bank account: credits increase balance, debits decrease
+        // Chequing, Savings: credits increase balance, debits decrease
         if (t.transaction_type === "credit") {
           calculatedBalance += amount;
         } else {
@@ -438,22 +438,21 @@ export default function ViewStatements() {
   const calculateRunningBalances = useMemo(() => {
     if (!selectedStatement || editableTransactions.length === 0) return [];
 
-    const isCreditCard =
-      selectedAccount?.account_type?.toLowerCase() === "credit card";
+    const isLiability = selectedAccount?.balance_type === "liability";
     let runningBalance = selectedStatement.opening_balance;
 
     return editableTransactions.map((t, index) => {
       const amount = t.edited_amount;
 
-      if (isCreditCard) {
-        // Credit card: debits increase balance, credits decrease
+      if (isLiability) {
+        // Credit Card, LOC: debits increase balance, credits decrease
         if (t.edited_type === "debit") {
           runningBalance += amount;
         } else {
           runningBalance -= amount;
         }
       } else {
-        // Bank account: credits increase balance, debits decrease
+        // Chequing, Savings: credits increase balance, debits decrease
         if (t.edited_type === "credit") {
           runningBalance += amount;
         } else {
