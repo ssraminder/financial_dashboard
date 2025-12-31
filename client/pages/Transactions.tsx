@@ -41,6 +41,7 @@ import {
   X as XIcon,
 } from "lucide-react";
 import { format, subDays } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 
 interface Transaction {
   id: string;
@@ -311,7 +312,7 @@ export default function Transactions() {
     ];
 
     const rows = transactions.map((t) => [
-      format(new Date(t.transaction_date), "MMM dd, yyyy"),
+      formatDate(t.transaction_date),
       t.payee_name || "",
       t.description || "",
       t.amount.toFixed(2),
@@ -568,10 +569,7 @@ export default function Transactions() {
                           }
                         >
                           <TableCell className="font-medium">
-                            {format(
-                              new Date(transaction.transaction_date),
-                              "MMM dd",
-                            )}
+                            {formatDate(transaction.transaction_date)}
                           </TableCell>
                           <TableCell className="text-sm">
                             {transaction.payee_name || "—"}
