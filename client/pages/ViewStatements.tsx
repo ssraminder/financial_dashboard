@@ -758,113 +758,169 @@ export default function ViewStatements() {
             </div>
           </div>
 
-          {/* Statement Summary Card */}
-          {selectedStatement && (
-            <Card className="mb-6 bg-white">
-              <CardHeader>
-                <CardTitle>Statement Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Balance Discrepancy Alert */}
-                {balanceCheck && !balanceCheck.isBalanced && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-red-800 flex items-center">
-                      <AlertCircle className="w-5 h-5 mr-2" />
-                      Balance Discrepancy Detected
-                    </h3>
-                    <div className="mt-2 text-sm text-red-700 space-y-1">
-                      <p>
-                        Statement Closing Balance:{" "}
-                        {formatCurrency(selectedStatement.closing_balance)}
-                      </p>
-                      <p>
-                        Calculated from Transactions:{" "}
-                        {formatCurrency(balanceCheck.calculatedBalance)}
-                      </p>
-                      <p className="font-semibold">
-                        Difference: {formatCurrency(balanceCheck.difference)}
-                      </p>
-                    </div>
-                    <p className="mt-2 text-sm text-red-600">
-                      This may indicate a missing transaction, incorrect amount,
-                      or wrong transaction type (debit/credit).
+          {/* Statement Header with Export */}
+          {selectedStatement && selectedAccount && (
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+              {/* Header Bar */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <div className="flex justify-between items-center">
+                  <div className="text-white">
+                    <h2 className="text-xl font-bold">
+                      Account Activity Details
+                    </h2>
+                    <p className="text-blue-100">
+                      {selectedAccount.bank_name} - Account ••••
+                      {selectedAccount.account_number?.slice(-4) || "****"}
                     </p>
                   </div>
-                )}
 
-                {/* First row - Key metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <ExportDropdown
+                    statement={selectedStatement}
+                    transactions={
+                      filteredTransactions.length > 0
+                        ? filteredTransactions
+                        : editableTransactions.length > 0
+                        ? editableTransactions
+                        : transactions
+                    }
+                    bankAccount={selectedAccount}
+                  />
+                </div>
+              </div>
+
+              {/* Statement Period - FROM statement_imports TABLE */}
+              <div className="px-6 py-4 border-b bg-gray-50">
+                <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">Statement Period</p>
-                    <p className="text-lg font-semibold">
-                      {formatDate(selectedStatement.statement_period_start)} -{" "}
-                      {formatDate(selectedStatement.statement_period_end)}
+                    <p className="text-lg font-bold text-gray-800">
+                      {new Date(
+                        selectedStatement.statement_period_start
+                      ).toLocaleDateString("en-CA", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}{" "}
+                      &mdash;{" "}
+                      {new Date(
+                        selectedStatement.statement_period_end
+                      ).toLocaleDateString("en-CA", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Opening Balance</p>
-                    <p className="text-lg font-semibold">
-                      {formatCurrency(selectedStatement.opening_balance)}
+                  <div className="text-right text-sm text-gray-500">
+                    <p>
+                      Imported:{" "}
+                      {new Date(selectedStatement.imported_at).toLocaleDateString(
+                        "en-CA"
+                      )}
+                    </p>
+                    <p>
+                      {selectedStatement.total_transactions ||
+                        transactions?.length ||
+                        0}{" "}
+                      transactions
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Closing Balance</p>
-                    <p className="text-lg font-semibold">
+                </div>
+              </div>
+
+              {/* Balance Discrepancy Alert */}
+              {balanceCheck && !balanceCheck.isBalanced && (
+                <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-red-800 flex items-center">
+                    <AlertCircle className="w-5 h-5 mr-2" />
+                    Balance Discrepancy Detected
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700 space-y-1">
+                    <p>
+                      Statement Closing Balance:{" "}
                       {formatCurrency(selectedStatement.closing_balance)}
                     </p>
+                    <p>
+                      Calculated from Transactions:{" "}
+                      {formatCurrency(balanceCheck.calculatedBalance)}
+                    </p>
+                    <p className="font-semibold">
+                      Difference: {formatCurrency(balanceCheck.difference)}
+                    </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Balance Check</p>
-                    {balanceCheck ? (
-                      balanceCheck.isBalanced ? (
-                        <div className="flex items-center text-green-600 font-semibold">
-                          <CheckCircle className="w-5 h-5 mr-1" />
+                  <p className="mt-2 text-sm text-red-600">
+                    This may indicate a missing transaction, incorrect amount, or
+                    wrong transaction type (debit/credit).
+                  </p>
+                </div>
+              )}
+
+              {/* Balance Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6">
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                  <p className="text-sm text-blue-600 font-medium">
+                    Opening Balance
+                  </p>
+                  <p className="text-2xl font-bold text-blue-800">
+                    $
+                    {selectedStatement.opening_balance?.toLocaleString("en-CA", {
+                      minimumFractionDigits: 2,
+                    }) || "0.00"}
+                  </p>
+                </div>
+
+                <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                  <p className="text-sm text-green-600 font-medium">
+                    Total Credits
+                  </p>
+                  <p className="text-2xl font-bold text-green-700">
+                    +$
+                    {selectedStatement.total_credits?.toLocaleString("en-CA", {
+                      minimumFractionDigits: 2,
+                    }) || "0.00"}
+                  </p>
+                </div>
+
+                <div className="bg-red-50 rounded-lg p-4 border border-red-100">
+                  <p className="text-sm text-red-600 font-medium">
+                    Total Debits
+                  </p>
+                  <p className="text-2xl font-bold text-red-700">
+                    -$
+                    {selectedStatement.total_debits?.toLocaleString("en-CA", {
+                      minimumFractionDigits: 2,
+                    }) || "0.00"}
+                  </p>
+                </div>
+
+                <div className="bg-gray-100 rounded-lg p-4 border border-gray-200">
+                  <p className="text-sm text-gray-600 font-medium">
+                    Closing Balance
+                  </p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    $
+                    {selectedStatement.closing_balance?.toLocaleString("en-CA", {
+                      minimumFractionDigits: 2,
+                    }) || "0.00"}
+                  </p>
+                  {balanceCheck && (
+                    <div className="mt-2">
+                      {balanceCheck.isBalanced ? (
+                        <div className="flex items-center text-green-600 text-xs font-semibold">
+                          <CheckCircle className="w-3 h-3 mr-1" />
                           Balanced ✓
                         </div>
                       ) : (
-                        <div className="flex flex-col">
-                          <div className="flex items-center text-red-600 font-semibold">
-                            <AlertCircle className="w-5 h-5 mr-1" />
-                            Mismatch
-                          </div>
-                          <p className="text-xs text-red-600">
-                            ${Math.abs(balanceCheck.difference).toFixed(2)}
-                          </p>
+                        <div className="flex items-center text-red-600 text-xs font-semibold">
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                          Off by ${Math.abs(balanceCheck.difference).toFixed(2)}
                         </div>
-                      )
-                    ) : null}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-
-                {/* Second row - Totals */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-                  <div>
-                    <p className="text-sm text-gray-500">Total Credits</p>
-                    <p className="text-lg font-semibold text-green-600">
-                      +{formatCurrency(selectedStatement.total_credits)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Total Debits</p>
-                    <p className="text-lg font-semibold text-red-600">
-                      -{formatCurrency(selectedStatement.total_debits)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Transactions</p>
-                    <p className="text-lg font-semibold">
-                      {selectedStatement.total_transactions}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Imported</p>
-                    <p className="text-lg font-semibold">
-                      {formatDateTime(selectedStatement.imported_at)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Transactions Table */}
