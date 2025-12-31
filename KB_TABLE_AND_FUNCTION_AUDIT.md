@@ -1,6 +1,7 @@
 # Knowledge Base Table Names and Function Calls Audit
 
 ## Summary
+
 The KB Admin interface has **inconsistent table naming** and **two Edge Function calls still using the deprecated fetch method**.
 
 ---
@@ -9,16 +10,16 @@ The KB Admin interface has **inconsistent table naming** and **two Edge Function
 
 ### ✅ CORRECT Tables
 
-| Table Name | Purpose | Files Used | Status |
-|---|---|---|---|
+| Table Name             | Purpose         | Files Used                                                               | Status     |
+| ---------------------- | --------------- | ------------------------------------------------------------------------ | ---------- |
 | `knowledgebase_payees` | Main KB entries | KBAdmin.tsx, KBEntryEditor.tsx, KBPendingQueue.tsx, kb-pending-review.ts | ✅ CORRECT |
 
 ### ❌ INCORRECT Tables (Discrepancy with Expected)
 
-| Current Name | Expected Name | Purpose | Files Used | Issue |
-|---|---|---|---|---|
-| `kb_pending_queue` | `kb_pending` | Pending approvals queue | KBAdmin.tsx, KBPendingQueue.tsx, kb-pending-review.ts | ❌ Different from expected |
-| `kb_change_history` | `kb_history` | Change history/audit log | kb-pending-review.ts, KBEntryEditor/History.tsx | ❌ Different from expected |
+| Current Name        | Expected Name | Purpose                  | Files Used                                            | Issue                      |
+| ------------------- | ------------- | ------------------------ | ----------------------------------------------------- | -------------------------- |
+| `kb_pending_queue`  | `kb_pending`  | Pending approvals queue  | KBAdmin.tsx, KBPendingQueue.tsx, kb-pending-review.ts | ❌ Different from expected |
+| `kb_change_history` | `kb_history`  | Change history/audit log | kb-pending-review.ts, KBEntryEditor/History.tsx       | ❌ Different from expected |
 
 ---
 
@@ -26,26 +27,27 @@ The KB Admin interface has **inconsistent table naming** and **two Edge Function
 
 ### ✅ Using Correct Method (supabase.functions.invoke)
 
-| Function | File | Method | Status |
-|---|---|---|---|
+| Function          | File                                    | Method                        | Status     |
+| ----------------- | --------------------------------------- | ----------------------------- | ---------- |
 | `kb-ai-interpret` | client/pages/KBAdmin.tsx (Line 131-138) | `supabase.functions.invoke()` | ✅ CORRECT |
 | `kb-entry-manage` | client/pages/KBAdmin.tsx (Line 167-178) | `supabase.functions.invoke()` | ✅ CORRECT |
 
 ### ❌ Still Using OLD Fetch Method
 
-| Function | File | Method | Status | Issue |
-|---|---|---|---|---|
-| `kb-pending-review` (Approve) | client/pages/KBPendingQueue.tsx (Line 99-115) | `fetch()` with wrong headers | ❌ NEEDS FIX |
-| `kb-pending-review` (Reject) | client/pages/KBPendingQueue.tsx (Line 131-158) | `fetch()` with wrong headers | ❌ NEEDS FIX |
+| Function                      | File                                           | Method                       | Status       | Issue |
+| ----------------------------- | ---------------------------------------------- | ---------------------------- | ------------ | ----- |
+| `kb-pending-review` (Approve) | client/pages/KBPendingQueue.tsx (Line 99-115)  | `fetch()` with wrong headers | ❌ NEEDS FIX |
+| `kb-pending-review` (Reject)  | client/pages/KBPendingQueue.tsx (Line 131-158) | `fetch()` with wrong headers | ❌ NEEDS FIX |
 
 ---
 
 ## 3. Detailed List of All Table Queries in KBAdmin.tsx
 
 ### Query 1: Fetch KB Entries (Line 71-101)
+
 ```javascript
 let query = supabase
-  .from("knowledgebase_payees")  // ✅ CORRECT
+  .from("knowledgebase_payees") // ✅ CORRECT
   .select("*, category:categories(id, code, name, category_type)", {
     count: "exact",
   })
@@ -63,17 +65,19 @@ let query = supabase
 ```
 
 ### Query 2: Fetch Pending Count (Line 111-114)
+
 ```javascript
 const { count: pending } = await supabase
-  .from("kb_pending_queue")  // ❌ EXPECTED: kb_pending
+  .from("kb_pending_queue") // ❌ EXPECTED: kb_pending
   .select("id", { count: "exact" })
   .eq("status", "pending");
 ```
 
 ### Query 3: Deactivate/Activate Entry (Line 218-220)
+
 ```javascript
 const { error } = await supabase
-  .from("knowledgebase_payees")  // ✅ CORRECT
+  .from("knowledgebase_payees") // ✅ CORRECT
   .update({ is_active: !entry.is_active })
   .eq("id", entry.id);
 ```
@@ -83,9 +87,10 @@ const { error } = await supabase
 ## 4. All Table Queries in KBPendingQueue.tsx
 
 ### Query 1: Fetch Pending Items (Line 71-81)
+
 ```javascript
 let query = supabase
-  .from("kb_pending_queue")  // ❌ EXPECTED: kb_pending
+  .from("kb_pending_queue") // ❌ EXPECTED: kb_pending
   .select("*")
   .order("created_at", { ascending: false });
 
@@ -94,9 +99,10 @@ query = query.eq("status", activeTab);
 ```
 
 ### Query 2: Expire Old Items (Line 187-192)
+
 ```javascript
 const { error: updateError } = await supabase
-  .from("kb_pending_queue")  // ❌ EXPECTED: kb_pending
+  .from("kb_pending_queue") // ❌ EXPECTED: kb_pending
   .update({ status: "expired" })
   .eq("status", "pending")
   .lt("created_at", thirtyDaysAgo.toISOString());
@@ -105,6 +111,7 @@ const { error: updateError } = await supabase
 ### Edge Function Calls (STILL USING FETCH) - Lines 99-115, 131-158
 
 #### Approve Call (Line 99-115)
+
 ```javascript
 const response = await fetch(
   `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kb-pending-review`,
@@ -112,7 +119,7 @@ const response = await fetch(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${user?.id}`,  // ❌ WRONG
+      Authorization: `Bearer ${user?.id}`, // ❌ WRONG
     },
     body: JSON.stringify({
       action: "approve",
@@ -124,6 +131,7 @@ const response = await fetch(
 ```
 
 #### Reject Call (Line 131-158)
+
 ```javascript
 const response = await fetch(
   `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kb-pending-review`,
@@ -131,7 +139,7 @@ const response = await fetch(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${user?.id}`,  // ❌ WRONG
+      Authorization: `Bearer ${user?.id}`, // ❌ WRONG
     },
     body: JSON.stringify({
       action: "reject",
@@ -149,16 +157,18 @@ const response = await fetch(
 ## 5. All Table Queries in KBEntryEditor.tsx
 
 ### Query 1: Insert KB Entry (Line 147-150)
+
 ```javascript
 const { error: insertError } = await supabase
-  .from("knowledgebase_payees")  // ✅ CORRECT
+  .from("knowledgebase_payees") // ✅ CORRECT
   .insert([payload]);
 ```
 
 ### Query 2: Update KB Entry (Line 153-156)
+
 ```javascript
 const { error: updateError } = await supabase
-  .from("knowledgebase_payees")  // ✅ CORRECT
+  .from("knowledgebase_payees") // ✅ CORRECT
   .update(payload)
   .eq("id", entry.id);
 ```
@@ -168,43 +178,49 @@ const { error: updateError } = await supabase
 ## 6. All Table Queries in kb-pending-review.ts (Netlify Function)
 
 ### Query 1: Fetch Pending Item (Line 86-89)
+
 ```javascript
 const { data: pendingItem, error: fetchError } = await supabase
-  .from("kb_pending_queue")  // ❌ EXPECTED: kb_pending
+  .from("kb_pending_queue") // ❌ EXPECTED: kb_pending
   .select("*")
   .eq("id", body.id)
   .single();
 ```
 
 ### Query 2: Check Existing Entry (Line 147-150)
+
 ```javascript
 const { data: existingEntry } = await supabase
-  .from("knowledgebase_payees")  // ✅ CORRECT
+  .from("knowledgebase_payees") // ✅ CORRECT
   .select("id")
   .eq("payee_pattern", entryData.payee_pattern)
   .maybeSingle();
 ```
 
 ### Query 3: Update Existing Entry (Line 155-158)
+
 ```javascript
 const { error: updateError } = await supabase
-  .from("knowledgebase_payees")  // ✅ CORRECT
+  .from("knowledgebase_payees") // ✅ CORRECT
   .update(entryData)
   .eq("id", existingEntry.id);
 ```
 
 ### Query 4: Insert New Entry (Line 168-172)
+
 ```javascript
 const { data: newEntry, error: insertError } = await supabase
-  .from("knowledgebase_payees")  // ✅ CORRECT
+  .from("knowledgebase_payees") // ✅ CORRECT
   .insert([entryData])
   .select("id")
   .single();
 ```
 
 ### Query 5: Record Change History (Line 183-189)
+
 ```javascript
-await supabase.from("kb_change_history").insert({  // ❌ EXPECTED: kb_history
+await supabase.from("kb_change_history").insert({
+  // ❌ EXPECTED: kb_history
   entry_id: result.entry_id || existingEntry?.id,
   action: "create",
   changed_fields: entryData,
@@ -214,9 +230,10 @@ await supabase.from("kb_change_history").insert({  // ❌ EXPECTED: kb_history
 ```
 
 ### Query 6: Mark as Approved (Line 192-197)
+
 ```javascript
 const { error: approveError } = await supabase
-  .from("kb_pending_queue")  // ❌ EXPECTED: kb_pending
+  .from("kb_pending_queue") // ❌ EXPECTED: kb_pending
   .update({
     status: "approved",
     reviewed_by: body.user_email,
@@ -226,9 +243,10 @@ const { error: approveError } = await supabase
 ```
 
 ### Query 7: Mark as Rejected (Line 212-219)
+
 ```javascript
 const { error: rejectError } = await supabase
-  .from("kb_pending_queue")  // ❌ EXPECTED: kb_pending
+  .from("kb_pending_queue") // ❌ EXPECTED: kb_pending
   .update({
     status: "rejected",
     rejection_reason: reasons,
@@ -243,9 +261,10 @@ const { error: rejectError } = await supabase
 ## 7. All Table Queries in KBEntryEditor/History.tsx
 
 ### Query: Fetch Change History (Line 37-42)
+
 ```javascript
 const { data, error: fetchError } = await supabase
-  .from("kb_change_history")  // ❌ EXPECTED: kb_history
+  .from("kb_change_history") // ❌ EXPECTED: kb_history
   .select("*")
   .eq("entry_id", entry.id)
   .order("changed_at", { ascending: false });
@@ -257,15 +276,15 @@ const { data, error: fetchError } = await supabase
 
 ### Table Name Discrepancies
 
-| Current | Expected | Occurrences | Impact |
-|---|---|---|---|
-| `kb_pending_queue` | `kb_pending` | 8 occurrences | ❌ HIGH - Multiple files affected |
+| Current             | Expected     | Occurrences   | Impact                               |
+| ------------------- | ------------ | ------------- | ------------------------------------ |
+| `kb_pending_queue`  | `kb_pending` | 8 occurrences | ❌ HIGH - Multiple files affected    |
 | `kb_change_history` | `kb_history` | 2 occurrences | ⚠️ MEDIUM - History feature affected |
 
 ### Edge Function Method Issues
 
-| Function | Current Method | Expected Method | Files Affected | Impact |
-|---|---|---|---|---|
+| Function            | Current Method               | Expected Method               | Files Affected     | Impact                              |
+| ------------------- | ---------------------------- | ----------------------------- | ------------------ | ----------------------------------- |
 | `kb-pending-review` | `fetch()` with wrong headers | `supabase.functions.invoke()` | KBPendingQueue.tsx | ❌ HIGH - Will get 401 Unauthorized |
 
 ---
