@@ -84,7 +84,9 @@ export function KBFiltersComponent({
   const handlePayeeTypeChange = (value: string) => {
     onFiltersChange({
       ...filters,
-      payee_type: (value === "all" ? undefined : value) as PayeeType | undefined,
+      payee_type: (value === "all" ? undefined : value) as
+        | PayeeType
+        | undefined,
       page: 1,
     });
   };
