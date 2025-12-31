@@ -739,123 +739,305 @@ export default function ViewStatements() {
 
           {/* Transactions Table */}
           {selectedStatement && (
-            <Card className="bg-white">
-              <CardHeader>
-                <CardTitle>Statement Transactions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <>
+              {/* Balance Status Bar */}
+              <div
+                className={`mb-4 p-4 rounded-lg ${
+                  isBalanced
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-red-50 border border-red-200"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="text-sm text-gray-600">Opening:</span>
+                      <span className="ml-2 font-bold">
+                        $
+                        {selectedStatement.opening_balance?.toLocaleString(
+                          "en-CA",
+                          { minimumFractionDigits: 2 }
+                        )}
+                      </span>
+                    </div>
+                    <span className="text-gray-400">→</span>
+                    <div>
+                      <span className="text-sm text-gray-600">
+                        Expected Closing:
+                      </span>
+                      <span className="ml-2 font-bold">
+                        $
+                        {expectedClosing.toLocaleString("en-CA", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <span className="text-gray-400">→</span>
+                    <div>
+                      <span className="text-sm text-gray-600">Calculated:</span>
+                      <span
+                        className={`ml-2 font-bold ${
+                          isBalanced ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        $
+                        {calculatedClosing.toLocaleString("en-CA", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
                   </div>
-                ) : transactions.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No transactions found for this statement.
+
+                  <div className="flex items-center gap-2">
+                    {isBalanced ? (
+                      <span className="text-green-600 flex items-center gap-1">
+                        <CheckCircle className="h-4 w-4" /> Balanced
+                      </span>
+                    ) : (
+                      <span className="text-red-600 flex items-center gap-1">
+                        <XCircle className="h-4 w-4" /> Off by $
+                        {Math.abs(calculatedClosing - expectedClosing).toFixed(
+                          2
+                        )}
+                      </span>
+                    )}
                   </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="text-left p-3 font-semibold">Date</th>
-                          <th className="text-left p-3 font-semibold">
-                            Description
-                          </th>
-                          <th className="text-right p-3 font-semibold">
-                            Cheques & Debits ($)
-                          </th>
-                          <th className="text-right p-3 font-semibold">
-                            Deposits & Credits ($)
-                          </th>
-                          <th className="text-right p-3 font-semibold">
-                            Balance ($)
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {/* Opening Balance Row */}
-                        <tr className="bg-blue-50 font-semibold border-b">
-                          <td className="p-3">
-                            {formatDate(
-                              selectedStatement.statement_period_start,
+                </div>
+              </div>
+
+              {/* Unsaved Changes Bar */}
+              {hasUnsavedChanges && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
+                  <span className="text-yellow-800 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    {editableTransactions.filter((t) => t.changed).length}{" "}
+                    transaction(s) have unsaved changes
+                  </span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={resetAllChanges}>
+                      Reset
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={saveAllChanges}
+                      disabled={savingChanges}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {savingChanges ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />{" "}
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" /> Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Interactive Transaction Table */}
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : editableTransactions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No transactions found for this statement.
+                </div>
+              ) : (
+                <>
+                  <div className="bg-white rounded-lg shadow overflow-hidden">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-gray-100 border-b font-medium text-sm text-gray-600">
+                      <div className="col-span-1">Date</div>
+                      <div className="col-span-1">Type</div>
+                      <div className="col-span-5">Description</div>
+                      <div className="col-span-2 text-right">Amount</div>
+                      <div className="col-span-2 text-right">Balance</div>
+                      <div className="col-span-1 text-center">Status</div>
+                    </div>
+
+                    {/* Transaction Rows */}
+                    <div className="divide-y">
+                      {calculateRunningBalances.map((t, index) => (
+                        <div
+                          key={t.id}
+                          className={`grid grid-cols-12 gap-2 px-4 py-3 items-center text-sm
+                            ${
+                              t.changed
+                                ? "bg-yellow-50 border-l-4 border-l-yellow-400"
+                                : "hover:bg-gray-50"
+                            }
+                            ${t.needs_review ? "bg-orange-50" : ""}
+                          `}
+                        >
+                          {/* Date */}
+                          <div className="col-span-1 text-gray-600">
+                            {new Date(t.transaction_date).toLocaleDateString(
+                              "en-CA",
+                              { month: "short", day: "numeric" }
                             )}
-                          </td>
-                          <td className="p-3">Opening Balance</td>
-                          <td className="p-3"></td>
-                          <td className="p-3"></td>
-                          <td className="p-3 text-right font-mono">
-                            {formatCurrency(selectedStatement.opening_balance)}
-                          </td>
-                        </tr>
+                          </div>
 
-                        {/* Transaction Rows */}
-                        {transactions.map((t, index) => (
-                          <tr
-                            key={t.id}
-                            className={`
-                              ${
-                                index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                              } ${t.needs_review ? "bg-yellow-50" : ""}
-                              hover:bg-blue-50 cursor-pointer border-b
-                            `}
-                            onClick={() => {
-                              setSelectedTransaction(t);
-                              setIsModalOpen(true);
-                            }}
-                          >
-                            <td className="p-3">
-                              {formatDateShort(t.transaction_date)}
-                            </td>
-                            <td className="p-3">
-                              <div>{t.description}</div>
-                              {t.payee_name &&
-                                t.payee_name !== t.description && (
-                                  <div className="text-sm text-gray-500">
-                                    {t.payee_name}
-                                  </div>
-                                )}
-                              {t.needs_review && (
-                                <div className="text-xs text-yellow-600 font-semibold">
-                                  ⚠️ Needs Review
-                                </div>
+                          {/* Type Toggle Button */}
+                          <div className="col-span-1">
+                            <button
+                              onClick={() => toggleTransactionDirection(index)}
+                              className={`px-2 py-1 rounded text-xs font-bold transition-all hover:scale-105 w-full
+                                ${
+                                  t.edited_type === "credit"
+                                    ? "bg-green-500 hover:bg-green-600 text-white"
+                                    : "bg-red-500 hover:bg-red-600 text-white"
+                                }
+                              `}
+                              title="Click to flip direction"
+                            >
+                              {t.edited_type === "credit" ? "↓ IN" : "↑ OUT"}
+                            </button>
+                          </div>
+
+                          {/* Description */}
+                          <div className="col-span-5 truncate" title={t.description}>
+                            <span className="font-medium">
+                              {t.payee_name || t.description}
+                            </span>
+                            {t.payee_name &&
+                              t.payee_name !== t.description && (
+                                <span className="text-gray-400 text-xs block truncate">
+                                  {t.description}
+                                </span>
                               )}
-                            </td>
-                            <td className="p-3 text-right font-mono text-red-600">
-                              {t.transaction_type === "debit"
-                                ? formatNumber(t.total_amount)
-                                : ""}
-                            </td>
-                            <td className="p-3 text-right font-mono text-green-600">
-                              {t.transaction_type === "credit"
-                                ? formatNumber(t.total_amount)
-                                : ""}
-                            </td>
-                            <td className="p-3 text-right font-mono">
-                              {t.running_balance !== null
-                                ? formatCurrency(t.running_balance)
-                                : "-"}
-                            </td>
-                          </tr>
-                        ))}
+                          </div>
 
-                        {/* Closing Balance Row */}
-                        <tr className="bg-blue-50 font-semibold border-t-2">
-                          <td className="p-3">
-                            {formatDate(selectedStatement.statement_period_end)}
-                          </td>
-                          <td className="p-3">Closing Balance</td>
-                          <td className="p-3"></td>
-                          <td className="p-3"></td>
-                          <td className="p-3 text-right font-mono">
-                            {formatCurrency(selectedStatement.closing_balance)}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                          {/* Editable Amount */}
+                          <div className="col-span-2 text-right">
+                            {editingAmountIndex === index ? (
+                              <div className="flex items-center justify-end gap-1">
+                                <span className="text-gray-400">$</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={editingAmountValue}
+                                  onChange={(e) =>
+                                    setEditingAmountValue(e.target.value)
+                                  }
+                                  onBlur={() => saveEditAmount(index)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") saveEditAmount(index);
+                                    if (e.key === "Escape") {
+                                      setEditingAmountIndex(null);
+                                      setEditingAmountValue("");
+                                    }
+                                  }}
+                                  className="w-24 px-2 py-1 border rounded text-right text-sm focus:ring-2 focus:ring-blue-500"
+                                  autoFocus
+                                />
+                              </div>
+                            ) : (
+                              <span
+                                onDoubleClick={() =>
+                                  startEditAmount(index, t.edited_amount)
+                                }
+                                className={`cursor-pointer hover:bg-gray-100 px-2 py-1 rounded font-mono font-medium
+                                  ${
+                                    t.edited_type === "credit"
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }
+                                `}
+                                title="Double-click to edit amount"
+                              >
+                                {t.edited_type === "credit" ? "+" : "-"}$
+                                {t.edited_amount.toLocaleString("en-CA", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Running Balance */}
+                          <div className="col-span-2 text-right font-mono">
+                            $
+                            {(t.calculated_balance || 0).toLocaleString("en-CA", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </div>
+
+                          {/* Status Indicators */}
+                          <div className="col-span-1 text-center flex items-center justify-center gap-1">
+                            {t.changed && (
+                              <span
+                                className="w-2 h-2 rounded-full bg-yellow-400"
+                                title="Unsaved changes"
+                              />
+                            )}
+                            {t.needs_review && (
+                              <AlertTriangle
+                                className="h-4 w-4 text-orange-500"
+                                title="Needs review"
+                              />
+                            )}
+                            {t.is_edited && !t.changed && (
+                              <Pencil
+                                className="h-3 w-3 text-blue-400"
+                                title="Previously edited"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Table Footer */}
+                    <div className="px-4 py-3 bg-gray-50 border-t">
+                      <div className="grid grid-cols-12 gap-2 text-sm">
+                        <div className="col-span-7 font-medium">Totals</div>
+                        <div className="col-span-2 text-right font-mono">
+                          <span className="text-red-600">
+                            -$
+                            {editableTransactions
+                              .filter((t) => t.edited_type === "debit")
+                              .reduce((sum, t) => sum + t.edited_amount, 0)
+                              .toLocaleString("en-CA", {
+                                minimumFractionDigits: 2,
+                              })}
+                          </span>
+                          <br />
+                          <span className="text-green-600">
+                            +$
+                            {editableTransactions
+                              .filter((t) => t.edited_type === "credit")
+                              .reduce((sum, t) => sum + t.edited_amount, 0)
+                              .toLocaleString("en-CA", {
+                                minimumFractionDigits: 2,
+                              })}
+                          </span>
+                        </div>
+                        <div className="col-span-2 text-right font-mono font-bold">
+                          $
+                          {calculatedClosing.toLocaleString("en-CA", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </div>
+                        <div className="col-span-1"></div>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+
+                  {/* Help Text */}
+                  <p className="text-xs text-gray-500 mt-4 text-center">
+                    💡 Click direction button to flip IN ↔ OUT • Double-click
+                    amount to edit • Changes update balance in real-time
+                  </p>
+                </>
+              )}
+            </>
           )}
 
           {/* Empty state */}
