@@ -20,6 +20,7 @@ const navigation = [
   { name: "HITL Review Queue", href: "/review-queue", icon: ClipboardList },
   { name: "Upload", href: "/upload", icon: Upload },
   { name: "Transactions", href: "/transactions", icon: Sheet },
+  { name: "View Statements", href: "/statements", icon: Archive },
   { name: "Accounts", href: "/accounts", icon: Building2 },
   { name: "Clients", href: "/clients", icon: Users },
   { name: "Vendors", href: "/vendors", icon: Package },
