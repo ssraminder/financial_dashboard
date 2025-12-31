@@ -8,6 +8,7 @@ import { TransactionEditModal } from "@/components/TransactionEditModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,8 @@ import {
   AlertTriangle,
   Pencil,
   Save,
+  Filter,
+  X as XIcon,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
@@ -127,6 +130,16 @@ export default function ViewStatements() {
     null,
   );
   const [editingAmountValue, setEditingAmountValue] = useState("");
+
+  // Filter state
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "credit" | "debit">("all");
+  const [filterDescription, setFilterDescription] = useState("");
+  const [filterAmountMin, setFilterAmountMin] = useState("");
+  const [filterAmountMax, setFilterAmountMax] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "changed" | "needs_review" | "edited">("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
