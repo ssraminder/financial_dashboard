@@ -464,6 +464,70 @@ export default function ViewStatements() {
     });
   }, [editableTransactions, selectedStatement, selectedAccount]);
 
+  // Apply filters to transactions
+  const filteredTransactions = useMemo(() => {
+    let filtered = calculateRunningBalances;
+
+    // Date filter
+    if (filterDateFrom) {
+      filtered = filtered.filter((t) => t.transaction_date >= filterDateFrom);
+    }
+    if (filterDateTo) {
+      filtered = filtered.filter((t) => t.transaction_date <= filterDateTo);
+    }
+
+    // Type filter
+    if (filterType !== "all") {
+      filtered = filtered.filter((t) => t.edited_type === filterType);
+    }
+
+    // Description filter (fuzzy search)
+    if (filterDescription.trim()) {
+      const searchTerm = filterDescription.toLowerCase();
+      filtered = filtered.filter(
+        (t) =>
+          t.description?.toLowerCase().includes(searchTerm) ||
+          t.payee_name?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Amount filter (fuzzy range)
+    if (filterAmountMin) {
+      const min = parseFloat(filterAmountMin);
+      if (!isNaN(min)) {
+        filtered = filtered.filter((t) => t.edited_amount >= min);
+      }
+    }
+    if (filterAmountMax) {
+      const max = parseFloat(filterAmountMax);
+      if (!isNaN(max)) {
+        filtered = filtered.filter((t) => t.edited_amount <= max);
+      }
+    }
+
+    // Status filter
+    if (filterStatus !== "all") {
+      if (filterStatus === "changed") {
+        filtered = filtered.filter((t) => t.changed);
+      } else if (filterStatus === "needs_review") {
+        filtered = filtered.filter((t) => t.needs_review);
+      } else if (filterStatus === "edited") {
+        filtered = filtered.filter((t) => t.is_edited && !t.changed);
+      }
+    }
+
+    return filtered;
+  }, [
+    calculateRunningBalances,
+    filterDateFrom,
+    filterDateTo,
+    filterType,
+    filterDescription,
+    filterAmountMin,
+    filterAmountMax,
+    filterStatus,
+  ]);
+
   // Check if final balance matches statement closing
   const calculatedClosing =
     calculateRunningBalances.length > 0
@@ -472,6 +536,28 @@ export default function ViewStatements() {
       : 0;
   const expectedClosing = selectedStatement?.closing_balance || 0;
   const isBalanced = Math.abs(calculatedClosing - expectedClosing) < 0.02;
+
+  // Count active filters
+  const activeFilterCount = [
+    filterDateFrom,
+    filterDateTo,
+    filterType !== "all",
+    filterDescription,
+    filterAmountMin,
+    filterAmountMax,
+    filterStatus !== "all",
+  ].filter(Boolean).length;
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setFilterType("all");
+    setFilterDescription("");
+    setFilterAmountMin("");
+    setFilterAmountMax("");
+    setFilterStatus("all");
+  };
 
   // Toggle transaction direction
   const toggleTransactionDirection = (index: number) => {
