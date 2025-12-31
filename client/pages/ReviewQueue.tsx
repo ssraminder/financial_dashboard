@@ -569,7 +569,7 @@ export default function ReviewQueue() {
                             variant="secondary"
                             className="bg-blue-100 text-blue-700"
                           >
-                            {currentTransaction.bank_accounts?.bank_name ||
+                            {currentTransaction.bank_account?.bank_name ||
                               "Bank"}
                           </Badge>
                         </div>
@@ -600,13 +600,13 @@ export default function ReviewQueue() {
                       <div>
                         <p className="text-muted-foreground">Account</p>
                         <p className="font-medium">
-                          {currentTransaction.bank_accounts?.name}
+                          {currentTransaction.bank_account?.name}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Company</p>
                         <p className="font-medium">
-                          {currentTransaction.companies?.name || "—"}
+                          {currentTransaction.company?.name || "—"}
                         </p>
                       </div>
                       <div>
@@ -614,7 +614,7 @@ export default function ReviewQueue() {
                           Current Category
                         </p>
                         <p className="font-medium">
-                          {currentTransaction.categories?.name ||
+                          {currentTransaction.category?.name ||
                             "Uncategorized"}
                         </p>
                       </div>
