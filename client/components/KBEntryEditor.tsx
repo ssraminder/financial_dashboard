@@ -145,13 +145,13 @@ export function KBEntryEditor({
 
       if (mode === "create") {
         const { error: insertError } = await supabase
-          .from("knowledge_base")
+          .from("knowledgebase_payees")
           .insert([payload]);
 
         if (insertError) throw insertError;
       } else if (mode === "edit" && entry) {
         const { error: updateError } = await supabase
-          .from("knowledge_base")
+          .from("knowledgebase_payees")
           .update(payload)
           .eq("id", entry.id);
 
