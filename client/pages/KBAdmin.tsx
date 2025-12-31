@@ -11,6 +11,7 @@ import { KBNaturalLanguageInput } from "@/components/KBNaturalLanguageInput";
 import { KBFiltersComponent } from "@/components/KBFilters";
 import { KBEntriesTable } from "@/components/KBEntriesTable";
 import { KBInterpretResultModal } from "@/components/KBInterpretResultModal";
+import { KBEntryEditor } from "@/components/KBEntryEditor";
 import {
   KBEntry,
   KBFilters,
@@ -42,6 +43,11 @@ export default function KBAdmin() {
     useState<AIInterpretationResult | null>(null);
   const [resultModalOpen, setResultModalOpen] = useState(false);
   const [resultLoading, setResultLoading] = useState(false);
+
+  // Entry editor state
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorMode, setEditorMode] = useState<"create" | "edit">("create");
+  const [selectedEntry, setSelectedEntry] = useState<KBEntry | null>(null);
 
   // Auth check
   useEffect(() => {
@@ -196,8 +202,15 @@ export default function KBAdmin() {
   };
 
   const handleEditEntry = (entry: KBEntry) => {
-    // TODO: Open entry editor modal
-    console.log("Edit entry:", entry);
+    setSelectedEntry(entry);
+    setEditorMode("edit");
+    setEditorOpen(true);
+  };
+
+  const handleCreateEntry = () => {
+    setSelectedEntry(null);
+    setEditorMode("create");
+    setEditorOpen(true);
   };
 
   const handleDeactivateEntry = async (entry: KBEntry) => {
@@ -249,7 +262,7 @@ export default function KBAdmin() {
                 Manage patterns and rules for transaction categorization
               </p>
             </div>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={handleCreateEntry}>
               <Plus className="h-4 w-4" />
               Add Entry
             </Button>
@@ -348,6 +361,22 @@ export default function KBAdmin() {
         onEdit={() => {
           // TODO: Open entry editor with prefilled data
           setResultModalOpen(false);
+        }}
+      />
+
+      {/* Entry Editor Modal */}
+      <KBEntryEditor
+        isOpen={editorOpen}
+        mode={editorMode}
+        entry={selectedEntry}
+        onClose={() => {
+          setEditorOpen(false);
+          setSelectedEntry(null);
+        }}
+        onSave={() => {
+          setEditorOpen(false);
+          setSelectedEntry(null);
+          fetchEntries();
         }}
       />
     </div>
