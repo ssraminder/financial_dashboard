@@ -738,7 +738,7 @@ export default function ViewStatements() {
                   {bankAccounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.bank_name} - {account.name} ( ••••
-                      {account.account_number?.slice(-4) || "****"})
+                      {account.account_number_last4 || "****"})
                     </SelectItem>
                   ))}
                 </SelectContent>
