@@ -31,6 +31,7 @@ interface KBEntriesTableProps {
   onPageChange: (page: number) => void;
   onEdit: (entry: KBEntry) => void;
   onDeactivate: (entry: KBEntry) => void;
+  onDelete: (entry: KBEntry) => void;
 }
 
 const SOURCE_COLORS: Record<string, string> = {
