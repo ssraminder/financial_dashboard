@@ -269,6 +269,33 @@ export default function KBAdmin() {
     }
   };
 
+  const handleDeleteEntry = async (entry: KBEntry) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this KB entry? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      // Call kb-entry-manage to delete using supabase.functions.invoke()
+      const { error } = await supabase.functions.invoke("kb-entry-manage", {
+        body: {
+          action: "delete",
+          user_email: user?.email,
+          id: entry.id,
+        },
+      });
+
+      if (error) throw error;
+
+      fetchEntries();
+    } catch (err) {
+      console.error("Error deleting entry:", err);
+    }
+  };
+
   const totalPages = Math.ceil(totalCount / filters.pageSize);
 
   if (authLoading) {
