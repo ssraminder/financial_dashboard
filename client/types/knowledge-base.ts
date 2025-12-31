@@ -2,9 +2,29 @@
  * Knowledge Base Types and Interfaces
  */
 
-export type PatternType = "exact" | "starts_with" | "ends_with" | "contains" | "regex";
-export type PayeeType = "vendor" | "client" | "contractor" | "employee" | "government" | "financial" | "utility" | "transfer";
-export type KBSource = "manual" | "hitl_correction" | "csv_import" | "auto_suggest" | "receipt_ocr" | "xtrf_sync" | "legacy_migration";
+export type PatternType =
+  | "exact"
+  | "starts_with"
+  | "ends_with"
+  | "contains"
+  | "regex";
+export type PayeeType =
+  | "vendor"
+  | "client"
+  | "contractor"
+  | "employee"
+  | "government"
+  | "financial"
+  | "utility"
+  | "transfer";
+export type KBSource =
+  | "manual"
+  | "hitl_correction"
+  | "csv_import"
+  | "auto_suggest"
+  | "receipt_ocr"
+  | "xtrf_sync"
+  | "legacy_migration";
 export type TransactionTypeFilter = "debit" | "credit" | null;
 
 export interface KBEntry {

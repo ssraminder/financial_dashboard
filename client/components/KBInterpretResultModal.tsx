@@ -149,7 +149,9 @@ export function KBInterpretResultModal({
                         <span className="text-sm">Has GST:</span>
                         <Badge
                           variant={
-                            result.proposed.default_has_gst ? "default" : "outline"
+                            result.proposed.default_has_gst
+                              ? "default"
+                              : "outline"
                           }
                         >
                           {result.proposed.default_has_gst ? "Yes" : "No"}
@@ -157,7 +159,11 @@ export function KBInterpretResultModal({
                         {result.proposed.default_has_gst &&
                           result.proposed.default_gst_rate && (
                             <span className="text-sm text-muted-foreground">
-                              ({(result.proposed.default_gst_rate * 100).toFixed(0)}%)
+                              (
+                              {(result.proposed.default_gst_rate * 100).toFixed(
+                                0,
+                              )}
+                              %)
                             </span>
                           )}
                       </div>
@@ -167,7 +173,9 @@ export function KBInterpretResultModal({
                         <span className="text-sm">Has Tip:</span>
                         <Badge
                           variant={
-                            result.proposed.default_has_tip ? "default" : "outline"
+                            result.proposed.default_has_tip
+                              ? "default"
+                              : "outline"
                           }
                         >
                           {result.proposed.default_has_tip ? "Yes" : "No"}

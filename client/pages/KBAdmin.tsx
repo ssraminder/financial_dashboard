@@ -71,10 +71,7 @@ export default function KBAdmin() {
 
       // Apply filters
       if (filters.search) {
-        query = query.ilike(
-          "payee_pattern",
-          `%${filters.search}%`
-        );
+        query = query.ilike("payee_pattern", `%${filters.search}%`);
       }
 
       if (filters.category_id) {
@@ -95,8 +92,7 @@ export default function KBAdmin() {
 
       // Pagination
       const offset = (filters.page - 1) * filters.pageSize;
-      query = query
-        .range(offset, offset + filters.pageSize - 1);
+      query = query.range(offset, offset + filters.pageSize - 1);
 
       const { data, count, error } = await query;
 
@@ -137,13 +133,11 @@ export default function KBAdmin() {
             instruction: input,
             user_email: user?.email,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error(
-          `AI interpretation failed: ${response.statusText}`
-        );
+        throw new Error(`AI interpretation failed: ${response.statusText}`);
       }
 
       const result: AIInterpretationResult = await response.json();
@@ -152,7 +146,7 @@ export default function KBAdmin() {
       setNlInput("");
     } catch (err) {
       setNlError(
-        err instanceof Error ? err.message : "Failed to interpret instruction"
+        err instanceof Error ? err.message : "Failed to interpret instruction",
       );
       console.error("Error interpreting instruction:", err);
     } finally {
@@ -181,7 +175,7 @@ export default function KBAdmin() {
             entry: interpretResult.proposed,
             ai_interpretation: interpretResult.ai_interpretation,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -194,9 +188,7 @@ export default function KBAdmin() {
       setFilters({ ...filters, page: 1 });
       fetchEntries();
     } catch (err) {
-      setNlError(
-        err instanceof Error ? err.message : "Failed to save entry"
-      );
+      setNlError(err instanceof Error ? err.message : "Failed to save entry");
       console.error("Error saving entry:", err);
     } finally {
       setResultLoading(false);
@@ -209,9 +201,11 @@ export default function KBAdmin() {
   };
 
   const handleDeactivateEntry = async (entry: KBEntry) => {
-    if (!confirm(
-      `Are you sure you want to ${entry.is_active ? "deactivate" : "activate"} this entry?`
-    )) {
+    if (
+      !confirm(
+        `Are you sure you want to ${entry.is_active ? "deactivate" : "activate"} this entry?`,
+      )
+    ) {
       return;
     }
 
@@ -269,10 +263,7 @@ export default function KBAdmin() {
           />
 
           {/* Filters */}
-          <KBFiltersComponent
-            filters={filters}
-            onFiltersChange={setFilters}
-          />
+          <KBFiltersComponent filters={filters} onFiltersChange={setFilters} />
 
           {/* Stats Bar */}
           <div className="grid grid-cols-4 gap-4">
@@ -315,7 +306,9 @@ export default function KBAdmin() {
                     Total Usage
                   </p>
                   <p className="text-2xl font-bold">
-                    {entries.reduce((sum, e) => sum + e.usage_count, 0).toLocaleString()}
+                    {entries
+                      .reduce((sum, e) => sum + e.usage_count, 0)
+                      .toLocaleString()}
                   </p>
                 </div>
               </CardContent>
@@ -325,9 +318,7 @@ export default function KBAdmin() {
           {/* KB Entries Table */}
           <Card>
             <CardHeader>
-              <CardTitle>
-                Knowledge Base Entries ({totalCount})
-              </CardTitle>
+              <CardTitle>Knowledge Base Entries ({totalCount})</CardTitle>
             </CardHeader>
             <CardContent>
               <KBEntriesTable
@@ -335,9 +326,7 @@ export default function KBAdmin() {
                 isLoading={loading}
                 currentPage={filters.page}
                 totalPages={totalPages}
-                onPageChange={(page) =>
-                  setFilters({ ...filters, page })
-                }
+                onPageChange={(page) => setFilters({ ...filters, page })}
                 onEdit={handleEditEntry}
                 onDeactivate={handleDeactivateEntry}
               />

@@ -14,7 +14,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AlertCircle, ChevronLeft, ChevronRight, Edit, MoreVertical } from "lucide-react";
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  MoreVertical,
+} from "lucide-react";
 import { KBEntry } from "@/types/knowledge-base";
 
 interface KBEntriesTableProps {
