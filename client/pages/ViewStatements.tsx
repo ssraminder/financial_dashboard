@@ -865,6 +865,172 @@ export default function ViewStatements() {
           {/* Transactions Table */}
           {selectedStatement && (
             <>
+              {/* Filter Toggle and Summary */}
+              <div className="mb-4 flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="gap-2"
+                >
+                  <Filter className="h-4 w-4" />
+                  {showFilters ? "Hide Filters" : "Show Filters"}
+                  {activeFilterCount > 0 && (
+                    <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+
+                {activeFilterCount > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">
+                      Showing {filteredTransactions.length} of {calculateRunningBalances.length} transactions
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearAllFilters}
+                      className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <XIcon className="h-3 w-3" />
+                      Clear All
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Filter Panel */}
+              {showFilters && (
+                <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Date From */}
+                    <div className="space-y-2">
+                      <Label htmlFor="filter-date-from" className="text-xs font-medium text-gray-700">
+                        Date From
+                      </Label>
+                      <Input
+                        id="filter-date-from"
+                        type="date"
+                        value={filterDateFrom}
+                        onChange={(e) => setFilterDateFrom(e.target.value)}
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Date To */}
+                    <div className="space-y-2">
+                      <Label htmlFor="filter-date-to" className="text-xs font-medium text-gray-700">
+                        Date To
+                      </Label>
+                      <Input
+                        id="filter-date-to"
+                        type="date"
+                        value={filterDateTo}
+                        onChange={(e) => setFilterDateTo(e.target.value)}
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Type */}
+                    <div className="space-y-2">
+                      <Label htmlFor="filter-type" className="text-xs font-medium text-gray-700">
+                        Type
+                      </Label>
+                      <Select value={filterType} onValueChange={(val: any) => setFilterType(val)}>
+                        <SelectTrigger id="filter-type" className="text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Types</SelectItem>
+                          <SelectItem value="credit">Credit (IN)</SelectItem>
+                          <SelectItem value="debit">Debit (OUT)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Status */}
+                    <div className="space-y-2">
+                      <Label htmlFor="filter-status" className="text-xs font-medium text-gray-700">
+                        Status
+                      </Label>
+                      <Select value={filterStatus} onValueChange={(val: any) => setFilterStatus(val)}>
+                        <SelectTrigger id="filter-status" className="text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="changed">Changed (Unsaved)</SelectItem>
+                          <SelectItem value="needs_review">Needs Review</SelectItem>
+                          <SelectItem value="edited">Previously Edited</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Description */}
+                    <div className="space-y-2">
+                      <Label htmlFor="filter-description" className="text-xs font-medium text-gray-700">
+                        Description (fuzzy search)
+                      </Label>
+                      <Input
+                        id="filter-description"
+                        type="text"
+                        placeholder="Search description or payee..."
+                        value={filterDescription}
+                        onChange={(e) => setFilterDescription(e.target.value)}
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Amount Min */}
+                    <div className="space-y-2">
+                      <Label htmlFor="filter-amount-min" className="text-xs font-medium text-gray-700">
+                        Amount Min ($)
+                      </Label>
+                      <Input
+                        id="filter-amount-min"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={filterAmountMin}
+                        onChange={(e) => setFilterAmountMin(e.target.value)}
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Amount Max */}
+                    <div className="space-y-2">
+                      <Label htmlFor="filter-amount-max" className="text-xs font-medium text-gray-700">
+                        Amount Max ($)
+                      </Label>
+                      <Input
+                        id="filter-amount-max"
+                        type="number"
+                        step="0.01"
+                        placeholder="9999.99"
+                        value={filterAmountMax}
+                        onChange={(e) => setFilterAmountMax(e.target.value)}
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Filter Explanations */}
+                  <div className="pt-2 border-t border-gray-300">
+                    <p className="text-xs text-gray-500">
+                      <strong>Status filters:</strong>
+                      <span className="ml-1">
+                        <strong>Changed</strong> = Unsaved edits (yellow rows) •
+                        <strong className="ml-1">Needs Review</strong> = Flagged for manual review •
+                        <strong className="ml-1">Previously Edited</strong> = Saved edits from past sessions
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Balance Status Bar */}
               <div
                 className={`mb-4 p-4 rounded-lg ${
