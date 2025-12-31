@@ -216,7 +216,7 @@ export default function ViewStatements() {
            gst_amount,
            category_id,
            bank_account_id,
-           category:categories!transactions_category_id_fkey(id, code, name, category_type),
+           category:categories(id, code, name, category_type),
            bank_account:bank_accounts(id, name, nickname, account_number)`,
         )
         .eq("bank_account_id", selectedBankAccountId)
