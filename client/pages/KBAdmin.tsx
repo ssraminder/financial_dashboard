@@ -19,6 +19,13 @@ import {
   KBListResponse,
 } from "@/types/knowledge-base";
 
+interface Category {
+  id: string;
+  code: string;
+  name: string;
+  category_type: string;
+}
+
 export default function KBAdmin() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -28,6 +35,7 @@ export default function KBAdmin() {
   const [totalCount, setTotalCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   // Filters
   const [filters, setFilters] = useState<KBFilters>({
