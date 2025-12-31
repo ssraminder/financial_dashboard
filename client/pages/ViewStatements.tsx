@@ -147,6 +147,25 @@ export default function ViewStatements() {
     }
   }, [selectedStatementId]);
 
+  // Initialize editableTransactions when transactions load
+  useEffect(() => {
+    if (transactions && transactions.length > 0) {
+      setEditableTransactions(
+        transactions.map((t) => ({
+          ...t,
+          original_type: t.transaction_type,
+          original_amount: t.total_amount || Math.abs(t.amount) || 0,
+          edited_type: t.transaction_type,
+          edited_amount: t.total_amount || Math.abs(t.amount) || 0,
+          changed: false,
+        }))
+      );
+      setHasUnsavedChanges(false);
+    } else {
+      setEditableTransactions([]);
+    }
+  }, [transactions]);
+
   const fetchBankAccounts = async () => {
     try {
       const { data, error } = await supabase
@@ -384,6 +403,162 @@ export default function ViewStatements() {
   const selectedAccount = bankAccounts.find(
     (a) => a.id === selectedBankAccountId,
   );
+
+  // Calculate running balances with current edits applied
+  const calculateRunningBalances = useMemo(() => {
+    if (!selectedStatement || editableTransactions.length === 0) return [];
+
+    let runningBalance = selectedStatement.opening_balance;
+
+    return editableTransactions.map((t, index) => {
+      const amount = t.edited_amount;
+
+      if (t.edited_type === "credit") {
+        runningBalance += amount;
+      } else {
+        runningBalance -= amount;
+      }
+
+      return {
+        ...t,
+        calculated_balance: Math.round(runningBalance * 100) / 100,
+        index,
+      };
+    });
+  }, [editableTransactions, selectedStatement]);
+
+  // Check if final balance matches statement closing
+  const calculatedClosing =
+    calculateRunningBalances.length > 0
+      ? calculateRunningBalances[calculateRunningBalances.length - 1]
+          .calculated_balance || 0
+      : 0;
+  const expectedClosing = selectedStatement?.closing_balance || 0;
+  const isBalanced = Math.abs(calculatedClosing - expectedClosing) < 0.02;
+
+  // Toggle transaction direction
+  const toggleTransactionDirection = (index: number) => {
+    setEditableTransactions((prev) =>
+      prev.map((t, i) => {
+        if (i === index) {
+          const newType = t.edited_type === "credit" ? "debit" : "credit";
+          return {
+            ...t,
+            edited_type: newType,
+            changed:
+              newType !== t.original_type ||
+              t.edited_amount !== t.original_amount,
+          };
+        }
+        return t;
+      })
+    );
+    setHasUnsavedChanges(true);
+  };
+
+  // Start editing amount
+  const startEditAmount = (index: number, currentAmount: number) => {
+    setEditingAmountIndex(index);
+    setEditingAmountValue(currentAmount.toString());
+  };
+
+  // Save edited amount
+  const saveEditAmount = (index: number) => {
+    const newAmount = parseFloat(editingAmountValue);
+    if (!isNaN(newAmount) && newAmount >= 0) {
+      setEditableTransactions((prev) =>
+        prev.map((t, i) => {
+          if (i === index) {
+            return {
+              ...t,
+              edited_amount: newAmount,
+              changed:
+                t.edited_type !== t.original_type ||
+                newAmount !== t.original_amount,
+            };
+          }
+          return t;
+        })
+      );
+      setHasUnsavedChanges(true);
+    }
+    setEditingAmountIndex(null);
+    setEditingAmountValue("");
+  };
+
+  // Save all changes to database
+  const saveAllChanges = async () => {
+    const changedTransactions = editableTransactions.filter((t) => t.changed);
+
+    if (changedTransactions.length === 0) {
+      sonnerToast.info("No changes to save");
+      return;
+    }
+
+    setSavingChanges(true);
+
+    try {
+      // Update each changed transaction
+      const updates = changedTransactions.map((t) => {
+        const signedAmount =
+          t.edited_type === "credit" ? t.edited_amount : -t.edited_amount;
+
+        return supabase
+          .from("transactions")
+          .update({
+            transaction_type: t.edited_type,
+            total_amount: t.edited_amount,
+            amount: signedAmount,
+            is_edited: true,
+            edited_at: new Date().toISOString(),
+          })
+          .eq("id", t.id);
+      });
+
+      const results = await Promise.all(updates);
+
+      const errors = results.filter((r) => r.error);
+      if (errors.length > 0) {
+        console.error("Some updates failed:", errors);
+        sonnerToast.error(`${errors.length} transactions failed to save`);
+      } else {
+        sonnerToast.success(`${changedTransactions.length} transactions updated`);
+
+        // Reset changed flags
+        setEditableTransactions((prev) =>
+          prev.map((t) => ({
+            ...t,
+            original_type: t.edited_type,
+            original_amount: t.edited_amount,
+            changed: false,
+          }))
+        );
+        setHasUnsavedChanges(false);
+
+        // Refresh transactions from database
+        await fetchTransactions();
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      sonnerToast.error("Failed to save changes");
+    }
+
+    setSavingChanges(false);
+  };
+
+  // Reset all changes
+  const resetAllChanges = () => {
+    setEditableTransactions((prev) =>
+      prev.map((t) => ({
+        ...t,
+        edited_type: t.original_type,
+        edited_amount: t.original_amount,
+        changed: false,
+      }))
+    );
+    setHasUnsavedChanges(false);
+    setEditingAmountIndex(null);
+  };
 
   if (authLoading) {
     return (
