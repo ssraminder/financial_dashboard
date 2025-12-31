@@ -277,6 +277,7 @@ export default function ViewStatements() {
         .select(
           `id,
            transaction_date,
+           posting_date,
            description,
            payee_name,
            total_amount,
@@ -284,11 +285,9 @@ export default function ViewStatements() {
            needs_review,
            category_id`,
         )
-        .eq("bank_account_id", selectedBankAccountId)
-        .gte("transaction_date", statement.statement_period_start)
-        .lte("transaction_date", statement.statement_period_end)
-        .order("transaction_date", { ascending: true })
-        .order("id", { ascending: true });
+        .eq("statement_import_id", statement.id)
+        .order("posting_date", { ascending: true })
+        .order("transaction_date", { ascending: true });
 
       if (error) {
         console.error("Transactions query error:", error);
