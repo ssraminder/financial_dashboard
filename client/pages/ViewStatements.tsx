@@ -812,9 +812,7 @@ export default function ViewStatements() {
                   <div className="text-right text-sm text-gray-500">
                     <p>
                       Imported:{" "}
-                      {new Date(
-                        selectedStatement.imported_at,
-                      ).toLocaleDateString("en-CA")}
+                      {formatDateSafe(selectedStatement.imported_at.split('T')[0], { short: true })}
                     </p>
                     <p>
                       {selectedStatement.total_transactions ||
