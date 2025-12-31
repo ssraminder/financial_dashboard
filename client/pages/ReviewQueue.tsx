@@ -614,8 +614,7 @@ export default function ReviewQueue() {
                           Current Category
                         </p>
                         <p className="font-medium">
-                          {currentTransaction.category?.name ||
-                            "Uncategorized"}
+                          {currentTransaction.category?.name || "Uncategorized"}
                         </p>
                       </div>
                     </div>
