@@ -162,26 +162,22 @@ export default function KBAdmin() {
     try {
       setResultLoading(true);
 
-      // Call kb-entry-manage to save
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kb-entry-manage`,
+      // Call kb-entry-manage to save using supabase.functions.invoke()
+      // This automatically handles authentication with user's session token and anon key
+      const { data, error } = await supabase.functions.invoke(
+        "kb-entry-manage",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.id}`,
-          },
-          body: JSON.stringify({
+          body: {
             action: interpretResult.action,
             user_email: user?.email,
             entry: interpretResult.proposed,
             ai_interpretation: interpretResult.ai_interpretation,
-          }),
+          },
         },
       );
 
-      if (!response.ok) {
-        throw new Error(`Failed to save entry: ${response.statusText}`);
+      if (error) {
+        throw error;
       }
 
       // Refresh entries
