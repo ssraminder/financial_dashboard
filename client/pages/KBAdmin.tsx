@@ -184,6 +184,25 @@ export default function KBAdmin() {
     try {
       setResultLoading(true);
 
+      // Convert category_code to category_id
+      let categoryId: string | undefined;
+      if (interpretResult.proposed.category_code) {
+        const matchingCategory = categories.find(
+          (cat) => cat.code === interpretResult.proposed.category_code,
+        );
+        if (matchingCategory) {
+          categoryId = matchingCategory.id;
+        }
+      }
+
+      // Build entry payload with category_id instead of category_code
+      const entryPayload = {
+        ...interpretResult.proposed,
+        category_id: categoryId,
+      };
+      // Remove category_code as we're using category_id
+      delete (entryPayload as Record<string, unknown>).category_code;
+
       // Call kb-entry-manage to save using supabase.functions.invoke()
       // This automatically handles authentication with user's session token and anon key
       const { data, error } = await supabase.functions.invoke(
@@ -192,7 +211,7 @@ export default function KBAdmin() {
           body: {
             action: interpretResult.action,
             user_email: user?.email,
-            entry: interpretResult.proposed,
+            entry: entryPayload,
             ai_interpretation: interpretResult.ai_interpretation,
           },
         },
