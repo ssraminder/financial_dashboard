@@ -43,10 +43,9 @@ import type {
 } from "@/types";
 
 interface TransactionWithRelations extends Transaction {
-  categories?: Category | null;
-  ai_suggested_category?: Category | null;
-  companies?: Company | null;
-  bank_accounts?: BankAccount | null;
+  category?: Category | null;
+  bank_account?: BankAccount | null;
+  company?: Company | null;
 }
 
 const contractorTypeOptions = [
