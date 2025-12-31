@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2, XCircle, AlertTriangle, Pencil, Save } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 
 interface BankAccount {
   id: string;
@@ -66,6 +67,18 @@ interface Transaction {
   has_gst?: boolean;
   gst_amount?: number;
   category_id: string;
+  is_edited?: boolean;
+  edited_at?: string;
+}
+
+interface EditableTransaction extends Transaction {
+  original_type: "credit" | "debit";
+  original_amount: number;
+  edited_type: "credit" | "debit";
+  edited_amount: number;
+  changed: boolean;
+  calculated_balance?: number;
+  index?: number;
 }
 
 interface BalanceCheck {
@@ -95,6 +108,13 @@ export default function ViewStatements() {
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Editable transactions state
+  const [editableTransactions, setEditableTransactions] = useState<EditableTransaction[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savingChanges, setSavingChanges] = useState(false);
+  const [editingAmountIndex, setEditingAmountIndex] = useState<number | null>(null);
+  const [editingAmountValue, setEditingAmountValue] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) {
