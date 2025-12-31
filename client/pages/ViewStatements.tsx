@@ -63,6 +63,7 @@ interface Category {
 interface Transaction {
   id: string;
   transaction_date: string;
+  posting_date?: string;
   description: string;
   payee_name?: string;
   amount: number;
