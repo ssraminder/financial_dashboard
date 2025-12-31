@@ -315,7 +315,7 @@ export default function Transactions() {
       formatDate(t.transaction_date),
       t.payee_name || "",
       t.description || "",
-      t.amount.toFixed(2),
+      (t.amount ?? 0).toFixed(2),
       t.category?.name || "",
       t.bank_account?.nickname || "",
       t.gst_amount ? `$${t.gst_amount.toFixed(2)}` : "",
@@ -582,12 +582,12 @@ export default function Transactions() {
                           <TableCell className="text-right font-semibold">
                             <span
                               className={
-                                transaction.amount < 0
+                                (transaction.amount ?? 0) < 0
                                   ? "text-red-600"
                                   : "text-green-600"
                               }
                             >
-                              ${Math.abs(transaction.amount).toFixed(2)}
+                              ${Math.abs(transaction.amount ?? 0).toFixed(2)}
                             </span>
                           </TableCell>
                           <TableCell>
