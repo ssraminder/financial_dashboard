@@ -437,6 +437,9 @@ export function TransactionEditModal({
                     <p className="text-sm text-muted-foreground">Account</p>
                     <p className="font-semibold">
                       {transaction.bank_account?.nickname || "Unknown"}
+                      {transaction.bank_account?.account_number && (
+                        <> •••• {transaction.bank_account.account_number.slice(-4)}</>
+                      )}
                     </p>
                   </div>
                 </div>
