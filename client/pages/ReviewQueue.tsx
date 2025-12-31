@@ -194,10 +194,10 @@ export default function ReviewQueue() {
         .from("transactions")
         .select(
           `*,
-          categories:categories!transactions_category_id_fkey(id, name, code, category_type),
-          ai_suggested_category:categories!transactions_ai_suggested_category_id_fkey(id, name, code, category_type),
-          bank_accounts(id, name, bank_name),
-          companies(id, name)`,
+          category:categories!transactions_category_id_fkey(id, code, name, category_type),
+          ai_suggested_category:categories!transactions_ai_suggested_category_id_fkey(id, code, name, category_type),
+          bank_account:bank_accounts(id, name, bank_name),
+          company:companies(id, name)`,
         )
         .eq("needs_review", true)
         .order("transaction_date", { ascending: false });
