@@ -4,8 +4,34 @@
  * to avoid timezone shift issues
  */
 
-const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const MONTHS_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MONTHS_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const MONTHS_FULL = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 /**
  * Format date string in a timezone-safe way
@@ -15,7 +41,7 @@ const MONTHS_FULL = ["January", "February", "March", "April", "May", "June", "Ju
  */
 export const formatDateSafe = (
   dateStr: string,
-  options?: { short?: boolean; includeYear?: boolean }
+  options?: { short?: boolean; includeYear?: boolean },
 ): string => {
   if (!dateStr) return "";
   const [year, month, day] = dateStr.split("-");
