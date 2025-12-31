@@ -15,11 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 
 interface BankAccount {
   id: string;
@@ -135,9 +131,7 @@ export default function ViewStatements() {
     try {
       const { data, error } = await supabase
         .from("bank_accounts")
-        .select(
-          "id, name, bank_name, account_number, currency, account_type",
-        )
+        .select("id, name, bank_name, account_number, currency, account_type")
         .eq("is_active", true)
         .order("name");
 
@@ -278,9 +272,8 @@ export default function ViewStatements() {
     });
 
     calculatedBalance = Math.round(calculatedBalance * 100) / 100;
-    const difference = Math.round(
-      (statement.closing_balance - calculatedBalance) * 100,
-    ) / 100;
+    const difference =
+      Math.round((statement.closing_balance - calculatedBalance) * 100) / 100;
     const isBalanced = Math.abs(difference) < 0.02;
 
     return { calculatedBalance, difference, isBalanced };
@@ -370,8 +363,7 @@ export default function ViewStatements() {
                 <SelectContent>
                   {bankAccounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
-                      {account.bank_name} - {account.name} (
-                      ••••
+                      {account.bank_name} - {account.name} ( ••••
                       {account.account_number?.slice(-4) || "****"})
                     </SelectItem>
                   ))}
@@ -637,7 +629,9 @@ export default function ViewStatements() {
             <Card className="bg-white">
               <CardContent className="py-12">
                 <div className="text-center text-muted-foreground">
-                  <p className="text-lg mb-2">Select a bank account and statement to view details</p>
+                  <p className="text-lg mb-2">
+                    Select a bank account and statement to view details
+                  </p>
                   <p className="text-sm">
                     Statements are imported from CSV uploads and displayed in
                     bank statement format.
