@@ -35,6 +35,7 @@ interface BankAccount {
   name: string;
   bank_name: string;
   account_number?: string;
+  account_number_last4?: string;
   currency: string;
   account_type?: string;
   balance_type?: string;
