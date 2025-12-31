@@ -203,6 +203,12 @@ export function KBEntriesTable({
                         >
                           {entry.is_active ? "Deactivate" : "Activate"}
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onDelete(entry)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
