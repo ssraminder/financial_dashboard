@@ -199,25 +199,18 @@ export default function ViewStatements() {
       const statement = statements.find((s) => s.id === selectedStatementId);
       if (!statement) return;
 
-      // Filter by date range instead of statement_import_id
-      const { data, error } = await supabase
+      // Fetch transactions without joins
+      const { data: transactions, error } = await supabase
         .from("transactions")
         .select(
           `id,
            transaction_date,
            description,
            payee_name,
-           amount,
            total_amount,
            transaction_type,
-           running_balance,
            needs_review,
-           has_gst,
-           gst_amount,
-           category_id,
-           bank_account_id,
-           category:categories!category_id(id, code, name, category_type),
-           bank_account:bank_accounts(id, name, nickname, account_number)`,
+           category_id`,
         )
         .eq("bank_account_id", selectedBankAccountId)
         .gte("transaction_date", statement.statement_period_start)
@@ -225,18 +218,61 @@ export default function ViewStatements() {
         .order("transaction_date", { ascending: true })
         .order("id", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Transactions query error:", error);
+        throw error;
+      }
 
-      const txns = data || [];
-      setTransactions(txns);
+      // Fetch categories separately
+      const { data: categoriesData } = await supabase
+        .from("categories")
+        .select("id, code, name, category_type");
 
-      // Calculate balance check
+      const categoryMap = new Map(
+        categoriesData?.map((c) => [c.id, c]) || [],
+      );
+
+      // Calculate running balance and add category info
       const selectedAccount = bankAccounts.find(
         (a) => a.id === selectedBankAccountId,
       );
       const isCreditCard =
         selectedAccount?.account_type?.toLowerCase() === "credit card";
-      const check = calculateBalanceCheck(txns, statement, isCreditCard);
+
+      let runningBalance = statement.opening_balance;
+      const transactionsWithCategory = (transactions || []).map((t) => {
+        const amount = Math.abs(t.total_amount);
+        if (isCreditCard) {
+          // Credit card: debits increase balance, credits decrease
+          if (t.transaction_type === "debit") {
+            runningBalance += amount;
+          } else {
+            runningBalance -= amount;
+          }
+        } else {
+          // Bank account: credits increase balance, debits decrease
+          if (t.transaction_type === "credit") {
+            runningBalance += amount;
+          } else {
+            runningBalance -= amount;
+          }
+        }
+
+        return {
+          ...t,
+          category: categoryMap.get(t.category_id) || null,
+          running_balance: runningBalance,
+        };
+      });
+
+      setTransactions(transactionsWithCategory);
+
+      // Calculate balance check
+      const check = calculateBalanceCheck(
+        transactionsWithCategory,
+        statement,
+        isCreditCard,
+      );
       setBalanceCheck(check);
     } catch (err) {
       console.error("Error fetching transactions:", err);
