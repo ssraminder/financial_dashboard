@@ -646,7 +646,8 @@ export function TransactionEditModal({
                               {rt.description}
                             </p>
                             <p className="text-muted-foreground">
-                              ${(rt.amount ?? 0).toFixed(2)} | {rt.category?.name}
+                              ${(rt.amount ?? 0).toFixed(2)} |{" "}
+                              {rt.category?.name}
                             </p>
                           </div>
                         ))}
