@@ -194,8 +194,7 @@ export default function ReviewQueue() {
         .from("transactions")
         .select(
           `*,
-          category:categories!transactions_category_id_fkey(id, code, name, category_type),
-          ai_suggested_category:categories!transactions_ai_suggested_category_id_fkey(id, code, name, category_type),
+          category:categories(id, code, name, category_type),
           bank_account:bank_accounts(id, name, bank_name),
           company:companies(id, name)`,
         )
