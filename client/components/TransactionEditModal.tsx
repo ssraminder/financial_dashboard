@@ -304,7 +304,6 @@ export function TransactionEditModal({
       });
 
       const requestPayload = {
-        transaction_id: transaction.id,
         original_transaction_id: transaction.id,
         recommendations,
       };
