@@ -194,6 +194,12 @@ export default function ViewStatements() {
 
     try {
       setLoading(true);
+
+      // Get the statement details for date filtering
+      const statement = statements.find((s) => s.id === selectedStatementId);
+      if (!statement) return;
+
+      // Filter by date range instead of statement_import_id
       const { data, error } = await supabase
         .from("transactions")
         .select(
@@ -213,7 +219,9 @@ export default function ViewStatements() {
            category:categories(id, code, name, category_type),
            bank_account:bank_accounts(id, name, nickname, account_number)`,
         )
-        .eq("statement_import_id", selectedStatementId)
+        .eq("bank_account_id", selectedBankAccountId)
+        .gte("transaction_date", statement.statement_period_start)
+        .lte("transaction_date", statement.statement_period_end)
         .order("transaction_date", { ascending: true })
         .order("id", { ascending: true });
 
@@ -223,16 +231,13 @@ export default function ViewStatements() {
       setTransactions(txns);
 
       // Calculate balance check
-      const statement = statements.find((s) => s.id === selectedStatementId);
-      if (statement) {
-        const selectedAccount = bankAccounts.find(
-          (a) => a.id === selectedBankAccountId,
-        );
-        const isCreditCard =
-          selectedAccount?.account_type?.toLowerCase() === "credit card";
-        const check = calculateBalanceCheck(txns, statement, isCreditCard);
-        setBalanceCheck(check);
-      }
+      const selectedAccount = bankAccounts.find(
+        (a) => a.id === selectedBankAccountId,
+      );
+      const isCreditCard =
+        selectedAccount?.account_type?.toLowerCase() === "credit card";
+      const check = calculateBalanceCheck(txns, statement, isCreditCard);
+      setBalanceCheck(check);
     } catch (err) {
       console.error("Error fetching transactions:", err);
       toast({
