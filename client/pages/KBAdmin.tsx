@@ -262,10 +262,18 @@ export default function KBAdmin() {
                 Manage patterns and rules for transaction categorization
               </p>
             </div>
-            <Button className="gap-2" onClick={handleCreateEntry}>
-              <Plus className="h-4 w-4" />
-              Add Entry
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/knowledge-base/pending")}
+              >
+                View Pending ({pendingCount})
+              </Button>
+              <Button className="gap-2" onClick={handleCreateEntry}>
+                <Plus className="h-4 w-4" />
+                Add Entry
+              </Button>
+            </div>
           </div>
 
           {/* Natural Language Input */}
