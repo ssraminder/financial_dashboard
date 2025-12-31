@@ -66,7 +66,7 @@ export function KBPendingCard({
     const now = new Date();
     const expiry = new Date(item.expires_at);
     const daysLeft = Math.ceil(
-      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
     return daysLeft;
   };
@@ -129,10 +129,7 @@ export function KBPendingCard({
             <p className="text-xs text-muted-foreground font-semibold mb-1">
               CONFIDENCE
             </p>
-            <Badge
-              className={`${confidenceColor}`}
-              variant="outline"
-            >
+            <Badge className={`${confidenceColor}`} variant="outline">
               {item.confidence_score}%
             </Badge>
           </div>
@@ -155,7 +152,9 @@ export function KBPendingCard({
             <div className="flex items-center gap-2">
               <span>GST:</span>
               <Badge variant={item.proposed_has_gst ? "default" : "outline"}>
-                {item.proposed_has_gst ? `Yes (${(item.proposed_gst_rate * 100).toFixed(0)}%)` : "No"}
+                {item.proposed_has_gst
+                  ? `Yes (${(item.proposed_gst_rate * 100).toFixed(0)}%)`
+                  : "No"}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
@@ -174,15 +173,17 @@ export function KBPendingCard({
               Sample Transactions ({item.sample_transactions.length})
             </p>
             <div className="space-y-1 max-h-40 overflow-y-auto">
-              {(item.sample_transactions as Record<string, unknown>[]).map((tx, idx) => (
-                <div
-                  key={idx}
-                  className="text-xs bg-muted/30 rounded px-2 py-1"
-                >
-                  • {String(tx.description || tx.payee || "Transaction")} - $
-                  {(tx.amount as number || 0).toFixed(2)}
-                </div>
-              ))}
+              {(item.sample_transactions as Record<string, unknown>[]).map(
+                (tx, idx) => (
+                  <div
+                    key={idx}
+                    className="text-xs bg-muted/30 rounded px-2 py-1"
+                  >
+                    • {String(tx.description || tx.payee || "Transaction")} - $
+                    {((tx.amount as number) || 0).toFixed(2)}
+                  </div>
+                ),
+              )}
             </div>
           </div>
         )}
@@ -196,7 +197,10 @@ export function KBPendingCard({
             <div className="flex items-center gap-3">
               {item.status === "approved" && (
                 <>
-                  <Badge className="bg-green-100 text-green-800" variant="outline">
+                  <Badge
+                    className="bg-green-100 text-green-800"
+                    variant="outline"
+                  >
                     Approved
                   </Badge>
                   <span className="text-xs text-muted-foreground">
@@ -217,7 +221,10 @@ export function KBPendingCard({
                 </div>
               )}
               {item.status === "expired" && (
-                <Badge className="bg-amber-100 text-amber-800" variant="outline">
+                <Badge
+                  className="bg-amber-100 text-amber-800"
+                  variant="outline"
+                >
                   Expired
                 </Badge>
               )}

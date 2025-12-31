@@ -87,7 +87,7 @@ export default function KBPendingQueue() {
       setItems((data as PendingQueueItem[]) || []);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to fetch pending items"
+        err instanceof Error ? err.message : "Failed to fetch pending items",
       );
       console.error("Error fetching pending items:", err);
     } finally {
@@ -110,7 +110,7 @@ export default function KBPendingQueue() {
             id: item.id,
             user_email: user?.email,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -119,9 +119,7 @@ export default function KBPendingQueue() {
 
       fetchItems();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to approve item"
-      );
+      setError(err instanceof Error ? err.message : "Failed to approve item");
       console.error("Error approving item:", err);
     }
   };
@@ -133,7 +131,7 @@ export default function KBPendingQueue() {
 
   const handleRejectConfirm = async (
     quickReasons: string[],
-    customReason: string
+    customReason: string,
   ) => {
     if (!selectedItemForReject) return;
 
@@ -155,7 +153,7 @@ export default function KBPendingQueue() {
             quick_reasons: quickReasons,
             rejection_reason: customReason,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -166,9 +164,7 @@ export default function KBPendingQueue() {
       setSelectedItemForReject(null);
       fetchItems();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to reject item"
-      );
+      setError(err instanceof Error ? err.message : "Failed to reject item");
       console.error("Error rejecting item:", err);
     } finally {
       setIsRejecting(false);
@@ -178,7 +174,7 @@ export default function KBPendingQueue() {
   const handleExpireOld = async () => {
     if (
       !confirm(
-        "Are you sure you want to expire all pending items older than 30 days? This cannot be undone."
+        "Are you sure you want to expire all pending items older than 30 days? This cannot be undone.",
       )
     ) {
       return;
@@ -199,7 +195,7 @@ export default function KBPendingQueue() {
       fetchItems();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to expire old items"
+        err instanceof Error ? err.message : "Failed to expire old items",
       );
       console.error("Error expiring old items:", err);
     }
@@ -302,7 +298,10 @@ export default function KBPendingQueue() {
           </div>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabStatus)}>
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as TabStatus)}
+          >
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="pending">
                 Pending ({pendingCount})
@@ -420,9 +419,7 @@ export default function KBPendingQueue() {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
                     <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">
-                      No expired items
-                    </p>
+                    <p className="text-muted-foreground">No expired items</p>
                   </CardContent>
                 </Card>
               ) : (

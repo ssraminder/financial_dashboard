@@ -40,7 +40,7 @@ export function KBRejectReasonModal({
     setSelectedReasons((prev) =>
       prev.includes(reason)
         ? prev.filter((r) => r !== reason)
-        : [...prev, reason]
+        : [...prev, reason],
     );
   };
 
