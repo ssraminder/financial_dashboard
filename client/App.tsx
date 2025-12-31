@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import ReviewQueue from "./pages/ReviewQueue";
 import Upload from "./pages/Upload";
 import Transactions from "./pages/Transactions";
+import ViewStatements from "./pages/ViewStatements";
 import Accounts from "./pages/Accounts";
 import Clients from "./pages/Clients";
 import Vendors from "./pages/Vendors";
