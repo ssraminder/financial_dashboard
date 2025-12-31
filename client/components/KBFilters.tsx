@@ -76,7 +76,7 @@ export function KBFiltersComponent({
   const handleCategoryChange = (value: string) => {
     onFiltersChange({
       ...filters,
-      category_id: value || undefined,
+      category_id: value === "all" ? undefined : value,
       page: 1,
     });
   };
@@ -84,7 +84,7 @@ export function KBFiltersComponent({
   const handlePayeeTypeChange = (value: string) => {
     onFiltersChange({
       ...filters,
-      payee_type: (value || undefined) as PayeeType | undefined,
+      payee_type: (value === "all" ? undefined : value) as PayeeType | undefined,
       page: 1,
     });
   };
@@ -92,7 +92,7 @@ export function KBFiltersComponent({
   const handleSourceChange = (value: string) => {
     onFiltersChange({
       ...filters,
-      source: (value || undefined) as KBSource | undefined,
+      source: (value === "all" ? undefined : value) as KBSource | undefined,
       page: 1,
     });
   };
