@@ -228,9 +228,7 @@ export default function ViewStatements() {
         .from("categories")
         .select("id, code, name, category_type");
 
-      const categoryMap = new Map(
-        categoriesData?.map((c) => [c.id, c]) || [],
-      );
+      const categoryMap = new Map(categoriesData?.map((c) => [c.id, c]) || []);
 
       // Calculate running balance and add category info
       const selectedAccount = bankAccounts.find(
