@@ -196,6 +196,7 @@ export const ExportDropdown = ({
 
       // Set column widths
       ws["!cols"] = [
+        { wch: 5 },  // Serial #
         { wch: 12 }, // Date
         { wch: 40 }, // Description
         { wch: 25 }, // Payee
@@ -264,9 +265,10 @@ export const ExportDropdown = ({
       );
 
       // Transactions Table
-      const tableData = transactions.map((t) => {
+      const tableData = transactions.map((t, index) => {
         const amount = t.total_amount || Math.abs(t.amount) || 0;
         return [
+          index + 1,
           t.transaction_date,
           (t.description || "").substring(0, 35),
           t.transaction_type === "debit" ? `-$${amount.toFixed(2)}` : "",
@@ -277,7 +279,7 @@ export const ExportDropdown = ({
 
       autoTable(doc, {
         startY: 75,
-        head: [["Date", "Description", "Debits", "Credits", "Balance"]],
+        head: [["#", "Date", "Description", "Debits", "Credits", "Balance"]],
         body: tableData,
         theme: "striped",
         headStyles: {
@@ -286,11 +288,12 @@ export const ExportDropdown = ({
           fontStyle: "bold",
         },
         columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 70 },
-          2: { cellWidth: 30, halign: "right" },
+          0: { cellWidth: 12, halign: "center" },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 60 },
           3: { cellWidth: 30, halign: "right" },
           4: { cellWidth: 30, halign: "right" },
+          5: { cellWidth: 30, halign: "right" },
         },
         styles: {
           fontSize: 9,
@@ -299,10 +302,10 @@ export const ExportDropdown = ({
         didDrawCell: (data) => {
           // Color debits red and credits green
           if (data.section === "body") {
-            if (data.column.index === 2 && data.cell.raw) {
+            if (data.column.index === 3 && data.cell.raw) {
               data.cell.styles.textColor = [220, 38, 38]; // Red
             }
-            if (data.column.index === 3 && data.cell.raw) {
+            if (data.column.index === 4 && data.cell.raw) {
               data.cell.styles.textColor = [22, 163, 74]; // Green
             }
           }
