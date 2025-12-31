@@ -240,7 +240,7 @@ export function KBEntryEditorDetails({
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    company_id: value || undefined,
+                    company_id: value === "none" ? undefined : value,
                   })
                 }
               >
@@ -270,7 +270,7 @@ export function KBEntryEditorDetails({
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    vendor_id: value || undefined,
+                    vendor_id: value === "none" ? undefined : value,
                   })
                 }
               >
@@ -295,7 +295,7 @@ export function KBEntryEditorDetails({
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    client_id: value || undefined,
+                    client_id: value === "none" ? undefined : value,
                   })
                 }
               >
