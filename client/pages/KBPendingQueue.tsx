@@ -69,7 +69,7 @@ export default function KBPendingQueue() {
       setError(null);
 
       let query = supabase
-        .from("kb_pending_queue")
+        .from("kb_pending")
         .select("*")
         .order("created_at", { ascending: false });
 
@@ -179,7 +179,7 @@ export default function KBPendingQueue() {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const { error: updateError } = await supabase
-        .from("kb_pending_queue")
+        .from("kb_pending")
         .update({ status: "expired" })
         .eq("status", "pending")
         .lt("created_at", thirtyDaysAgo.toISOString());

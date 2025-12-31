@@ -35,7 +35,7 @@ export function KBEntryEditorHistory({ entryId }: KBEntryEditorHistoryProps) {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from("kb_change_history")
+        .from("kb_history")
         .select("*")
         .eq("entry_id", entryId)
         .order("changed_at", { ascending: false });

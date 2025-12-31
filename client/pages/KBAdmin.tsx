@@ -109,7 +109,7 @@ export default function KBAdmin() {
 
       // Fetch pending count
       const { count: pending } = await supabase
-        .from("kb_pending_queue")
+        .from("kb_pending")
         .select("id", { count: "exact" })
         .eq("status", "pending");
 

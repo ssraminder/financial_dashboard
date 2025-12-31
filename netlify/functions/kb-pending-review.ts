@@ -84,7 +84,7 @@ serve(async (req) => {
 
     // Fetch the pending item
     const { data: pendingItem, error: fetchError } = await supabase
-      .from("kb_pending_queue")
+      .from("kb_pending")
       .select("*")
       .eq("id", body.id)
       .single();
@@ -180,7 +180,7 @@ serve(async (req) => {
       }
 
       // Record in change history
-      await supabase.from("kb_change_history").insert({
+      await supabase.from("kb_history").insert({
         entry_id: result.entry_id || existingEntry?.id,
         action: "create",
         changed_fields: entryData,
@@ -190,7 +190,7 @@ serve(async (req) => {
 
       // Mark as approved in queue
       const { error: approveError } = await supabase
-        .from("kb_pending_queue")
+        .from("kb_pending")
         .update({
           status: "approved",
           reviewed_by: body.user_email,
@@ -210,7 +210,7 @@ serve(async (req) => {
 
       // Mark as rejected
       const { error: rejectError } = await supabase
-        .from("kb_pending_queue")
+        .from("kb_pending")
         .update({
           status: "rejected",
           rejection_reason: reasons,
