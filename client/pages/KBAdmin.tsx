@@ -126,27 +126,23 @@ export default function KBAdmin() {
       setNlLoading(true);
       setNlError(null);
 
-      // Call AI interpret function
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kb-ai-interpret`,
+      // Call AI interpret function using supabase.functions.invoke()
+      // This automatically handles authentication with user's session token and anon key
+      const { data, error } = await supabase.functions.invoke(
+        "kb-ai-interpret",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.id}`,
-          },
-          body: JSON.stringify({
+          body: {
             instruction: input,
             user_email: user?.email,
-          }),
+          },
         },
       );
 
-      if (!response.ok) {
-        throw new Error(`AI interpretation failed: ${response.statusText}`);
+      if (error) {
+        throw error;
       }
 
-      const result: AIInterpretationResult = await response.json();
+      const result: AIInterpretationResult = data;
       setInterpretResult(result);
       setResultModalOpen(true);
       setNlInput("");
