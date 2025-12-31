@@ -1265,13 +1265,14 @@ export default function ViewStatements() {
                 <>
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-gray-100 border-b font-medium text-sm text-gray-600">
-                      <div className="col-span-1">Date</div>
-                      <div className="col-span-1">Type</div>
-                      <div className="col-span-5">Description</div>
-                      <div className="col-span-2 text-right">Amount</div>
-                      <div className="col-span-2 text-right">Balance</div>
-                      <div className="col-span-1 text-center">Status</div>
+                    <div className="grid grid-cols-[auto_1fr_auto_4fr_2fr_2fr_auto] gap-2 px-4 py-3 bg-gray-100 border-b font-medium text-sm text-gray-600">
+                      <div className="w-12 text-center">#</div>
+                      <div>Date</div>
+                      <div className="w-24">Type</div>
+                      <div>Description</div>
+                      <div className="text-right">Amount</div>
+                      <div className="text-right">Balance</div>
+                      <div className="w-20 text-center">Status</div>
                     </div>
 
                     {/* Transaction Rows */}
@@ -1279,7 +1280,7 @@ export default function ViewStatements() {
                       {filteredTransactions.map((t, index) => (
                         <div
                           key={t.id}
-                          className={`grid grid-cols-12 gap-2 px-4 py-3 items-center text-sm
+                          className={`grid grid-cols-[auto_1fr_auto_4fr_2fr_2fr_auto] gap-2 px-4 py-3 items-center text-sm
                             ${
                               t.changed
                                 ? "bg-yellow-50 border-l-4 border-l-yellow-400"
@@ -1288,8 +1289,13 @@ export default function ViewStatements() {
                             ${t.needs_review ? "bg-orange-50" : ""}
                           `}
                         >
+                          {/* Serial Number */}
+                          <div className="w-12 text-center text-gray-400 font-mono text-xs">
+                            {index + 1}
+                          </div>
+
                           {/* Date */}
-                          <div className="col-span-1 text-gray-600">
+                          <div className="text-gray-600">
                             {new Date(t.transaction_date).toLocaleDateString(
                               "en-CA",
                               { month: "short", day: "numeric" },
@@ -1297,7 +1303,7 @@ export default function ViewStatements() {
                           </div>
 
                           {/* Type Toggle Button */}
-                          <div className="col-span-1">
+                          <div className="w-24">
                             <button
                               onClick={() => toggleTransactionDirection(index)}
                               className={`px-2 py-1 rounded text-xs font-bold transition-all hover:scale-105 w-full
@@ -1315,7 +1321,7 @@ export default function ViewStatements() {
 
                           {/* Description */}
                           <div
-                            className="col-span-5 truncate"
+                            className="truncate"
                             title={t.description}
                           >
                             <span className="font-medium">
@@ -1329,7 +1335,7 @@ export default function ViewStatements() {
                           </div>
 
                           {/* Editable Amount */}
-                          <div className="col-span-2 text-right">
+                          <div className="text-right">
                             {editingAmountIndex === index ? (
                               <div className="flex items-center justify-end gap-1">
                                 <span className="text-gray-400">$</span>
@@ -1378,7 +1384,7 @@ export default function ViewStatements() {
                           </div>
 
                           {/* Running Balance */}
-                          <div className="col-span-2 text-right font-mono">
+                          <div className="text-right font-mono">
                             $
                             {(t.calculated_balance || 0).toLocaleString(
                               "en-CA",
@@ -1390,7 +1396,7 @@ export default function ViewStatements() {
                           </div>
 
                           {/* Status Indicators */}
-                          <div className="col-span-1 text-center flex items-center justify-center gap-1">
+                          <div className="w-20 text-center flex items-center justify-center gap-1">
                             {t.changed && (
                               <span
                                 className="w-2 h-2 rounded-full bg-yellow-400"
