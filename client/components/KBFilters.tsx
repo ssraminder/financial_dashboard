@@ -142,7 +142,7 @@ export function KBFiltersComponent({
 
           {/* Category Filter */}
           <Select
-            value={filters.category_id || ""}
+            value={filters.category_id || "all"}
             onValueChange={handleCategoryChange}
           >
             <SelectTrigger className="w-[180px]">
@@ -166,7 +166,7 @@ export function KBFiltersComponent({
 
           {/* Payee Type Filter */}
           <Select
-            value={filters.payee_type || ""}
+            value={filters.payee_type || "all"}
             onValueChange={handlePayeeTypeChange}
           >
             <SelectTrigger className="w-[140px]">
@@ -187,7 +187,7 @@ export function KBFiltersComponent({
 
           {/* Source Filter */}
           <Select
-            value={filters.source || ""}
+            value={filters.source || "all"}
             onValueChange={handleSourceChange}
           >
             <SelectTrigger className="w-[140px]">
