@@ -410,6 +410,7 @@ export default function KBAdmin() {
                 onPageChange={(page) => setFilters({ ...filters, page })}
                 onEdit={handleEditEntry}
                 onDeactivate={handleDeactivateEntry}
+                onDelete={handleDeleteEntry}
               />
             </CardContent>
           </Card>
