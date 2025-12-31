@@ -1293,10 +1293,7 @@ export default function ViewStatements() {
 
                           {/* Date */}
                           <div className="text-gray-600">
-                            {new Date(t.transaction_date).toLocaleDateString(
-                              "en-CA",
-                              { month: "short", day: "numeric" },
-                            )}
+                            {formatDateShort(t.transaction_date)}
                           </div>
 
                           {/* Type Toggle Button */}
