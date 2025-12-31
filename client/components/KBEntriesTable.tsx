@@ -73,6 +73,7 @@ export function KBEntriesTable({
   onPageChange,
   onEdit,
   onDeactivate,
+  onDelete,
 }: KBEntriesTableProps) {
   if (isLoading) {
     return (
