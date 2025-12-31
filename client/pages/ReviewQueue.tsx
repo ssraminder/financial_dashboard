@@ -44,7 +44,6 @@ import type {
 
 interface TransactionWithRelations extends Transaction {
   category?: Category | null;
-  ai_suggested_category?: Category | null;
   bank_account?: BankAccount | null;
   company?: Company | null;
 }
