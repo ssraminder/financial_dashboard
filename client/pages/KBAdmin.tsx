@@ -64,12 +64,26 @@ export default function KBAdmin() {
     }
   }, [user, authLoading, navigate]);
 
-  // Fetch entries
+  // Fetch categories and entries
   useEffect(() => {
     if (user) {
+      fetchCategories();
       fetchEntries();
     }
   }, [user, filters]);
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await supabase
+        .from("categories")
+        .select("id, code, name, category_type")
+        .eq("is_active", true);
+
+      setCategories(data || []);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    }
+  };
 
   const fetchEntries = async () => {
     try {
