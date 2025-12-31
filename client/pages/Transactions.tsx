@@ -72,6 +72,7 @@ interface Transaction {
     name: string;
     nickname: string;
     bank_name: string;
+    account_number?: string;
   };
   company?: {
     id: string;
