@@ -145,7 +145,7 @@ serve(async (req) => {
 
       // Check if entry already exists
       const { data: existingEntry } = await supabase
-        .from("knowledge_base")
+        .from("knowledgebase_payees")
         .select("id")
         .eq("payee_pattern", entryData.payee_pattern)
         .maybeSingle();
@@ -153,7 +153,7 @@ serve(async (req) => {
       if (existingEntry) {
         // Update existing
         const { error: updateError } = await supabase
-          .from("knowledge_base")
+          .from("knowledgebase_payees")
           .update(entryData)
           .eq("id", existingEntry.id);
 
@@ -166,7 +166,7 @@ serve(async (req) => {
       } else {
         // Create new
         const { data: newEntry, error: insertError } = await supabase
-          .from("knowledge_base")
+          .from("knowledgebase_payees")
           .insert([entryData])
           .select("id")
           .single();

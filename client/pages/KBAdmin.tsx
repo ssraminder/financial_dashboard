@@ -69,7 +69,7 @@ export default function KBAdmin() {
 
       // Build query
       let query = supabase
-        .from("knowledge_base")
+        .from("knowledgebase_payees")
         .select("*, category:categories(id, code, name, category_type)", {
           count: "exact",
         })
@@ -224,7 +224,7 @@ export default function KBAdmin() {
 
     try {
       const { error } = await supabase
-        .from("knowledge_base")
+        .from("knowledgebase_payees")
         .update({ is_active: !entry.is_active })
         .eq("id", entry.id);
 
