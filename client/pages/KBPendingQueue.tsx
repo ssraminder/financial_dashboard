@@ -97,24 +97,21 @@ export default function KBPendingQueue() {
 
   const handleApprove = async (item: PendingQueueItem) => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kb-pending-review`,
+      // Call kb-pending-review to approve using supabase.functions.invoke()
+      // This automatically handles authentication with user's session token and anon key
+      const { data, error } = await supabase.functions.invoke(
+        "kb-pending-review",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.id}`,
-          },
-          body: JSON.stringify({
+          body: {
             action: "approve",
             id: item.id,
             user_email: user?.email,
-          }),
+          },
         },
       );
 
-      if (!response.ok) {
-        throw new Error(`Failed to approve: ${response.statusText}`);
+      if (error) {
+        throw error;
       }
 
       fetchItems();
