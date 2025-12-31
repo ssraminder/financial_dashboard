@@ -49,7 +49,12 @@ interface Transaction {
   payee_name?: string;
   category_id: string;
   category?: Category;
-  bank_account?: { id: string; name: string; nickname: string };
+  bank_account?: {
+    id: string;
+    name: string;
+    nickname: string;
+    account_number?: string;
+  };
   has_gst: boolean;
   gst_amount: number;
   needs_review: boolean;
