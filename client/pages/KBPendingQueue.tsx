@@ -135,26 +135,23 @@ export default function KBPendingQueue() {
     try {
       setIsRejecting(true);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kb-pending-review`,
+      // Call kb-pending-review to reject using supabase.functions.invoke()
+      // This automatically handles authentication with user's session token and anon key
+      const { data, error } = await supabase.functions.invoke(
+        "kb-pending-review",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.id}`,
-          },
-          body: JSON.stringify({
+          body: {
             action: "reject",
             id: selectedItemForReject.id,
             user_email: user?.email,
             quick_reasons: quickReasons,
             rejection_reason: customReason,
-          }),
+          },
         },
       );
 
-      if (!response.ok) {
-        throw new Error(`Failed to reject: ${response.statusText}`);
+      if (error) {
+        throw error;
       }
 
       setRejectModalOpen(false);
