@@ -1142,6 +1142,19 @@ export default function ViewStatements() {
                 <div className="text-center py-8 text-muted-foreground">
                   No transactions found for this statement.
                 </div>
+              ) : filteredTransactions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Filter className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                  <p className="font-medium">No transactions match your filters</p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="mt-2"
+                  >
+                    Clear all filters
+                  </Button>
+                </div>
               ) : (
                 <>
                   <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -1157,7 +1170,7 @@ export default function ViewStatements() {
 
                     {/* Transaction Rows */}
                     <div className="divide-y">
-                      {calculateRunningBalances.map((t, index) => (
+                      {filteredTransactions.map((t, index) => (
                         <div
                           key={t.id}
                           className={`grid grid-cols-12 gap-2 px-4 py-3 items-center text-sm
