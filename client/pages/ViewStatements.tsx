@@ -780,7 +780,7 @@ export default function ViewStatements() {
                     </h2>
                     <p className="text-blue-100">
                       {selectedAccount.bank_name} - Account ••••
-                      {selectedAccount.account_number?.slice(-4) || "****"}
+                      {selectedAccount.account_number_last4 || "****"}
                     </p>
                   </div>
 
