@@ -236,7 +236,7 @@ export function KBEntryEditorDetails({
             <div className="space-y-2">
               <Label htmlFor="company">Company (Optional)</Label>
               <Select
-                value={formData.company_id || ""}
+                value={formData.company_id || "none"}
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
@@ -266,7 +266,7 @@ export function KBEntryEditorDetails({
             <div className="space-y-2">
               <Label htmlFor="vendor">Link to Vendor (Optional)</Label>
               <Select
-                value={formData.vendor_id || ""}
+                value={formData.vendor_id || "none"}
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
@@ -291,7 +291,7 @@ export function KBEntryEditorDetails({
             <div className="space-y-2">
               <Label htmlFor="client">Link to Client (Optional)</Label>
               <Select
-                value={formData.client_id || ""}
+                value={formData.client_id || "none"}
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
