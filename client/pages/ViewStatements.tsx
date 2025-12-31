@@ -1320,10 +1320,7 @@ export default function ViewStatements() {
                           </div>
 
                           {/* Description */}
-                          <div
-                            className="truncate"
-                            title={t.description}
-                          >
+                          <div className="truncate" title={t.description}>
                             <span className="font-medium">
                               {t.payee_name || t.description}
                             </span>

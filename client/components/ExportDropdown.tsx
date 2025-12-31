@@ -196,7 +196,7 @@ export const ExportDropdown = ({
 
       // Set column widths
       ws["!cols"] = [
-        { wch: 5 },  // Serial #
+        { wch: 5 }, // Serial #
         { wch: 12 }, // Date
         { wch: 40 }, // Description
         { wch: 25 }, // Payee
