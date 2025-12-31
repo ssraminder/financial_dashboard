@@ -780,8 +780,8 @@ export default function ViewStatements() {
                       filteredTransactions.length > 0
                         ? filteredTransactions
                         : editableTransactions.length > 0
-                        ? editableTransactions
-                        : transactions
+                          ? editableTransactions
+                          : transactions
                     }
                     bankAccount={selectedAccount}
                   />
@@ -795,7 +795,7 @@ export default function ViewStatements() {
                     <p className="text-sm text-gray-500">Statement Period</p>
                     <p className="text-lg font-bold text-gray-800">
                       {new Date(
-                        selectedStatement.statement_period_start
+                        selectedStatement.statement_period_start,
                       ).toLocaleDateString("en-CA", {
                         year: "numeric",
                         month: "long",
@@ -803,7 +803,7 @@ export default function ViewStatements() {
                       })}{" "}
                       &mdash;{" "}
                       {new Date(
-                        selectedStatement.statement_period_end
+                        selectedStatement.statement_period_end,
                       ).toLocaleDateString("en-CA", {
                         year: "numeric",
                         month: "long",
@@ -814,9 +814,9 @@ export default function ViewStatements() {
                   <div className="text-right text-sm text-gray-500">
                     <p>
                       Imported:{" "}
-                      {new Date(selectedStatement.imported_at).toLocaleDateString(
-                        "en-CA"
-                      )}
+                      {new Date(
+                        selectedStatement.imported_at,
+                      ).toLocaleDateString("en-CA")}
                     </p>
                     <p>
                       {selectedStatement.total_transactions ||
@@ -849,8 +849,8 @@ export default function ViewStatements() {
                     </p>
                   </div>
                   <p className="mt-2 text-sm text-red-600">
-                    This may indicate a missing transaction, incorrect amount, or
-                    wrong transaction type (debit/credit).
+                    This may indicate a missing transaction, incorrect amount,
+                    or wrong transaction type (debit/credit).
                   </p>
                 </div>
               )}
@@ -863,9 +863,12 @@ export default function ViewStatements() {
                   </p>
                   <p className="text-2xl font-bold text-blue-800">
                     $
-                    {selectedStatement.opening_balance?.toLocaleString("en-CA", {
-                      minimumFractionDigits: 2,
-                    }) || "0.00"}
+                    {selectedStatement.opening_balance?.toLocaleString(
+                      "en-CA",
+                      {
+                        minimumFractionDigits: 2,
+                      },
+                    ) || "0.00"}
                   </p>
                 </div>
 
@@ -899,9 +902,12 @@ export default function ViewStatements() {
                   </p>
                   <p className="text-2xl font-bold text-gray-800">
                     $
-                    {selectedStatement.closing_balance?.toLocaleString("en-CA", {
-                      minimumFractionDigits: 2,
-                    }) || "0.00"}
+                    {selectedStatement.closing_balance?.toLocaleString(
+                      "en-CA",
+                      {
+                        minimumFractionDigits: 2,
+                      },
+                    ) || "0.00"}
                   </p>
                   {balanceCheck && (
                     <div className="mt-2">

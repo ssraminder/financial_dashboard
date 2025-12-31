@@ -23,9 +23,9 @@ export const ExportDropdown = ({
   bankAccount,
 }: ExportDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [exporting, setExporting] = useState<
-    "pdf" | "csv" | "xlsx" | null
-  >(null);
+  const [exporting, setExporting] = useState<"pdf" | "csv" | "xlsx" | null>(
+    null,
+  );
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-CA", {
@@ -75,10 +75,16 @@ export const ExportDropdown = ({
       // Add summary rows
       const totalDebits = transactions
         .filter((t) => t.transaction_type === "debit")
-        .reduce((sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0), 0);
+        .reduce(
+          (sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0),
+          0,
+        );
       const totalCredits = transactions
         .filter((t) => t.transaction_type === "credit")
-        .reduce((sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0), 0);
+        .reduce(
+          (sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0),
+          0,
+        );
 
       rows.push([]);
       rows.push([
@@ -166,10 +172,16 @@ export const ExportDropdown = ({
       // Add totals row
       const totalDebits = transactions
         .filter((t) => t.transaction_type === "debit")
-        .reduce((sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0), 0);
+        .reduce(
+          (sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0),
+          0,
+        );
       const totalCredits = transactions
         .filter((t) => t.transaction_type === "credit")
-        .reduce((sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0), 0);
+        .reduce(
+          (sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0),
+          0,
+        );
 
       data.push([]);
       data.push(["", "", "", "TOTALS", totalDebits, totalCredits, ""]);
@@ -222,7 +234,7 @@ export const ExportDropdown = ({
       doc.text(
         `Period: ${formatDate(statement.statement_period_start)} - ${formatDate(statement.statement_period_end)}`,
         14,
-        49
+        49,
       );
 
       // Balance Summary
@@ -234,7 +246,7 @@ export const ExportDropdown = ({
           }) || "0.00"
         }`,
         14,
-        60
+        60,
       );
       doc.text(
         `Closing Balance: $${
@@ -243,7 +255,7 @@ export const ExportDropdown = ({
           }) || "0.00"
         }`,
         14,
-        67
+        67,
       );
 
       // Transactions Table
@@ -296,10 +308,16 @@ export const ExportDropdown = ({
       const finalY = (doc as any).lastAutoTable.finalY + 10;
       const totalDebits = transactions
         .filter((t) => t.transaction_type === "debit")
-        .reduce((sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0), 0);
+        .reduce(
+          (sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0),
+          0,
+        );
       const totalCredits = transactions
         .filter((t) => t.transaction_type === "credit")
-        .reduce((sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0), 0);
+        .reduce(
+          (sum, t) => sum + (t.total_amount || Math.abs(t.amount) || 0),
+          0,
+        );
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(220, 38, 38);
@@ -308,7 +326,7 @@ export const ExportDropdown = ({
           minimumFractionDigits: 2,
         })}`,
         14,
-        finalY
+        finalY,
       );
       doc.setTextColor(22, 163, 74);
       doc.text(
@@ -316,7 +334,7 @@ export const ExportDropdown = ({
           minimumFractionDigits: 2,
         })}`,
         100,
-        finalY
+        finalY,
       );
       doc.setTextColor(0, 0, 0);
       doc.text(`Transactions: ${transactions.length}`, 14, finalY + 7);
@@ -349,7 +367,10 @@ export const ExportDropdown = ({
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
 
           {/* Dropdown Menu */}
           <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-20">
