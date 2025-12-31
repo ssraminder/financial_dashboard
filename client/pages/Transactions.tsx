@@ -201,7 +201,7 @@ export default function Transactions() {
         .select(
           `*,
           category:categories!transactions_category_id_fkey(id, code, name, category_type),
-          bank_account:bank_accounts(id, name, nickname, bank_name),
+          bank_account:bank_accounts(id, name, nickname, bank_name, account_number),
           company:companies(id, name),
           linked_transaction:transactions!linked_to(id, description, amount, transaction_date)`,
         )
