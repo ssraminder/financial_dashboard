@@ -11,6 +11,7 @@ import {
   FileText,
   Sheet,
   Archive,
+  Database,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Accounts", href: "/accounts", icon: Building2 },
   { name: "Clients", href: "/clients", icon: Users },
   { name: "Vendors", href: "/vendors", icon: Package },
+  { name: "Knowledge Base", href: "/admin/knowledge-base", icon: Database },
 ];
 
 export function Sidebar() {
