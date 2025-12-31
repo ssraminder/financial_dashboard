@@ -408,15 +408,27 @@ export default function ViewStatements() {
   const calculateRunningBalances = useMemo(() => {
     if (!selectedStatement || editableTransactions.length === 0) return [];
 
+    const isCreditCard =
+      selectedAccount?.account_type?.toLowerCase() === "credit card";
     let runningBalance = selectedStatement.opening_balance;
 
     return editableTransactions.map((t, index) => {
       const amount = t.edited_amount;
 
-      if (t.edited_type === "credit") {
-        runningBalance += amount;
+      if (isCreditCard) {
+        // Credit card: debits increase balance, credits decrease
+        if (t.edited_type === "debit") {
+          runningBalance += amount;
+        } else {
+          runningBalance -= amount;
+        }
       } else {
-        runningBalance -= amount;
+        // Bank account: credits increase balance, debits decrease
+        if (t.edited_type === "credit") {
+          runningBalance += amount;
+        } else {
+          runningBalance -= amount;
+        }
       }
 
       return {
@@ -425,7 +437,7 @@ export default function ViewStatements() {
         index,
       };
     });
-  }, [editableTransactions, selectedStatement]);
+  }, [editableTransactions, selectedStatement, selectedAccount]);
 
   // Check if final balance matches statement closing
   const calculatedClosing =
