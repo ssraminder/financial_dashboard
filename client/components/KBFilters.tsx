@@ -149,7 +149,7 @@ export function KBFiltersComponent({
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {loadingCategories ? (
                 <div className="p-2 text-sm text-muted-foreground">
                   Loading...
@@ -173,7 +173,7 @@ export function KBFiltersComponent({
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="vendor">Vendor</SelectItem>
               <SelectItem value="client">Client</SelectItem>
               <SelectItem value="contractor">Contractor</SelectItem>
@@ -194,7 +194,7 @@ export function KBFiltersComponent({
               <SelectValue placeholder="All Sources" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Sources</SelectItem>
+              <SelectItem value="all">All Sources</SelectItem>
               <SelectItem value="manual">Manual</SelectItem>
               <SelectItem value="hitl_correction">HITL Correction</SelectItem>
               <SelectItem value="auto_suggest">Auto-Suggested</SelectItem>
