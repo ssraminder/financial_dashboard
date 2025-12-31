@@ -134,11 +134,15 @@ export default function ViewStatements() {
   // Filter state
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "credit" | "debit">("all");
+  const [filterType, setFilterType] = useState<"all" | "credit" | "debit">(
+    "all",
+  );
   const [filterDescription, setFilterDescription] = useState("");
   const [filterAmountMin, setFilterAmountMin] = useState("");
   const [filterAmountMax, setFilterAmountMax] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "changed" | "needs_review" | "edited">("all");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "changed" | "needs_review" | "edited"
+  >("all");
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -487,7 +491,7 @@ export default function ViewStatements() {
       filtered = filtered.filter(
         (t) =>
           t.description?.toLowerCase().includes(searchTerm) ||
-          t.payee_name?.toLowerCase().includes(searchTerm)
+          t.payee_name?.toLowerCase().includes(searchTerm),
       );
     }
 
@@ -885,7 +889,8 @@ export default function ViewStatements() {
                 {activeFilterCount > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">
-                      Showing {filteredTransactions.length} of {calculateRunningBalances.length} transactions
+                      Showing {filteredTransactions.length} of{" "}
+                      {calculateRunningBalances.length} transactions
                     </span>
                     <Button
                       variant="ghost"
@@ -906,7 +911,10 @@ export default function ViewStatements() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Date From */}
                     <div className="space-y-2">
-                      <Label htmlFor="filter-date-from" className="text-xs font-medium text-gray-700">
+                      <Label
+                        htmlFor="filter-date-from"
+                        className="text-xs font-medium text-gray-700"
+                      >
                         Date From
                       </Label>
                       <Input
@@ -920,7 +928,10 @@ export default function ViewStatements() {
 
                     {/* Date To */}
                     <div className="space-y-2">
-                      <Label htmlFor="filter-date-to" className="text-xs font-medium text-gray-700">
+                      <Label
+                        htmlFor="filter-date-to"
+                        className="text-xs font-medium text-gray-700"
+                      >
                         Date To
                       </Label>
                       <Input
@@ -934,10 +945,16 @@ export default function ViewStatements() {
 
                     {/* Type */}
                     <div className="space-y-2">
-                      <Label htmlFor="filter-type" className="text-xs font-medium text-gray-700">
+                      <Label
+                        htmlFor="filter-type"
+                        className="text-xs font-medium text-gray-700"
+                      >
                         Type
                       </Label>
-                      <Select value={filterType} onValueChange={(val: any) => setFilterType(val)}>
+                      <Select
+                        value={filterType}
+                        onValueChange={(val: any) => setFilterType(val)}
+                      >
                         <SelectTrigger id="filter-type" className="text-sm">
                           <SelectValue />
                         </SelectTrigger>
@@ -951,18 +968,30 @@ export default function ViewStatements() {
 
                     {/* Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="filter-status" className="text-xs font-medium text-gray-700">
+                      <Label
+                        htmlFor="filter-status"
+                        className="text-xs font-medium text-gray-700"
+                      >
                         Status
                       </Label>
-                      <Select value={filterStatus} onValueChange={(val: any) => setFilterStatus(val)}>
+                      <Select
+                        value={filterStatus}
+                        onValueChange={(val: any) => setFilterStatus(val)}
+                      >
                         <SelectTrigger id="filter-status" className="text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="changed">Changed (Unsaved)</SelectItem>
-                          <SelectItem value="needs_review">Needs Review</SelectItem>
-                          <SelectItem value="edited">Previously Edited</SelectItem>
+                          <SelectItem value="changed">
+                            Changed (Unsaved)
+                          </SelectItem>
+                          <SelectItem value="needs_review">
+                            Needs Review
+                          </SelectItem>
+                          <SelectItem value="edited">
+                            Previously Edited
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -971,7 +1000,10 @@ export default function ViewStatements() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Description */}
                     <div className="space-y-2">
-                      <Label htmlFor="filter-description" className="text-xs font-medium text-gray-700">
+                      <Label
+                        htmlFor="filter-description"
+                        className="text-xs font-medium text-gray-700"
+                      >
                         Description (fuzzy search)
                       </Label>
                       <Input
@@ -986,7 +1018,10 @@ export default function ViewStatements() {
 
                     {/* Amount Min */}
                     <div className="space-y-2">
-                      <Label htmlFor="filter-amount-min" className="text-xs font-medium text-gray-700">
+                      <Label
+                        htmlFor="filter-amount-min"
+                        className="text-xs font-medium text-gray-700"
+                      >
                         Amount Min ($)
                       </Label>
                       <Input
@@ -1002,7 +1037,10 @@ export default function ViewStatements() {
 
                     {/* Amount Max */}
                     <div className="space-y-2">
-                      <Label htmlFor="filter-amount-max" className="text-xs font-medium text-gray-700">
+                      <Label
+                        htmlFor="filter-amount-max"
+                        className="text-xs font-medium text-gray-700"
+                      >
                         Amount Max ($)
                       </Label>
                       <Input
@@ -1023,8 +1061,10 @@ export default function ViewStatements() {
                       <strong>Status filters:</strong>
                       <span className="ml-1">
                         <strong>Changed</strong> = Unsaved edits (yellow rows) •
-                        <strong className="ml-1">Needs Review</strong> = Flagged for manual review •
-                        <strong className="ml-1">Previously Edited</strong> = Saved edits from past sessions
+                        <strong className="ml-1">Needs Review</strong> = Flagged
+                        for manual review •
+                        <strong className="ml-1">Previously Edited</strong> =
+                        Saved edits from past sessions
                       </span>
                     </p>
                   </div>
@@ -1145,7 +1185,9 @@ export default function ViewStatements() {
               ) : filteredTransactions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Filter className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                  <p className="font-medium">No transactions match your filters</p>
+                  <p className="font-medium">
+                    No transactions match your filters
+                  </p>
                   <Button
                     variant="link"
                     size="sm"
@@ -1315,7 +1357,8 @@ export default function ViewStatements() {
                           {activeFilterCount > 0 ? "Filtered Totals" : "Totals"}
                           {activeFilterCount > 0 && (
                             <span className="ml-2 text-xs text-gray-500">
-                              ({filteredTransactions.length} of {calculateRunningBalances.length})
+                              ({filteredTransactions.length} of{" "}
+                              {calculateRunningBalances.length})
                             </span>
                           )}
                         </div>
