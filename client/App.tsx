@@ -16,6 +16,7 @@ import Accounts from "./pages/Accounts";
 import Clients from "./pages/Clients";
 import Vendors from "./pages/Vendors";
 import KBAdmin from "./pages/KBAdmin";
+import KBPendingQueue from "./pages/KBPendingQueue";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/clients" element={<Clients />} />
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/admin/knowledge-base" element={<KBAdmin />} />
+          <Route path="/admin/knowledge-base/pending" element={<KBPendingQueue />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
