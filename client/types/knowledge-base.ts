@@ -90,7 +90,8 @@ export interface AIInterpretationResult {
     pattern_type?: PatternType;
     payee_display_name?: string;
     payee_type?: PayeeType;
-    category_code?: string;
+    category_code?: string; // Code from AI (e.g., "office_expense"), will be converted to category_id
+    category_id?: string; // UUID to be set by frontend after lookup
     default_has_gst?: boolean;
     default_gst_rate?: number;
     default_has_tip?: boolean;
