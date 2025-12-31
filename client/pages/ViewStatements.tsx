@@ -404,19 +404,27 @@ export default function ViewStatements() {
     }).format(Math.abs(amount || 0));
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-CA", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+  // Timezone-safe date formatting - parses date string directly without Date() conversion
+  const formatDateSafe = (dateStr: string, options?: { short?: boolean }) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    if (!year || !month || !day) return dateStr;
+
+    const months = options?.short
+      ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
   };
 
+  const formatDate = (dateStr: string) => formatDateSafe(dateStr, { short: true });
+
   const formatDateShort = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-CA", {
-      month: "short",
-      day: "numeric",
-    });
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    if (!year || !month || !day) return dateStr;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[parseInt(month) - 1]} ${parseInt(day)}`;
   };
 
   const formatDateTime = (dateStr: string) => {
