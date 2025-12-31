@@ -49,6 +49,7 @@ export const ExportDropdown = ({
     try {
       // CSV Headers
       const headers = [
+        "#",
         "Date",
         "Description",
         "Payee",
@@ -59,9 +60,10 @@ export const ExportDropdown = ({
       ];
 
       // CSV Rows
-      const rows = transactions.map((t) => {
+      const rows = transactions.map((t, index) => {
         const amount = t.total_amount || Math.abs(t.amount) || 0;
         return [
+          index + 1,
           t.transaction_date,
           `"${(t.description || "").replace(/"/g, '""')}"`, // Escape quotes
           `"${(t.payee_name || "").replace(/"/g, '""')}"`,
@@ -88,6 +90,7 @@ export const ExportDropdown = ({
 
       rows.push([]);
       rows.push([
+        "",
         "",
         "",
         "",
@@ -145,6 +148,7 @@ export const ExportDropdown = ({
         ["Closing Balance:", statement.closing_balance || 0],
         [],
         [
+          "#",
           "Date",
           "Description",
           "Payee",
@@ -156,9 +160,10 @@ export const ExportDropdown = ({
       ];
 
       // Add transactions
-      transactions.forEach((t) => {
+      transactions.forEach((t, index) => {
         const amount = t.total_amount || Math.abs(t.amount) || 0;
         data.push([
+          index + 1,
           t.transaction_date,
           t.description || "",
           t.payee_name || "",
@@ -184,7 +189,7 @@ export const ExportDropdown = ({
         );
 
       data.push([]);
-      data.push(["", "", "", "TOTALS", totalDebits, totalCredits, ""]);
+      data.push(["", "", "", "", "TOTALS", totalDebits, totalCredits, ""]);
 
       // Create worksheet
       const ws = XLSX.utils.aoa_to_sheet(data);
