@@ -1422,8 +1422,9 @@ export default function ViewStatements() {
 
                     {/* Table Footer */}
                     <div className="px-4 py-3 bg-gray-50 border-t">
-                      <div className="grid grid-cols-12 gap-2 text-sm">
-                        <div className="col-span-7 font-medium">
+                      <div className="grid grid-cols-[auto_1fr_auto_4fr_2fr_2fr_auto] gap-2 text-sm">
+                        <div className="w-12"></div>
+                        <div className="col-span-3 font-medium">
                           {activeFilterCount > 0 ? "Filtered Totals" : "Totals"}
                           {activeFilterCount > 0 && (
                             <span className="ml-2 text-xs text-gray-500">
@@ -1432,7 +1433,7 @@ export default function ViewStatements() {
                             </span>
                           )}
                         </div>
-                        <div className="col-span-2 text-right font-mono">
+                        <div className="text-right font-mono">
                           <span className="text-red-600">
                             -$
                             {filteredTransactions
@@ -1453,13 +1454,13 @@ export default function ViewStatements() {
                               })}
                           </span>
                         </div>
-                        <div className="col-span-2 text-right font-mono font-bold">
+                        <div className="text-right font-mono font-bold">
                           $
                           {calculatedClosing.toLocaleString("en-CA", {
                             minimumFractionDigits: 2,
                           })}
                         </div>
-                        <div className="col-span-1"></div>
+                        <div className="w-20"></div>
                       </div>
                     </div>
                   </div>
