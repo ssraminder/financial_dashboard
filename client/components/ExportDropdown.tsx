@@ -28,11 +28,12 @@ export const ExportDropdown = ({
   );
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-CA", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    if (!year || !month || !day) return dateStr;
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
   };
 
   const getFileName = (extension: string) => {
