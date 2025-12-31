@@ -1,19 +1,24 @@
 # Knowledge Base Category ID Fix - Completed ✅
 
 ## Issue
+
 Category was not being saved when creating KB entries via AI interpretation because:
+
 - **kb-ai-interpret** returns `category_code` (string like "office_expense")
 - **knowledgebase_payees** table requires `category_id` (UUID like "fc6509c7-3370-44fc-a874-6bdb34ed760f")
 - The payload was being sent with `category_code` instead of converting to `category_id`
 
 ## Root Cause
+
 The `handleConfirmInterpret` function in `KBAdmin.tsx` was passing `interpretResult.proposed` directly to the save function without converting the `category_code` to `category_id`.
 
 ## Solution Implemented
 
 ### 1. ✅ Added Category Fetching to KBAdmin.tsx
+
 **File**: `client/pages/KBAdmin.tsx`
 **Changes**:
+
 - Added `Category` interface with `id`, `code`, `name`, `category_type` fields
 - Added `categories` state to store fetched categories
 - Added `fetchCategories()` function to load all active categories from Supabase
@@ -44,8 +49,10 @@ const fetchCategories = async () => {
 ```
 
 ### 2. ✅ Updated AIInterpretationResult Type
+
 **File**: `client/types/knowledge-base.ts`
 **Changes**:
+
 - Added `category_id?: string;` field to the `proposed` object
 - Added comments explaining that `category_code` comes from AI and will be converted to `category_id`
 
@@ -64,8 +71,10 @@ proposed: {
 ```
 
 ### 3. ✅ Fixed handleConfirmInterpret Function
+
 **File**: `client/pages/KBAdmin.tsx`
 **Changes**:
+
 - Added category code-to-ID conversion logic
 - Looks up the category by code in the categories array
 - Extracts the UUID and sets it as `category_id`
@@ -110,7 +119,7 @@ const handleConfirmInterpret = async () => {
         },
       },
     );
-    
+
     // ... rest of function
   }
 };
@@ -119,6 +128,7 @@ const handleConfirmInterpret = async () => {
 ## Data Flow
 
 ### Before Fix
+
 ```
 kb-ai-interpret (returns category_code)
     ↓
@@ -132,6 +142,7 @@ knowledgebase_payees.insert() fails (needs category_id UUID)
 ```
 
 ### After Fix
+
 ```
 kb-ai-interpret (returns category_code)
     ↓
@@ -151,7 +162,8 @@ knowledgebase_payees.insert() succeeds
 ## How It Works
 
 1. **User enters natural language**: "Create rule for office supplies"
-2. **kb-ai-interpret returns**: 
+2. **kb-ai-interpret returns**:
+
    ```json
    {
      "proposed": {
@@ -168,6 +180,7 @@ knowledgebase_payees.insert() succeeds
    - Removes category_code, adds category_id
 
 4. **kb-entry-manage receives**:
+
    ```json
    {
      "entry": {
@@ -196,14 +209,15 @@ To verify this fix works:
 
 ## Files Modified
 
-| File | Change |
-|------|--------|
-| `client/pages/KBAdmin.tsx` | Added category state, fetch function, and conversion logic in handleConfirmInterpret |
-| `client/types/knowledge-base.ts` | Updated AIInterpretationResult to include category_id field |
+| File                             | Change                                                                               |
+| -------------------------------- | ------------------------------------------------------------------------------------ |
+| `client/pages/KBAdmin.tsx`       | Added category state, fetch function, and conversion logic in handleConfirmInterpret |
+| `client/types/knowledge-base.ts` | Updated AIInterpretationResult to include category_id field                          |
 
 ## Backward Compatibility
 
 ✅ **Fully backward compatible**:
+
 - No database changes needed
 - Existing KB entries unaffected
 - The conversion happens only during AI interpretation workflow
