@@ -1025,24 +1025,26 @@ export default function Upload() {
                   </div>
 
                   {/* Table Header */}
-                  <div className="grid grid-cols-12 gap-2 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 uppercase border-b">
-                    <div className="col-span-1">Date</div>
-                    <div className="col-span-1">Type</div>
-                    <div className="col-span-5">Description</div>
-                    <div className="col-span-2 text-right">Amount</div>
-                    <div className="col-span-2 text-right">Balance</div>
-                    <div className="col-span-1 text-center">Edit</div>
+                  <div className="grid grid-cols-[auto_1fr_auto_4fr_2fr_2fr_auto] gap-2 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 uppercase border-b">
+                    <div className="w-12 text-center">#</div>
+                    <div>Date</div>
+                    <div className="w-20">Type</div>
+                    <div>Description</div>
+                    <div className="text-right">Amount</div>
+                    <div className="text-right">Balance</div>
+                    <div className="w-16 text-center">Edit</div>
                   </div>
 
                   {/* Opening Balance Row */}
-                  <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-gray-50 border-b text-sm">
-                    <div className="col-span-1 text-gray-400">-</div>
-                    <div className="col-span-1">-</div>
-                    <div className="col-span-5 font-medium text-gray-600">
+                  <div className="grid grid-cols-[auto_1fr_auto_4fr_2fr_2fr_auto] gap-2 px-4 py-2 bg-gray-50 border-b text-sm">
+                    <div className="w-12 text-center text-gray-400">-</div>
+                    <div className="text-gray-400">-</div>
+                    <div className="w-20">-</div>
+                    <div className="font-medium text-gray-600">
                       Opening Balance
                     </div>
-                    <div className="col-span-2 text-right">-</div>
-                    <div className="col-span-2 text-right font-bold text-gray-800">
+                    <div className="text-right">-</div>
+                    <div className="text-right font-bold text-gray-800">
                       $
                       {(
                         (
@@ -1053,7 +1055,7 @@ export default function Upload() {
                         minimumFractionDigits: 2,
                       })}
                     </div>
-                    <div className="col-span-1"></div>
+                    <div className="w-16"></div>
                   </div>
 
                   {/* Transaction Rows */}
@@ -1073,7 +1075,7 @@ export default function Upload() {
                       return (
                         <div
                           key={index}
-                          className={`grid grid-cols-12 gap-2 px-4 py-2 border-b text-sm items-center transition-colors
+                          className={`grid grid-cols-[auto_1fr_auto_4fr_2fr_2fr_auto] gap-2 px-4 py-2 border-b text-sm items-center transition-colors
                             ${
                               (t.is_suspect as boolean)
                                 ? "bg-blue-50 border-l-4 border-l-blue-500"
@@ -1082,13 +1084,18 @@ export default function Upload() {
                             ${(t.changed as boolean) ? "bg-yellow-50" : ""}
                           `}
                         >
+                          {/* Serial Number */}
+                          <div className="w-12 text-center text-gray-400 font-mono text-xs">
+                            {index + 1}
+                          </div>
+
                           {/* Date */}
-                          <div className="col-span-1 text-gray-500 text-xs">
+                          <div className="text-gray-500 text-xs">
                             {(t.date as string)?.substring(5) || "-"}
                           </div>
 
                           {/* Type Toggle */}
-                          <div className="col-span-1">
+                          <div className="w-20">
                             <button
                               onClick={() => toggleTransactionType(index)}
                               className={`px-2 py-1 rounded text-xs font-bold transition-all hover:scale-105
@@ -1106,7 +1113,7 @@ export default function Upload() {
                           </div>
 
                           {/* Description */}
-                          <div className="col-span-5 truncate">
+                          <div className="truncate">
                             <span
                               className={
                                 (t.is_suspect as boolean)
@@ -1124,7 +1131,7 @@ export default function Upload() {
                           </div>
 
                           {/* Amount */}
-                          <div className="col-span-2 text-right">
+                          <div className="text-right">
                             {editingIndex === index ? (
                               <input
                                 type="number"
@@ -1164,7 +1171,7 @@ export default function Upload() {
                           </div>
 
                           {/* Running Balance */}
-                          <div className="col-span-2 text-right text-gray-600">
+                          <div className="text-right text-gray-600">
                             $
                             {(t.running_balance as number)?.toFixed(2) ||
                               runningBalance.toLocaleString("en-CA", {
@@ -1173,7 +1180,7 @@ export default function Upload() {
                           </div>
 
                           {/* Status */}
-                          <div className="col-span-1 text-center">
+                          <div className="w-16 text-center">
                             {(t.changed as boolean) && (
                               <span className="text-xs text-yellow-600">✎</span>
                             )}
