@@ -1460,13 +1460,14 @@ export default function ViewStatements() {
                           {/* Running Balance */}
                           <div className="text-right font-mono">
                             $
-                            {(t.calculated_balance || 0).toLocaleString(
-                              "en-CA",
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              },
-                            )}
+                            {(
+                              t.changed
+                                ? t.calculated_balance
+                                : t.running_balance || 0
+                            ).toLocaleString("en-CA", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
                           </div>
 
                           {/* Status Indicators */}
