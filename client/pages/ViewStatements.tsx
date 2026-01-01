@@ -1620,6 +1620,12 @@ export default function ViewStatements() {
 
                           {/* Status Indicators */}
                           <div className="w-20 text-center flex items-center justify-center gap-1">
+                            {t.is_locked && (
+                              <Lock
+                                className="h-4 w-4 text-gray-400"
+                                title="Locked - statement confirmed"
+                              />
+                            )}
                             {t.changed && (
                               <span
                                 className="w-2 h-2 rounded-full bg-yellow-400"
