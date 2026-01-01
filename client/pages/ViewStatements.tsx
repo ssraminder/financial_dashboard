@@ -165,15 +165,35 @@ export default function ViewStatements() {
     }
   }, [user]);
 
+  // Handle query parameters for auto-selection
+  useEffect(() => {
+    if (!paramsProcessed && bankAccounts.length > 0) {
+      const accountParam = searchParams.get("account");
+      const statementParam = searchParams.get("statement");
+
+      if (accountParam && bankAccounts.some((acc) => acc.id === accountParam)) {
+        setSelectedBankAccountId(accountParam);
+        // Statement will be auto-selected after statements are fetched
+        if (statementParam) {
+          setSelectedStatementId(statementParam);
+        }
+        setParamsProcessed(true);
+      }
+    }
+  }, [bankAccounts, searchParams, paramsProcessed]);
+
   // Fetch statements when bank account changes
   useEffect(() => {
     if (selectedBankAccountId) {
       fetchStatements();
-      setSelectedStatementId("");
+      // Only clear statement if it wasn't explicitly set by query params
+      if (!searchParams.get("statement")) {
+        setSelectedStatementId("");
+      }
       setTransactions([]);
       setBalanceCheck(null);
     }
-  }, [selectedBankAccountId]);
+  }, [selectedBankAccountId, searchParams]);
 
   // Fetch transactions when statement changes
   useEffect(() => {
