@@ -941,6 +941,45 @@ export default function ViewStatements() {
                       }
                       bankAccount={selectedAccount}
                     />
+
+                    {/* Confirm Button - only for unconfirmed statements */}
+                    {(selectedStatement?.import_status === "pending_review" ||
+                      selectedStatement?.import_status === "processing") && (
+                      <button
+                        onClick={() => setShowConfirmModal(true)}
+                        disabled={!isBalanced}
+                        className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors ${
+                          isBalanced
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }`}
+                        title={
+                          !isBalanced
+                            ? "Statement must be balanced before confirming"
+                            : "Confirm statement"
+                        }
+                      >
+                        <Check className="w-5 h-5" />
+                        Confirm Statement
+                      </button>
+                    )}
+
+                    {/* Confirmed Badge - for confirmed statements */}
+                    {selectedStatement?.import_status === "confirmed" && (
+                      <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg">
+                        <Lock className="w-4 h-4" />
+                        <span className="font-medium">Confirmed</span>
+                        {selectedStatement.confirmed_at && (
+                          <span className="text-green-600 text-sm">
+                            {formatDateSafe(
+                              selectedStatement.confirmed_at.split("T")[0],
+                              { short: true },
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <button
                       onClick={() => setShowDeleteModal(true)}
                       className="text-red-50 hover:bg-red-700 px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors"
