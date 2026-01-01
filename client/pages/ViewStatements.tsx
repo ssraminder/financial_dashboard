@@ -301,7 +301,7 @@ export default function ViewStatements() {
       const statement = statements.find((s) => s.id === selectedStatementId);
       if (!statement) return;
 
-      // Fetch transactions without joins
+      // Fetch transactions by statement_import_id
       const { data: transactions, error } = await supabase
         .from("transactions")
         .select(
@@ -313,7 +313,9 @@ export default function ViewStatements() {
            total_amount,
            transaction_type,
            needs_review,
-           category_id`,
+           category_id,
+           is_edited,
+           edited_at`,
         )
         .eq("statement_import_id", statement.id)
         .order("posting_date", { ascending: true })
