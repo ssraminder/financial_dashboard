@@ -372,9 +372,8 @@ export default function ViewStatements() {
         ? Math.round((txns[txns.length - 1].running_balance || 0) * 100) / 100
         : statement.opening_balance;
 
-    const difference = Math.round(
-      (statement.closing_balance - calculatedBalance) * 100,
-    ) / 100;
+    const difference =
+      Math.round((statement.closing_balance - calculatedBalance) * 100) / 100;
     const isBalanced = Math.abs(difference) < 0.02;
 
     return { calculatedBalance, difference, isBalanced };
@@ -1464,10 +1463,9 @@ export default function ViewStatements() {
                           {/* Running Balance */}
                           <div className="text-right font-mono">
                             $
-                            {(
-                              t.changed
-                                ? t.calculated_balance
-                                : t.running_balance || 0
+                            {(t.changed
+                              ? t.calculated_balance
+                              : t.running_balance || 0
                             ).toLocaleString("en-CA", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
