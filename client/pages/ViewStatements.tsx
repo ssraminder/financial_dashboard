@@ -267,7 +267,7 @@ export default function ViewStatements() {
       const { data, error } = await supabase
         .from("statement_imports")
         .select(
-          "id, statement_period_start, statement_period_end, opening_balance, closing_balance, total_transactions, total_credits, total_debits, file_name, imported_at",
+          "id, statement_period_start, statement_period_end, opening_balance, closing_balance, total_transactions, total_credits, total_debits, file_name, imported_at, import_status, confirmed_at, confirmed_by",
         )
         .eq("bank_account_id", selectedBankAccountId)
         .order("statement_period_end", { ascending: false });
