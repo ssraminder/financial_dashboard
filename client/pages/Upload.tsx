@@ -125,8 +125,8 @@ export default function Upload() {
         const { data, error: err } = await supabase
           .from("bank_accounts")
           .select("*")
-          .eq("company_id", user.company_id || "")
-          .eq("is_active", true);
+          .eq("is_active", true)
+          .order("name");
 
         if (err) throw err;
         setBankAccounts(data || []);
