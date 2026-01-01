@@ -587,7 +587,9 @@ After implementation, verify all items:
 ### Navigation & Routing
 
 - [ ] Correct URL structure for view links: `/statements?account=...&statement=...`
-- [ ] Review Queue link correct: `/review` or `/review-queue`
+- [ ] Review Queue link correct: `/review-queue` (verified in App.tsx)
+- [ ] [View] button navigates to statements with params
+- [ ] [Go to Review Queue] button navigates to `/review-queue`
 - [ ] No navigation during processing phase
 - [ ] Back button disabled during processing
 - [ ] Unload warning if try to close during processing
