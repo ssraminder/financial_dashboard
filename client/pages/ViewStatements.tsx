@@ -1549,7 +1549,7 @@ export default function ViewStatements() {
 
                           {/* Editable Amount */}
                           <div className="text-right">
-                            {editingAmountIndex === index ? (
+                            {editingAmountIndex === index && !t.is_locked ? (
                               <div className="flex items-center justify-end gap-1">
                                 <span className="text-gray-400">$</span>
                                 <input
@@ -1575,17 +1575,27 @@ export default function ViewStatements() {
                               </div>
                             ) : (
                               <span
-                                onDoubleClick={() =>
-                                  startEditAmount(index, t.edited_amount)
-                                }
-                                className={`cursor-pointer hover:bg-gray-100 px-2 py-1 rounded font-mono font-medium
+                                onDoubleClick={() => {
+                                  if (!t.is_locked) {
+                                    startEditAmount(index, t.edited_amount);
+                                  }
+                                }}
+                                className={`px-2 py-1 rounded font-mono font-medium
                                   ${
-                                    t.edited_type === "credit"
-                                      ? "text-green-600"
-                                      : "text-red-600"
+                                    t.is_locked
+                                      ? "text-gray-500 cursor-not-allowed opacity-60"
+                                      : `${
+                                          t.edited_type === "credit"
+                                            ? "text-green-600 cursor-pointer hover:bg-gray-100"
+                                            : "text-red-600 cursor-pointer hover:bg-gray-100"
+                                        }`
                                   }
                                 `}
-                                title="Double-click to edit amount"
+                                title={
+                                  t.is_locked
+                                    ? "Locked - statement confirmed"
+                                    : "Double-click to edit amount"
+                                }
                               >
                                 {t.edited_type === "credit" ? "+" : "-"}$
                                 {t.edited_amount.toLocaleString("en-CA", {
