@@ -894,17 +894,27 @@ export default function ViewStatements() {
                     </p>
                   </div>
 
-                  <ExportDropdown
-                    statement={selectedStatement}
-                    transactions={
-                      filteredTransactions.length > 0
-                        ? filteredTransactions
-                        : editableTransactions.length > 0
-                          ? editableTransactions
-                          : transactions
-                    }
-                    bankAccount={selectedAccount}
-                  />
+                  <div className="flex items-center gap-2">
+                    <ExportDropdown
+                      statement={selectedStatement}
+                      transactions={
+                        filteredTransactions.length > 0
+                          ? filteredTransactions
+                          : editableTransactions.length > 0
+                            ? editableTransactions
+                            : transactions
+                      }
+                      bankAccount={selectedAccount}
+                    />
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      className="text-red-50 hover:bg-red-700 px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors"
+                      title="Delete this statement"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
 
