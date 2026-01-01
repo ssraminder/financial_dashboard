@@ -1510,16 +1510,28 @@ export default function ViewStatements() {
                           <div className="w-24">
                             <button
                               onClick={() => toggleTransactionDirection(index)}
-                              className={`px-2 py-1 rounded text-xs font-bold transition-all hover:scale-105 w-full
+                              disabled={t.is_locked}
+                              className={`px-2 py-1 rounded text-xs font-bold transition-all w-full
                                 ${
-                                  t.edited_type === "credit"
-                                    ? "bg-green-500 hover:bg-green-600 text-white"
-                                    : "bg-red-500 hover:bg-red-600 text-white"
+                                  t.is_locked
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+                                    : `${
+                                        t.edited_type === "credit"
+                                          ? "bg-green-500 hover:bg-green-600 text-white hover:scale-105"
+                                          : "bg-red-500 hover:bg-red-600 text-white hover:scale-105"
+                                      }`
                                 }
                               `}
-                              title="Click to flip direction"
+                              title={
+                                t.is_locked
+                                  ? "Locked - statement confirmed"
+                                  : "Click to flip direction"
+                              }
                             >
                               {t.edited_type === "credit" ? "↓ IN" : "↑ OUT"}
+                              {t.is_locked && (
+                                <Lock className="w-3 h-3 ml-1 inline" />
+                              )}
                             </button>
                           </div>
 
