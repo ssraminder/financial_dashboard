@@ -39,7 +39,7 @@ export function DeleteStatementModal({
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-red-600 flex items-center gap-2">
-            <ExclamationTriangle className="w-6 h-6" />
+            <AlertTriangle className="w-6 h-6" />
             Delete Statement
           </h2>
         </div>
