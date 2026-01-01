@@ -219,7 +219,7 @@ export default function ViewStatements() {
 
   // Fetch transactions when statement changes
   useEffect(() => {
-    if (selectedStatementId && selectedStatement?.id) {
+    if (selectedStatementId) {
       fetchTransactions();
     } else {
       setTransactions([]);
