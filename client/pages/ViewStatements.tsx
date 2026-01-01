@@ -920,9 +920,24 @@ export default function ViewStatements() {
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                 <div className="flex justify-between items-center">
                   <div className="text-white">
-                    <h2 className="text-xl font-bold">
-                      Account Activity Details
-                    </h2>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h2 className="text-xl font-bold">
+                        Account Activity Details
+                      </h2>
+
+                      {/* Status Badge */}
+                      {selectedStatement?.import_status === "pending_review" && (
+                        <span className="px-2 py-1 bg-yellow-500 text-yellow-900 text-xs font-medium rounded">
+                          Pending Review
+                        </span>
+                      )}
+                      {selectedStatement?.import_status === "confirmed" && (
+                        <span className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded flex items-center gap-1">
+                          <Lock className="w-3 h-3" />
+                          Confirmed
+                        </span>
+                      )}
+                    </div>
                     <p className="text-blue-100">
                       {selectedAccount.bank_name} - Account ••••
                       {selectedAccount.account_number_last4 || "****"}
