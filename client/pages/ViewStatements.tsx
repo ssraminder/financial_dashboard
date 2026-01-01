@@ -781,21 +781,10 @@ export default function ViewStatements() {
       setShowConfirmModal(false);
 
       // Refresh statement data
-      fetchStatements();
-
-      // Update local state
-      setSelectedStatement((prev) =>
-        prev
-          ? {
-              ...prev,
-              import_status: "confirmed" as const,
-              confirmed_at: new Date().toISOString(),
-            }
-          : null,
-      );
+      await fetchStatements();
 
       // Refresh transactions to get is_locked status
-      fetchTransactions();
+      await fetchTransactions();
     } catch (error) {
       console.error("Error confirming statement:", error);
       sonnerToast.error("Failed to confirm statement. Please try again.");
