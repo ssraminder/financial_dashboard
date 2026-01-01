@@ -3,11 +3,13 @@
 ## 1. File Structure
 
 ### Primary Component
+
 - **Path**: `client/pages/Upload.tsx`
 - **Size**: ~1,800+ lines
 - **Type**: Standalone page component (no child components)
 
 ### Child Components
+
 - **None** - All functionality is contained within Upload.tsx
 - Uses shared UI components from `@/components/ui/`:
   - Card, CardHeader, CardTitle, CardContent
@@ -18,12 +20,14 @@
   - Custom StatCard component (defined inline in file)
 
 ### Imported Utilities & Hooks
+
 - `useAuth()` from `@/hooks/useAuth` - authentication
 - `useNavigate()` from `react-router-dom` - navigation
 - `supabase` from `@/lib/supabase` - database client
 - Icon library: `lucide-react` (20+ icons used)
 
 ### Shared Styling
+
 - Tailwind CSS (inline classes only)
 - No separate CSS files
 - Uses component library from `shadcn/ui`
@@ -32,28 +36,28 @@
 
 ## 2. State Variables
 
-| Variable | Type | Purpose |
-|----------|------|---------|
-| `bankAccounts` | `BankAccount[]` | List of bank accounts for selection |
-| `selectedFile` | `File \| null` | Currently selected PDF file |
-| `selectedBankAccountId` | `string` | Selected bank account UUID |
-| `loading` | `boolean` | Master loading flag for upload/process |
-| `loadingAccounts` | `boolean` | Bank accounts fetch loading state |
-| `dragActive` | `boolean` | Drag and drop zone active state |
-| `error` | `string \| null` | General error messages |
-| `result` | `ParseStatementResult \| null` | Final API response with summary |
-| `balanceError` | `Record<string, unknown> \| null` | Balance mismatch error details |
-| `uploadStage` | `"idle" \| "uploading" \| "processing" \| "complete" \| "error"` | Progress stage tracker |
-| `statusMessage` | `string` | Current status message for UI |
-| `statusDetail` | `string` | Detailed status info |
-| `editableTransactions` | `Array<{...}>` | Suspect transactions for balance correction |
-| `isRevalidating` | `boolean` | Resubmission with corrections in progress |
-| `parsedData` | `Record<string, unknown> \| null` | Full API response (kept for review screen) |
-| `allTransactions` | `Array<{...}>` | All transactions from parsed statement |
-| `isReviewing` | `boolean` | Review screen active state |
-| `isSaving` | `boolean` | Save confirmation in progress |
-| `editingIndex` | `number \| null` | Currently edited transaction index |
-| `editAmount` | `string` | Temporary amount being edited |
+| Variable                | Type                                                             | Purpose                                     |
+| ----------------------- | ---------------------------------------------------------------- | ------------------------------------------- |
+| `bankAccounts`          | `BankAccount[]`                                                  | List of bank accounts for selection         |
+| `selectedFile`          | `File \| null`                                                   | Currently selected PDF file                 |
+| `selectedBankAccountId` | `string`                                                         | Selected bank account UUID                  |
+| `loading`               | `boolean`                                                        | Master loading flag for upload/process      |
+| `loadingAccounts`       | `boolean`                                                        | Bank accounts fetch loading state           |
+| `dragActive`            | `boolean`                                                        | Drag and drop zone active state             |
+| `error`                 | `string \| null`                                                 | General error messages                      |
+| `result`                | `ParseStatementResult \| null`                                   | Final API response with summary             |
+| `balanceError`          | `Record<string, unknown> \| null`                                | Balance mismatch error details              |
+| `uploadStage`           | `"idle" \| "uploading" \| "processing" \| "complete" \| "error"` | Progress stage tracker                      |
+| `statusMessage`         | `string`                                                         | Current status message for UI               |
+| `statusDetail`          | `string`                                                         | Detailed status info                        |
+| `editableTransactions`  | `Array<{...}>`                                                   | Suspect transactions for balance correction |
+| `isRevalidating`        | `boolean`                                                        | Resubmission with corrections in progress   |
+| `parsedData`            | `Record<string, unknown> \| null`                                | Full API response (kept for review screen)  |
+| `allTransactions`       | `Array<{...}>`                                                   | All transactions from parsed statement      |
+| `isReviewing`           | `boolean`                                                        | Review screen active state                  |
+| `isSaving`              | `boolean`                                                        | Save confirmation in progress               |
+| `editingIndex`          | `number \| null`                                                 | Currently edited transaction index          |
+| `editAmount`            | `string`                                                         | Temporary amount being edited               |
 
 **Total State Variables**: 19 pieces of state
 
@@ -141,28 +145,34 @@
 ### Request Payloads
 
 #### Request 1: Initial Parse
+
 ```javascript
 const formData = new FormData();
-formData.append("file", selectedFile);                    // File object
+formData.append("file", selectedFile); // File object
 formData.append("bank_account_id", selectedBankAccountId); // UUID string
 ```
 
 #### Request 2: Resubmit with Corrections
+
 ```javascript
 const formData = new FormData();
 formData.append("file", selectedFile);
 formData.append("bank_account_id", selectedBankAccountId);
-formData.append("corrections", JSON.stringify([
-  {
-    description: string,
-    date: string,
-    amount: number,
-    corrected_type: "credit" | "debit"
-  }
-]));
+formData.append(
+  "corrections",
+  JSON.stringify([
+    {
+      description: string,
+      date: string,
+      amount: number,
+      corrected_type: "credit" | "debit",
+    },
+  ]),
+);
 ```
 
 #### Request 3: Save Transactions
+
 ```javascript
 const formData = new FormData();
 formData.append("bank_account_id", selectedBankAccountId);
@@ -236,6 +246,7 @@ interface ParseStatementResult {
 ```
 
 ### Three API Calls
+
 1. **Parse**: Initial file upload and parse
 2. **Revalidate**: With corrections for balance mismatch
 3. **Save**: Persist transactions to database
@@ -245,15 +256,18 @@ interface ParseStatementResult {
 ## 5. Navigation & Routing
 
 ### Current Route
+
 - **Upload Page URL**: `/upload` (inferred from file location)
 - **Sidebar integration**: Yes (Sidebar component displayed)
 
 ### Post-Upload Navigation
+
 - **Success Path 1**: `/transactions` (View all transactions)
 - **Success Path 2**: `/review-queue` (If HITL items exist)
 - **Reset Option**: Stay on `/upload` with cleared form
 
 ### Query Parameters
+
 - **Current**: None
 - **Potential Enhancement**: Could use `?account={id}` to pre-select account
 
@@ -262,7 +276,9 @@ interface ParseStatementResult {
 ## 6. Dependencies on Other Pages
 
 ### ViewStatements.tsx
+
 - **Shared Interfaces**:
+
   ```typescript
   interface BankAccount {
     id: string;
@@ -273,7 +289,7 @@ interface ParseStatementResult {
     currency: string;
     is_active?: boolean;
   }
-  
+
   interface Statement {
     id: string;
     bank_account_id: string;
@@ -282,13 +298,13 @@ interface ParseStatementResult {
     statement_period: string;
     status: string;
   }
-  
+
   interface Category {
     id: string;
     code: string;
     name: string;
   }
-  
+
   interface Transaction {
     id: string;
     date: string;
@@ -303,16 +319,19 @@ interface ParseStatementResult {
     gst_amount?: number;
   }
   ```
+
 - **Shared Database Queries**: Uses same `bank_accounts` table
 - **Expected Data Format**: ViewStatements expects transactions already in database (not from Upload)
 
 ### ReviewQueue.tsx (Review Queue page)
+
 - **Expected Data**: Fetches directly from Supabase tables, not from Upload state
 - **No direct dependency**: ReviewQueue loads its own data
 - **Connection**: Upload navigates to ReviewQueue after successful import with HITL items
 - **Expected Format**: Transactions with `needs_review: true`
 
 ### Transactions Page
+
 - **Expected Data**: Transactions already persisted in database
 - **No direct dependency**: Fetches fresh data from Supabase
 
@@ -321,36 +340,42 @@ interface ParseStatementResult {
 ## 7. Current Limitations
 
 ### Multi-File Handling
+
 - **Current Status**: ❌ No multi-file support
-- **Current Pattern**: 
+- **Current Pattern**:
   ```javascript
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = (useState < File) | (null > null);
   ```
 - **Upload method**: Single file only via drag & drop or file input
 
 ### Batch Processing
+
 - **Current Status**: ❌ No batch processing
 - **Architecture**: Sequential: 1 file → parse → review → save
 - **No queue**: Each upload requires manual confirmation
 
 ### Auto-Save
+
 - **Current Status**: ❌ Manual review required
 - **Required Review**: Even when balance is perfect, review screen shows
 - **Action**: User must click "Confirm & Save"
 
 ### Error Handling per File
+
 - **Current Status**: ❌ Fails on first error
-- **Behavior**: 
+- **Behavior**:
   - Balance mismatch → stops, shows corrections UI
   - Parsing error → stops, shows error message
   - No continue-on-error for duplicates
 
 ### UI State Management
+
 - **Reset Pattern**: Manual form reset required
 - **No persistence**: No draft saving or recovery
 - **State clearing**: All edits lost if user navigates away
 
 ### Comments and TODOs
+
 - **None found** in current code
 - **Debug logs**: Console.log statements present for transaction values
 
@@ -359,6 +384,7 @@ interface ParseStatementResult {
 ## 8. Styling
 
 ### Method
+
 - **Primary**: Tailwind CSS (inline classes)
 - **No CSS modules or external files**
 - **Icons**: `lucide-react` (20+ icons throughout)
@@ -366,6 +392,7 @@ interface ParseStatementResult {
 ### Custom Components (Inline)
 
 #### StatusStep Component
+
 ```typescript
 interface StatusStepProps {
   step: number;
@@ -375,11 +402,13 @@ interface StatusStepProps {
   isRetry?: boolean;
 }
 ```
+
 - Shows progress with icons and spinner
 - Color-coded by status (gray, blue, green, red)
 - Used in processing status display
 
 #### StatCard Component
+
 ```typescript
 interface StatCardProps {
   label: string;
@@ -389,18 +418,21 @@ interface StatCardProps {
   color?: "green" | "orange" | "blue" | "purple";
 }
 ```
+
 - Display stats with background color
 - Icon on right side
 - Optional highlight ring
 - Used for summary display
 
 ### Animations & Transitions
+
 - **Loading spinner**: `animate-spin` on Loader2 icon
 - **Drag active**: Border color transition on drag zone
 - **Button hover**: Scale, color changes
 - **Smooth transitions**: Used on drag zone and editable fields
 
 ### Layout Patterns
+
 - **Card-based**: Main sections in Card components
 - **Grid layouts**: 2-3 column grids for stats
 - **Responsive**: `grid-cols-2 md:grid-cols-3` patterns
@@ -411,36 +443,43 @@ interface StatCardProps {
 ## Key Takeaways for Multi-File Implementation
 
 ### 1. State Structure
+
 - Current: Single `selectedFile: File | null`
 - Needed: `selectedFiles: File[]` + file queue management
 - Needed: Per-file status tracking
 
 ### 2. API Contract
+
 - Currently: 3 separate POST calls
 - Multi-file: Would need to handle parallel or sequential calls
 - Save payload: Already supports array of transactions
 
 ### 3. Component Architecture
+
 - No child components means changes are isolated to this one file
 - Large file (1,800+ lines) - consider extracting StatusStep and StatCard if expanding
 
 ### 4. Navigation Impact
+
 - Current: Single result, single navigation
 - Needed: Batch results, aggregate summary before navigation
 
 ### 5. UI/UX Considerations
+
 - Current: Processing status shown during upload
 - Needed: File queue display with per-file progress
 - Current: Manual review required
 - Impact: Could auto-save if review states allow
 
 ### 6. Error Handling
+
 - Current: Fail-on-error model
 - Needed: Continue-on-error with error collection
 - Current: Show corrections dialog for balance issues
 - Impact: Multiple balance errors from multiple files?
 
 ### 7. Database Integration
+
 - Current: Single `bank_accounts` fetch on mount
 - No impact expected for multi-file
 - Statement table: May need to track multiple file imports in single session
@@ -450,6 +489,7 @@ interface StatCardProps {
 ## Data Type References
 
 ### BankAccount
+
 ```typescript
 interface BankAccount {
   id: string;
@@ -463,6 +503,7 @@ interface BankAccount {
 ```
 
 ### Transaction (from API response)
+
 ```typescript
 {
   date: string;                    // YYYY-MM-DD
