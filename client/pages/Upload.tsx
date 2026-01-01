@@ -106,11 +106,12 @@ export default function Upload() {
 
   // State
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>("");
+  const [selectedBankAccountId, setSelectedBankAccountId] =
+    useState<string>("");
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [files, setFiles] = useState<QueuedFile[]>([]);
   const [phase, setPhase] = useState<"select" | "processing" | "complete">(
-    "select"
+    "select",
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dragActive, setDragActive] = useState(false);
@@ -144,10 +145,8 @@ export default function Upload() {
   // Error message mapping
   const getErrorMessage = (code: string): string => {
     const messages: Record<string, string> = {
-      DUPLICATE_STATEMENT:
-        "Already imported - appears to be a duplicate",
-      ACCOUNT_MISMATCH:
-        "Account number doesn't match the selected account",
+      DUPLICATE_STATEMENT: "Already imported - appears to be a duplicate",
+      ACCOUNT_MISMATCH: "Account number doesn't match the selected account",
       PARSE_ERROR: "Failed to parse the statement",
       SAVE_ERROR: "Failed to save transactions",
       ERROR: "An error occurred while processing",
@@ -169,14 +168,14 @@ export default function Upload() {
     fileId: string,
     status: QueuedFile["status"],
     error?: QueuedFile["error"] | null,
-    result?: QueuedFile["result"]
+    result?: QueuedFile["result"],
   ) => {
     setFiles((prev) =>
       prev.map((f) =>
         f.id === fileId
           ? { ...f, status, error: error || undefined, result }
-          : f
-      )
+          : f,
+      ),
     );
   };
 
@@ -198,9 +197,7 @@ export default function Upload() {
       }
 
       // Check for duplicates in queue
-      if (
-        files.some((f) => f.name === file.name && f.size === file.size)
-      ) {
+      if (files.some((f) => f.name === file.name && f.size === file.size)) {
         setError(`File already in queue: ${file.name}`);
         return;
       }
@@ -289,7 +286,7 @@ export default function Upload() {
           {
             method: "POST",
             body: parseFormData,
-          }
+          },
         );
 
         const parseResult: ParseStatementResult = await parseResponse.json();
@@ -311,11 +308,11 @@ export default function Upload() {
         saveFormData.append("bank_account_id", selectedBankAccountId);
         saveFormData.append(
           "transactions",
-          JSON.stringify(parseResult.transactions || [])
+          JSON.stringify(parseResult.transactions || []),
         );
         saveFormData.append(
           "account_info",
-          JSON.stringify(parseResult.account_info || {})
+          JSON.stringify(parseResult.account_info || {}),
         );
         saveFormData.append("file_name", file.name);
 
@@ -324,7 +321,7 @@ export default function Upload() {
           {
             method: "POST",
             body: saveFormData,
-          }
+          },
         );
 
         const saveResult: ParseStatementResult = await saveResponse.json();
@@ -345,9 +342,7 @@ export default function Upload() {
             `import_${Date.now()}_${Math.random()}`,
           period: parseResult.account_info?.statement_period || "Unknown",
           transaction_count:
-            saveResult.inserted_count ||
-            parseResult.transactions?.length ||
-            0,
+            saveResult.inserted_count || parseResult.transactions?.length || 0,
           kb_matches:
             (parseResult.summary?.transaction_count || 0) -
             (parseResult.summary?.hitl_count || 0),
@@ -356,10 +351,7 @@ export default function Upload() {
       } catch (err) {
         updateFileStatus(file.id, "error", {
           code: "ERROR",
-          message:
-            err instanceof Error
-              ? err.message
-              : "Connection error",
+          message: err instanceof Error ? err.message : "Connection error",
         });
       }
     }
@@ -377,9 +369,7 @@ export default function Upload() {
 
   // Navigation helper
   const goToStatements = (accountId: string, statementId: string) => {
-    navigate(
-      `/statements?account=${accountId}&statement=${statementId}`
-    );
+    navigate(`/statements?account=${accountId}&statement=${statementId}`);
   };
 
   // Calculate summary stats
@@ -388,12 +378,9 @@ export default function Upload() {
     failed: files.filter((f) => f.status === "error").length,
     totalTransactions: files.reduce(
       (sum, f) => sum + (f.result?.transaction_count || 0),
-      0
+      0,
     ),
-    totalHitl: files.reduce(
-      (sum, f) => sum + (f.result?.hitl_count || 0),
-      0
-    ),
+    totalHitl: files.reduce((sum, f) => sum + (f.result?.hitl_count || 0), 0),
   };
 
   if (authLoading || loadingAccounts) {
@@ -579,10 +566,7 @@ export default function Upload() {
                 <CardContent className="pt-6">
                   <div className="space-y-3">
                     {files.map((f) => (
-                      <div
-                        key={f.id}
-                        className="border rounded-lg p-4"
-                      >
+                      <div key={f.id} className="border rounded-lg p-4">
                         <div className="flex items-start gap-3">
                           {f.status === "success" && (
                             <CheckCircle className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
@@ -604,8 +588,8 @@ export default function Upload() {
                                 f.status === "success"
                                   ? "text-green-700"
                                   : f.status === "error"
-                                  ? "text-red-700"
-                                  : "text-gray-900"
+                                    ? "text-red-700"
+                                    : "text-gray-900"
                               }`}
                             >
                               {f.name}
@@ -677,9 +661,7 @@ export default function Upload() {
                       <p className="text-3xl font-bold text-blue-600">
                         {stats.totalTransactions}
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Transactions
-                      </p>
+                      <p className="text-sm text-gray-600 mt-1">Transactions</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -702,10 +684,7 @@ export default function Upload() {
                 <CardContent>
                   <div className="space-y-3">
                     {files.map((f) => (
-                      <div
-                        key={f.id}
-                        className="border rounded-lg p-4"
-                      >
+                      <div key={f.id} className="border rounded-lg p-4">
                         {f.status === "success" ? (
                           <div className="flex items-start justify-between">
                             <div>
@@ -727,7 +706,7 @@ export default function Upload() {
                                 onClick={() =>
                                   goToStatements(
                                     selectedBankAccountId,
-                                    f.result.statement_import_id
+                                    f.result.statement_import_id,
                                   )
                                 }
                               >
