@@ -362,35 +362,19 @@ export default function ViewStatements() {
     }
   };
 
-  const calculateBalanceCheck = (
+  const calculateBalanceCheckFromDatabase = (
     txns: Transaction[],
     statement: Statement,
-    isLiability: boolean,
   ): BalanceCheck => {
-    let calculatedBalance = statement.opening_balance;
+    // Use the last transaction's running_balance from the database
+    const calculatedBalance =
+      txns.length > 0 && txns[txns.length - 1].running_balance !== undefined
+        ? Math.round((txns[txns.length - 1].running_balance || 0) * 100) / 100
+        : statement.opening_balance;
 
-    txns.forEach((t) => {
-      const amount = Math.abs(t.total_amount);
-      if (isLiability) {
-        // Credit Card, LOC: debits increase balance, credits decrease
-        if (t.transaction_type === "debit") {
-          calculatedBalance += amount;
-        } else {
-          calculatedBalance -= amount;
-        }
-      } else {
-        // Chequing, Savings: credits increase balance, debits decrease
-        if (t.transaction_type === "credit") {
-          calculatedBalance += amount;
-        } else {
-          calculatedBalance -= amount;
-        }
-      }
-    });
-
-    calculatedBalance = Math.round(calculatedBalance * 100) / 100;
-    const difference =
-      Math.round((statement.closing_balance - calculatedBalance) * 100) / 100;
+    const difference = Math.round(
+      (statement.closing_balance - calculatedBalance) * 100,
+    ) / 100;
     const isBalanced = Math.abs(difference) < 0.02;
 
     return { calculatedBalance, difference, isBalanced };
