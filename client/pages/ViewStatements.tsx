@@ -574,11 +574,15 @@ export default function ViewStatements() {
   ]);
 
   // Check if final balance matches statement closing
+  const lastTransaction = transactions[transactions.length - 1];
+  const hasEdits = editableTransactions.some((t) => t.changed);
   const calculatedClosing =
-    calculateRunningBalances.length > 0
-      ? calculateRunningBalances[calculateRunningBalances.length - 1]
-          .calculated_balance || 0
-      : 0;
+    lastTransaction && !hasEdits
+      ? lastTransaction.running_balance || 0
+      : calculateRunningBalances.length > 0
+        ? calculateRunningBalances[calculateRunningBalances.length - 1]
+            .calculated_balance || 0
+        : 0;
   const expectedClosing = selectedStatement?.closing_balance || 0;
   const isBalanced = Math.abs(calculatedClosing - expectedClosing) < 0.02;
 
