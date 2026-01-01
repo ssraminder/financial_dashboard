@@ -106,6 +106,7 @@ export default function ViewStatements() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
   // State
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -117,6 +118,7 @@ export default function ViewStatements() {
   // Filter state
   const [selectedBankAccountId, setSelectedBankAccountId] = useState("");
   const [selectedStatementId, setSelectedStatementId] = useState("");
+  const [paramsProcessed, setParamsProcessed] = useState(false);
   const [balanceCheck, setBalanceCheck] = useState<BalanceCheck | null>(null);
 
   // Modal state
