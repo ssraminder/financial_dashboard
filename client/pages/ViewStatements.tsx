@@ -308,41 +308,35 @@ export default function ViewStatements() {
   };
 
   const fetchTransactions = async () => {
-    if (!selectedStatementId) return;
+    // Guard: need a selected statement
+    if (!selectedStatement?.id) {
+      console.log("No statement ID, returning early");
+      setTransactions([]);
+      setBalanceCheck(null);
+      return;
+    }
+
+    console.log("fetchTransactions called");
+    console.log("selectedStatement:", selectedStatement);
+    console.log("selectedStatement.id:", selectedStatement?.id);
 
     try {
       setLoading(true);
 
-      // Get the statement details for date filtering
-      const statement = statements.find((s) => s.id === selectedStatementId);
-      if (!statement) return;
-
       // Fetch transactions by statement_import_id
       const { data: transactions, error } = await supabase
         .from("transactions")
-        .select(
-          `id,
-           transaction_date,
-           posting_date,
-           description,
-           payee_name,
-           total_amount,
-           transaction_type,
-           needs_review,
-           category_id,
-           is_edited,
-           edited_at,
-           running_balance,
-           is_locked`,
-        )
-        .eq("statement_import_id", statement.id)
-        .order("posting_date", { ascending: true })
+        .select("*")
+        .eq("statement_import_id", selectedStatement.id)
         .order("transaction_date", { ascending: true });
 
       if (error) {
         console.error("Transactions query error:", error);
         throw error;
       }
+
+      console.log("Query result:", transactions);
+      console.log("Transaction count:", transactions?.length);
 
       // Fetch categories separately
       const { data: categoriesData } = await supabase
@@ -364,7 +358,7 @@ export default function ViewStatements() {
       // Calculate balance check using last transaction's running_balance from database
       const check = calculateBalanceCheckFromDatabase(
         transactionsWithCategory,
-        statement,
+        selectedStatement,
       );
       setBalanceCheck(check);
     } catch (err) {
@@ -374,6 +368,8 @@ export default function ViewStatements() {
         description: "Failed to load transactions",
         variant: "destructive",
       });
+      setTransactions([]);
+      setBalanceCheck(null);
     } finally {
       setLoading(false);
     }
