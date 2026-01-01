@@ -57,7 +57,12 @@ interface Statement {
   total_debits: number;
   file_name: string;
   imported_at: string;
-  import_status?: "processing" | "pending_review" | "confirmed" | "completed" | "error";
+  import_status?:
+    | "processing"
+    | "pending_review"
+    | "confirmed"
+    | "completed"
+    | "error";
   confirmed_at?: string;
   confirmed_by?: string;
 }
@@ -926,7 +931,8 @@ export default function ViewStatements() {
                       </h2>
 
                       {/* Status Badge */}
-                      {selectedStatement?.import_status === "pending_review" && (
+                      {selectedStatement?.import_status ===
+                        "pending_review" && (
                         <span className="px-2 py-1 bg-yellow-500 text-yellow-900 text-xs font-medium rounded">
                           Pending Review
                         </span>
@@ -1747,9 +1753,7 @@ export default function ViewStatements() {
           onConfirm={handleConfirmStatement}
           statement={selectedStatement}
           transactionCount={
-            selectedStatement?.total_transactions ||
-            transactions?.length ||
-            0
+            selectedStatement?.total_transactions || transactions?.length || 0
           }
           isConfirming={isConfirming}
         />
