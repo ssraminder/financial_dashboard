@@ -768,6 +768,48 @@ export default function ViewStatements() {
     setEditingAmountIndex(null);
   };
 
+  // Delete statement
+  const handleDeleteStatement = async () => {
+    if (!selectedStatement) return;
+
+    setIsDeleting(true);
+
+    try {
+      // Delete transactions first (foreign key constraint)
+      const { error: txError } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("statement_import_id", selectedStatement.id);
+
+      if (txError) throw txError;
+
+      // Delete statement import
+      const { error: stmtError } = await supabase
+        .from("statement_imports")
+        .delete()
+        .eq("id", selectedStatement.id);
+
+      if (stmtError) throw stmtError;
+
+      // Success
+      sonnerToast.success("Statement deleted successfully");
+      setShowDeleteModal(false);
+
+      // Refresh statements list
+      await fetchStatements();
+
+      // Clear selection
+      setSelectedStatementId("");
+      setTransactions([]);
+      setBalanceCheck(null);
+    } catch (error) {
+      console.error("Error deleting statement:", error);
+      sonnerToast.error("Failed to delete statement. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
