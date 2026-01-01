@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2, ExclamationTriangle, Loader2 } from "lucide-react";
+import { Trash2, AlertTriangle, Loader2 } from "lucide-react";
 
 interface DeleteStatementModalProps {
   isOpen: boolean;
