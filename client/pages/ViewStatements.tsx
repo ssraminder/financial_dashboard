@@ -334,45 +334,20 @@ export default function ViewStatements() {
 
       const categoryMap = new Map(categoriesData?.map((c) => [c.id, c]) || []);
 
-      // Calculate running balance and add category info
-      const selectedAccount = bankAccounts.find(
-        (a) => a.id === selectedBankAccountId,
-      );
-      const isLiability = selectedAccount?.balance_type === "liability";
-
-      let runningBalance = statement.opening_balance;
+      // Add category info - use running_balance from database
       const transactionsWithCategory = (transactions || []).map((t) => {
-        const amount = Math.abs(t.total_amount);
-        if (isLiability) {
-          // Credit Card, LOC: debits increase balance, credits decrease
-          if (t.transaction_type === "debit") {
-            runningBalance += amount;
-          } else {
-            runningBalance -= amount;
-          }
-        } else {
-          // Chequing, Savings: credits increase balance, debits decrease
-          if (t.transaction_type === "credit") {
-            runningBalance += amount;
-          } else {
-            runningBalance -= amount;
-          }
-        }
-
         return {
           ...t,
           category: categoryMap.get(t.category_id) || null,
-          running_balance: runningBalance,
         };
       });
 
       setTransactions(transactionsWithCategory);
 
-      // Calculate balance check
-      const check = calculateBalanceCheck(
+      // Calculate balance check using last transaction's running_balance from database
+      const check = calculateBalanceCheckFromDatabase(
         transactionsWithCategory,
         statement,
-        isLiability,
       );
       setBalanceCheck(check);
     } catch (err) {
