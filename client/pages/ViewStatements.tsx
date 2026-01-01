@@ -315,7 +315,8 @@ export default function ViewStatements() {
            needs_review,
            category_id,
            is_edited,
-           edited_at`,
+           edited_at,
+           running_balance`,
         )
         .eq("statement_import_id", statement.id)
         .order("posting_date", { ascending: true })
