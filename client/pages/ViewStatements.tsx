@@ -1629,7 +1629,9 @@ export default function ViewStatements() {
         onConfirm={handleDeleteStatement}
         statementInfo={{
           fileName: selectedStatement?.file_name || "",
-          periodStart: formatDateSafe(selectedStatement?.statement_period_start),
+          periodStart: formatDateSafe(
+            selectedStatement?.statement_period_start,
+          ),
           periodEnd: formatDateSafe(selectedStatement?.statement_period_end),
           transactionCount: selectedStatement?.total_transactions || 0,
           accountName: selectedAccount?.name || "",
