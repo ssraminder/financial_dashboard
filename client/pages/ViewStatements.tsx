@@ -153,6 +153,10 @@ export default function ViewStatements() {
   >("all");
   const [showFilters, setShowFilters] = useState(false);
 
+  // Delete statement state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
