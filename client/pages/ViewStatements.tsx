@@ -1696,6 +1696,22 @@ export default function ViewStatements() {
         />
       )}
 
+      {/* Confirm Statement Modal */}
+      {selectedStatement && (
+        <ConfirmStatementModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={handleConfirmStatement}
+          statement={selectedStatement}
+          transactionCount={
+            selectedStatement?.total_transactions ||
+            transactions?.length ||
+            0
+          }
+          isConfirming={isConfirming}
+        />
+      )}
+
       {/* Delete Statement Modal */}
       <DeleteStatementModal
         isOpen={showDeleteModal}
