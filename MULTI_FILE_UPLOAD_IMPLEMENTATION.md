@@ -767,6 +767,7 @@ This implementation is successful when:
 After the multi-file upload is complete, add query parameter support to `client/pages/ViewStatements.tsx` so that the [View] button navigation works properly:
 
 **What to add:**
+
 1. Import `useLocation` from react-router-dom
 2. Read `account` and `statement` query parameters
 3. Auto-select bank account if `account` param provided
@@ -784,6 +785,7 @@ This is a secondary task (not required for upload functionality, but improves UX
 This specification provides all details needed. The investigation confirmed the approach is sound and safe. No breaking changes to other pages or shared components expected.
 
 Routes verified against App.tsx:
+
 - ✅ `/statements` - ViewStatements page
 - ✅ `/review-queue` - ReviewQueue page
 
