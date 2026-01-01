@@ -161,6 +161,10 @@ export default function ViewStatements() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Confirm statement state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
