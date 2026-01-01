@@ -745,6 +745,64 @@ export default function ViewStatements() {
     setEditingAmountIndex(null);
   };
 
+  // Confirm statement
+  const handleConfirmStatement = async () => {
+    if (!selectedStatement) return;
+
+    setIsConfirming(true);
+
+    try {
+      // 1. Update statement status to confirmed
+      const { error: stmtError } = await supabase
+        .from("statement_imports")
+        .update({
+          import_status: "confirmed",
+          confirmed_at: new Date().toISOString(),
+        })
+        .eq("id", selectedStatement.id);
+
+      if (stmtError) throw stmtError;
+
+      // 2. Lock all transactions in this statement
+      const { error: txError } = await supabase
+        .from("transactions")
+        .update({ is_locked: true })
+        .eq("statement_import_id", selectedStatement.id);
+
+      if (txError) throw txError;
+
+      // Success
+      sonnerToast.success("Statement confirmed successfully");
+      setShowConfirmModal(false);
+
+      // Refresh statement data
+      fetchStatements();
+
+      // Update local state
+      setSelectedStatement((prev) =>
+        prev
+          ? {
+              ...prev,
+              import_status: "confirmed" as const,
+              confirmed_at: new Date().toISOString(),
+            }
+          : null,
+      );
+
+      // Refresh transactions to get is_locked status
+      fetchTransactions();
+    } catch (error) {
+      console.error("Error confirming statement:", error);
+      sonnerToast.error("Failed to confirm statement. Please try again.");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  const selectedStatement = statements.find(
+    (s) => s.id === selectedStatementId,
+  );
+
   // Delete statement
   const handleDeleteStatement = async () => {
     if (!selectedStatement) return;
