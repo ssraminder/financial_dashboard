@@ -29,7 +29,6 @@ import {
   Filter,
   X as XIcon,
   Trash2,
-  ExclamationTriangle,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
