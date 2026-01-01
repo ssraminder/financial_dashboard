@@ -804,10 +804,6 @@ export default function ViewStatements() {
     }
   };
 
-  const selectedStatement = statements.find(
-    (s) => s.id === selectedStatementId,
-  );
-
   // Delete statement
   const handleDeleteStatement = async () => {
     if (!selectedStatement) return;
