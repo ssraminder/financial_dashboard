@@ -326,7 +326,8 @@ export default function ViewStatements() {
            category_id,
            is_edited,
            edited_at,
-           running_balance`,
+           running_balance,
+           is_locked`,
         )
         .eq("statement_import_id", statement.id)
         .order("posting_date", { ascending: true })
