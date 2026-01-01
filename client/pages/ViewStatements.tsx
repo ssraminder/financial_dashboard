@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { TransactionEditModal } from "@/components/TransactionEditModal";
 import { ExportDropdown } from "@/components/ExportDropdown";
 import { DeleteStatementModal } from "@/components/DeleteStatementModal";
+import { ConfirmStatementModal } from "@/components/ConfirmStatementModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
