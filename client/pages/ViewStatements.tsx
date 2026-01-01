@@ -54,6 +54,9 @@ interface Statement {
   total_debits: number;
   file_name: string;
   imported_at: string;
+  import_status?: "processing" | "pending_review" | "confirmed" | "completed" | "error";
+  confirmed_at?: string;
+  confirmed_by?: string;
 }
 
 interface Category {
