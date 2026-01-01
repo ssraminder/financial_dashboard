@@ -5,6 +5,7 @@
 **Scope**: Full replacement of `client/pages/Upload.tsx`
 
 **Confidence Level**: HIGH - Investigation confirmed:
+
 - ✅ No shared child components to break
 - ✅ Same API endpoint (`parse-statement`)
 - ✅ Same FormData structure
@@ -17,22 +18,24 @@
 
 ## Current → New Comparison
 
-| Aspect | Current | New |
-|--------|---------|-----|
-| File selection | Single PDF | Multiple PDF/CSV |
-| File input | `accept=".pdf"` | `accept=".pdf,.csv" multiple` |
-| Processing | Parse → Review → Confirm → Save | Parse → Auto-Save (sequential) |
-| Review step | Required UI table | Removed (use ViewStatements instead) |
-| Error handling | Stops on first error | Continue, show summary |
-| State complexity | 19 variables (large) | ~6-8 variables (simplified) |
-| Expected outcome | Single result | Batch results with per-file status |
+| Aspect           | Current                         | New                                  |
+| ---------------- | ------------------------------- | ------------------------------------ |
+| File selection   | Single PDF                      | Multiple PDF/CSV                     |
+| File input       | `accept=".pdf"`                 | `accept=".pdf,.csv" multiple`        |
+| Processing       | Parse → Review → Confirm → Save | Parse → Auto-Save (sequential)       |
+| Review step      | Required UI table               | Removed (use ViewStatements instead) |
+| Error handling   | Stops on first error            | Continue, show summary               |
+| State complexity | 19 variables (large)            | ~6-8 variables (simplified)          |
+| Expected outcome | Single result                   | Batch results with per-file status   |
 
 ---
 
 ## New State Structure
 
 ### Remove These Variables
+
 Delete the following 8 state variables (they're no longer needed):
+
 - `selectedFile: File | null`
 - `isReviewing: boolean`
 - `allTransactions: Array<...>`
@@ -46,28 +49,32 @@ Delete the following 8 state variables (they're no longer needed):
 
 ```typescript
 interface QueuedFile {
-  id: string;                    // UUID for tracking
-  file: File;                    // Actual File object
-  name: string;                  // File name (e.g., "RBC_Nov_2025.pdf")
-  size: number;                  // File size in bytes
-  type: "pdf" | "csv";           // File type detected from extension
+  id: string; // UUID for tracking
+  file: File; // Actual File object
+  name: string; // File name (e.g., "RBC_Nov_2025.pdf")
+  size: number; // File size in bytes
+  type: "pdf" | "csv"; // File type detected from extension
   status: "queued" | "parsing" | "saving" | "success" | "error";
-  result?: {                     // Set when status = "success"
+  result?: {
+    // Set when status = "success"
     statement_import_id: string; // ID from API response
-    period: string;              // e.g., "Nov 3 - Dec 1, 2025"
-    transaction_count: number;   // How many transactions parsed
-    kb_matches: number;          // KB auto-categorized count
-    hitl_count: number;          // HITL (needs review) count
+    period: string; // e.g., "Nov 3 - Dec 1, 2025"
+    transaction_count: number; // How many transactions parsed
+    kb_matches: number; // KB auto-categorized count
+    hitl_count: number; // HITL (needs review) count
   };
-  error?: {                      // Set when status = "error"
-    code: string;                // e.g., "DUPLICATE_STATEMENT"
-    message: string;             // User-facing message
+  error?: {
+    // Set when status = "error"
+    code: string; // e.g., "DUPLICATE_STATEMENT"
+    message: string; // User-facing message
   };
 }
 
 // New state variables
 const [files, setFiles] = useState<QueuedFile[]>([]);
-const [phase, setPhase] = useState<"select" | "processing" | "complete">("select");
+const [phase, setPhase] = useState<"select" | "processing" | "complete">(
+  "select",
+);
 const [currentIndex, setCurrentIndex] = useState(0);
 
 // Keep these from current implementation
@@ -86,6 +93,7 @@ const [error, setError] = useState<string | null>(null);
 **Shown when**: `phase === "select"`
 
 **Layout**:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  Upload Bank Statements                              │
@@ -111,6 +119,7 @@ const [error, setError] = useState<string | null>(null);
 ```
 
 **Components**:
+
 1. Bank account dropdown (required)
 2. Drag & drop zone (multiple file acceptance)
 3. File queue list (with remove button per file)
@@ -118,6 +127,7 @@ const [error, setError] = useState<string | null>(null);
 5. "Upload X Files" button
 
 **Behavior**:
+
 - File input accepts `.pdf` and `.csv` files
 - Multiple selection allowed
 - Validate each file on add
@@ -129,6 +139,7 @@ const [error, setError] = useState<string | null>(null);
 **Shown when**: `phase === "processing"`
 
 **Layout**:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  Processing Statements (2/3)                         │
@@ -149,6 +160,7 @@ const [error, setError] = useState<string | null>(null);
 ```
 
 **Components**:
+
 1. File list with status indicators
    - ✅ Complete (green checkmark)
    - 🔄 Processing (spinner)
@@ -159,6 +171,7 @@ const [error, setError] = useState<string | null>(null);
 4. Warning message (don't close page)
 
 **Behavior**:
+
 - Process files sequentially (one at a time)
 - Update status as each file progresses
 - Show current index: `(currentIndex + 1)/${files.length}`
@@ -171,6 +184,7 @@ const [error, setError] = useState<string | null>(null);
 **Shown when**: `phase === "complete"`
 
 **Layout**:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  ✅ Upload Complete                                  │
@@ -197,6 +211,7 @@ const [error, setError] = useState<string | null>(null);
 ```
 
 **Components**:
+
 1. Summary stats grid (4 cards: succeeded, failed, total txns, total HITL)
 2. Results list per file:
    - Success: file name, period, transaction count, [View] button
@@ -206,6 +221,7 @@ const [error, setError] = useState<string | null>(null);
    - "Go to Review Queue" (only if any file has hitl_count > 0)
 
 **Behavior**:
+
 - Show summary stats (count of succeeded, failed, totals)
 - Per-file detail cards with status icon
 - Success files show: period + txn count + [View] link
@@ -220,88 +236,96 @@ const [error, setError] = useState<string | null>(null);
 ```typescript
 const processFiles = async () => {
   setPhase("processing");
-  
+
   for (let i = 0; i < files.length; i++) {
     setCurrentIndex(i);
     const file = files[i];
-    
+
     // Step 1: Update to "parsing" status
     updateFileStatus(file.id, "parsing");
-    
+
     try {
       // Step 1a: Parse the file
       const parseFormData = new FormData();
       parseFormData.append("file", file.file);
       parseFormData.append("bank_account_id", selectedBankAccountId);
       parseFormData.append("action", "parse");
-      
+
       const parseResponse = await fetch(
         "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/parse-statement",
         {
           method: "POST",
           body: parseFormData,
-        }
+        },
       );
-      
+
       const parseResult = await parseResponse.json();
-      
+
       // Check for parse errors (stop this file, continue to next)
       if (!parseResult.success) {
         updateFileStatus(file.id, "error", {
           code: parseResult.error || "PARSE_ERROR",
-          message: getErrorMessage(parseResult.error)
+          message: getErrorMessage(parseResult.error),
         });
         continue; // Move to next file
       }
-      
+
       // Step 1b: Auto-save transactions
       updateFileStatus(file.id, "saving");
-      
+
       const saveFormData = new FormData();
       saveFormData.append("action", "save");
       saveFormData.append("bank_account_id", selectedBankAccountId);
-      saveFormData.append("transactions", JSON.stringify(parseResult.transactions || []));
-      saveFormData.append("account_info", JSON.stringify(parseResult.account_info || {}));
+      saveFormData.append(
+        "transactions",
+        JSON.stringify(parseResult.transactions || []),
+      );
+      saveFormData.append(
+        "account_info",
+        JSON.stringify(parseResult.account_info || {}),
+      );
       saveFormData.append("file_name", file.name);
-      
+
       const saveResponse = await fetch(
         "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/parse-statement",
         {
           method: "POST",
           body: saveFormData,
-        }
+        },
       );
-      
+
       const saveResult = await saveResponse.json();
-      
+
       // Check for save errors
       if (!saveResult.success && !saveResult.inserted_count) {
         updateFileStatus(file.id, "error", {
           code: saveResult.error || "SAVE_ERROR",
-          message: getErrorMessage(saveResult.error)
+          message: getErrorMessage(saveResult.error),
         });
         continue;
       }
-      
+
       // Success: Update status with results
       updateFileStatus(file.id, "success", null, {
         statement_import_id: saveResult.statement_import_id || generateId(),
         period: parseResult.account_info?.statement_period || "Unknown",
-        transaction_count: saveResult.inserted_count || parseResult.transactions?.length || 0,
-        kb_matches: parseResult.summary?.transaction_count || 0 - (parseResult.summary?.hitl_count || 0),
+        transaction_count:
+          saveResult.inserted_count || parseResult.transactions?.length || 0,
+        kb_matches:
+          parseResult.summary?.transaction_count ||
+          0 - (parseResult.summary?.hitl_count || 0),
         hitl_count: parseResult.summary?.hitl_count || 0,
       });
-      
     } catch (err) {
       // Network or unexpected error
       updateFileStatus(file.id, "error", {
         code: "ERROR",
-        message: err instanceof Error ? err.message : "Connection error"
+        message: err instanceof Error ? err.message : "Connection error",
       });
       // Continue with next file
     }
   }
-  
+
   // All files processed
   setPhase("complete");
 };
@@ -314,14 +338,12 @@ const updateFileStatus = (
   fileId: string,
   status: QueuedFile["status"],
   error?: QueuedFile["error"] | null,
-  result?: QueuedFile["result"]
+  result?: QueuedFile["result"],
 ) => {
-  setFiles(prev =>
-    prev.map(f =>
-      f.id === fileId
-        ? { ...f, status, error: error || undefined, result }
-        : f
-    )
+  setFiles((prev) =>
+    prev.map((f) =>
+      f.id === fileId ? { ...f, status, error: error || undefined, result } : f,
+    ),
   );
 };
 ```
@@ -331,11 +353,11 @@ const updateFileStatus = (
 ```typescript
 const getErrorMessage = (code: string): string => {
   const messages: Record<string, string> = {
-    "DUPLICATE_STATEMENT": "Already imported - appears to be a duplicate",
-    "ACCOUNT_MISMATCH": "Account number doesn't match the selected account",
-    "PARSE_ERROR": "Failed to parse the statement",
-    "SAVE_ERROR": "Failed to save transactions",
-    "ERROR": "An error occurred while processing"
+    DUPLICATE_STATEMENT: "Already imported - appears to be a duplicate",
+    ACCOUNT_MISMATCH: "Account number doesn't match the selected account",
+    PARSE_ERROR: "Failed to parse the statement",
+    SAVE_ERROR: "Failed to save transactions",
+    ERROR: "An error occurred while processing",
   };
   return messages[code] || code;
 };
@@ -349,36 +371,36 @@ const getErrorMessage = (code: string): string => {
 const addFiles = (newFiles: FileList) => {
   Array.from(newFiles).forEach((file) => {
     // Step 1: Check file extension
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    if (!['pdf', 'csv'].includes(ext || '')) {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["pdf", "csv"].includes(ext || "")) {
       showErrorToast("Invalid file type. Please upload PDF or CSV files.");
       return;
     }
-    
+
     // Step 2: Check file size (max 10MB)
     const maxSizeBytes = 10 * 1024 * 1024;
     if (file.size > maxSizeBytes) {
       showErrorToast(`File too large: ${file.name}. Maximum 10MB.`);
       return;
     }
-    
+
     // Step 3: Check for duplicates in current queue
-    if (files.some(f => f.name === file.name && f.size === file.size)) {
+    if (files.some((f) => f.name === file.name && f.size === file.size)) {
       showErrorToast(`File already in queue: ${file.name}`);
       return;
     }
-    
+
     // Step 4: Add to queue
     const newFile: QueuedFile = {
       id: `file_${Date.now()}_${Math.random()}`, // Simple unique ID
       file,
       name: file.name,
       size: file.size,
-      type: (ext as "pdf" | "csv"),
-      status: "queued"
+      type: ext as "pdf" | "csv",
+      status: "queued",
     };
-    
-    setFiles(prev => [...prev, newFile]);
+
+    setFiles((prev) => [...prev, newFile]);
   });
 };
 ```
@@ -424,16 +446,16 @@ const handleResetForm = () => {
 
 ## Error Messages (UX Copy)
 
-| Error Code | User Message | Severity |
-|------------|--------------|----------|
-| `DUPLICATE_STATEMENT` | "Already imported. This statement was imported on [DATE]" | warning |
-| `ACCOUNT_MISMATCH` | "Account mismatch. The statement is for account ****[LAST4], but you selected a different account." | error |
-| `PARSE_ERROR` | "Failed to parse this statement. Please check the file format." | error |
-| `SAVE_ERROR` | "Failed to save transactions. Please try again." | error |
-| Network error | "Connection error. Please check your internet and try again." | error |
-| Invalid file type | "Invalid file type. Please upload PDF or CSV files." | error |
-| File too large | "File too large. Maximum 10MB allowed." | error |
-| Duplicate in queue | "File already in queue: {filename}" | warning |
+| Error Code            | User Message                                                                                            | Severity |
+| --------------------- | ------------------------------------------------------------------------------------------------------- | -------- |
+| `DUPLICATE_STATEMENT` | "Already imported. This statement was imported on [DATE]"                                               | warning  |
+| `ACCOUNT_MISMATCH`    | "Account mismatch. The statement is for account \*\*\*\*[LAST4], but you selected a different account." | error    |
+| `PARSE_ERROR`         | "Failed to parse this statement. Please check the file format."                                         | error    |
+| `SAVE_ERROR`          | "Failed to save transactions. Please try again."                                                        | error    |
+| Network error         | "Connection error. Please check your internet and try again."                                           | error    |
+| Invalid file type     | "Invalid file type. Please upload PDF or CSV files."                                                    | error    |
+| File too large        | "File too large. Maximum 10MB allowed."                                                                 | error    |
+| Duplicate in queue    | "File already in queue: {filename}"                                                                     | warning  |
 
 ---
 
@@ -509,6 +531,7 @@ These elements are still needed:
 After implementation, verify all items:
 
 ### File Selection & Queue
+
 - [ ] Can select multiple PDF files at once
 - [ ] Can select multiple CSV files at once
 - [ ] Can mix PDF and CSV files in same upload
@@ -520,6 +543,7 @@ After implementation, verify all items:
 - [ ] Files too large show error toast
 
 ### Processing Flow
+
 - [ ] "Upload X Files" button disabled if no files selected
 - [ ] "Upload X Files" button shows correct count
 - [ ] Processing phase shows progress (X/Y complete)
@@ -533,6 +557,7 @@ After implementation, verify all items:
 - [ ] Processing continues after save error
 
 ### Results Display
+
 - [ ] Summary stats show correct counts
   - [ ] Succeeded count accurate
   - [ ] Failed count accurate
@@ -548,6 +573,7 @@ After implementation, verify all items:
 - [ ] [Upload More] resets form properly
 
 ### Edge Cases
+
 - [ ] Empty file selection (button disabled)
 - [ ] Single file upload still works
 - [ ] All files fail (show all errors, no success card)
@@ -558,6 +584,7 @@ After implementation, verify all items:
 - [ ] Bank account dropdown still required for upload
 
 ### Navigation & Routing
+
 - [ ] Correct URL structure for view links: `/statements?account=...&statement=...`
 - [ ] Review Queue link correct: `/review` or `/review-queue`
 - [ ] No navigation during processing phase
@@ -565,6 +592,7 @@ After implementation, verify all items:
 - [ ] Unload warning if try to close during processing
 
 ### UI/UX
+
 - [ ] Mobile responsive (stack files on small screens)
 - [ ] Animations smooth (no jank during processing)
 - [ ] Spinner visible during file processing
@@ -575,6 +603,7 @@ After implementation, verify all items:
 - [ ] File sizes displayed in human-readable format (MB, KB)
 
 ### Code Quality
+
 - [ ] No TypeScript errors
 - [ ] No console errors/warnings
 - [ ] No unused imports
@@ -588,6 +617,7 @@ After implementation, verify all items:
 ## Dependencies & Imports
 
 ### Keep These Imports
+
 ```typescript
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -596,12 +626,29 @@ import { supabase } from "@/lib/supabase";
 import { Sidebar } from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, FileText, X, CheckCircle, AlertCircle, AlertTriangle, Package, Circle, XCircle } from "lucide-react";
+import {
+  Loader2,
+  FileText,
+  X,
+  CheckCircle,
+  AlertCircle,
+  AlertTriangle,
+  Package,
+  Circle,
+  XCircle,
+} from "lucide-react";
 ```
 
 ### Remove These (if present)
+
 ```typescript
 // Delete these if they were imported:
 // RefreshCw, CreditCard, TrendingUp, ArrowRight (no longer used)
@@ -612,11 +659,13 @@ import { Loader2, FileText, X, CheckCircle, AlertCircle, AlertTriangle, Package,
 ## Testing Data
 
 ### Test Scenario 1: Single File Success
+
 - Upload 1 PDF
 - Expected: Shows success with txn count
 - Nav: [View] and [Upload More] buttons shown
 
 ### Test Scenario 2: Three Files (2 Success, 1 Duplicate)
+
 - Upload 3 files
 - First 2 process successfully
 - Third fails with DUPLICATE_STATEMENT
@@ -624,12 +673,14 @@ import { Loader2, FileText, X, CheckCircle, AlertCircle, AlertTriangle, Package,
 - Stats: 2 succeeded, 1 failed, both txn counts shown
 
 ### Test Scenario 3: CSV File
+
 - Upload CSV file (mixed with PDF)
 - Expected: Parses correctly
 - File icon shows CSV indicator
 - Results display same as PDF
 
 ### Test Scenario 4: All Failures
+
 - Upload file that's already imported
 - Expected: Shows error message
 - No success cards
@@ -678,24 +729,28 @@ This implementation is successful when:
 ## Notes for Implementation
 
 ### Why Sequential Processing?
+
 - Easier error handling (know exactly which file failed)
 - Better UX feedback
 - Prevents API rate limiting
 - Simpler state management
 
 ### Why Auto-Save Instead of Review?
+
 - Investigation found ReviewQueue is independent
 - Users can review in ViewStatements after import
 - Faster workflow (no manual confirmation)
 - Still shows HITL items in Review Queue for items needing attention
 
 ### Why Remove Balance Correction UI?
+
 - Most bank statements balance correctly
 - Edge case (balance mismatch) moved to admin correction in future
 - Simplifies implementation scope
 - Reduces complexity significantly
 
 ### Future Enhancements
+
 - Batch retry for failed files
 - Pause/resume processing
 - Automatic re-import of failed files
@@ -704,7 +759,7 @@ This implementation is successful when:
 
 ---
 
-**Ready for Implementation!** 
+**Ready for Implementation!**
 
 This specification provides all details needed. The investigation confirmed the approach is sound and safe. No breaking changes to other pages or shared components expected.
 
