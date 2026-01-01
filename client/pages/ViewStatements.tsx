@@ -89,6 +89,7 @@ interface Transaction {
   category_id: string;
   is_edited?: boolean;
   edited_at?: string;
+  is_locked?: boolean;
 }
 
 interface EditableTransaction extends Transaction {
