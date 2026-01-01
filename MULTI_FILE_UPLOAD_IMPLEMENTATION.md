@@ -417,9 +417,10 @@ After upload completes (`phase === "complete"`), provide:
    - Target: `/statements?account=${selectedBankAccountId}&statement=${result.statement_import_id}`
    - Only show if file status is "success"
    - Show as link in the result card
+   - **Note**: ViewStatements.tsx will need query param support (add in post-implementation)
 
 2. **[Go to Review Queue] button**
-   - Target: `/review` or `/review-queue`
+   - Target: `/review-queue` (correct route from App.tsx)
    - Only show if ANY file has `hitl_count > 0`
    - Show as secondary button below results
 
