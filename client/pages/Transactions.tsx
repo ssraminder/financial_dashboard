@@ -51,6 +51,7 @@ interface Transaction {
   description: string;
   payee_name?: string;
   amount: number;
+  transaction_type?: "debit" | "credit";
   category_id: string;
   bank_account_id: string;
   company_id?: string;
@@ -75,6 +76,7 @@ interface Transaction {
     nickname: string;
     bank_name: string;
     account_number?: string;
+    balance_type?: "asset" | "liability";
   };
   company?: {
     id: string;
