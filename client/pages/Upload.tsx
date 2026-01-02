@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
   FileText,
@@ -21,6 +22,7 @@ import {
   AlertCircle,
   AlertTriangle,
   XCircle,
+  Clock,
 } from "lucide-react";
 
 interface BankAccount {
