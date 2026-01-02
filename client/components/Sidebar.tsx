@@ -13,6 +13,7 @@ import {
   Archive,
   Database,
   ArrowLeftRight,
+  Tag,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
