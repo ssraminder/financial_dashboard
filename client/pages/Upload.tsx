@@ -179,6 +179,74 @@ export default function Upload() {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
+  // Queue upload function
+  const uploadToQueue = async (
+    file: File,
+    bankAccountId: string,
+  ): Promise<any> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("bank_account_id", bankAccountId);
+
+    const response = await fetch(
+      "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/queue-statement",
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error || "Failed to queue statement");
+    }
+
+    return result; // { job_id, status: "pending", file_name, bank_account }
+  };
+
+  // Poll job status function
+  const pollJobStatus = async (jobId: string): Promise<any> => {
+    const response = await fetch(
+      `https://llxlkawdmuwsothxaada.supabase.co/functions/v1/queue-status?job_id=${jobId}`,
+    );
+    const result = await response.json();
+    return result.job;
+  };
+
+  // Polling effect
+  useEffect(() => {
+    if (!pollingActive || queuedJobs.length === 0) return;
+
+    const interval = setInterval(async () => {
+      const updatedJobs = await Promise.all(
+        queuedJobs.map(async (job) => {
+          if (job.status === "completed" || job.status === "failed") {
+            return job; // Don't poll completed/failed jobs
+          }
+          try {
+            const updated = await pollJobStatus(job.job_id!);
+            return { ...job, ...updated };
+          } catch {
+            return job;
+          }
+        }),
+      );
+
+      setQueuedJobs(updatedJobs);
+
+      // Stop polling if all jobs are done
+      const allDone = updatedJobs.every(
+        (j) => j.status === "completed" || j.status === "failed",
+      );
+      if (allDone) {
+        setPollingActive(false);
+      }
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [pollingActive, queuedJobs]);
+
   // Update file status
   const updateFileStatus = (
     fileId: string,
