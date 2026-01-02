@@ -1600,10 +1600,7 @@ export default function ViewStatements() {
                           {/* Running Balance */}
                           <div className="text-right font-mono">
                             $
-                            {(t.changed
-                              ? t.calculated_balance
-                              : t.running_balance || 0
-                            ).toLocaleString("en-CA", {
+                            {t.calculated_balance.toLocaleString("en-CA", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
                             })}
