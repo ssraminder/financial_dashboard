@@ -498,7 +498,7 @@ export default function ViewStatements() {
     let runningBalance = selectedStatement.opening_balance;
 
     return editableTransactions.map((t, index) => {
-      const amount = t.edited_amount;
+      const amount = Math.abs(t.edited_amount || 0);
 
       if (isLiability) {
         // Credit Card, LOC: debits increase balance, credits decrease
