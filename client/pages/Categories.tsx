@@ -90,7 +90,7 @@ export default function CategoriesPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export default function CategoriesPage() {
             }
             return acc;
           },
-          {}
+          {},
         );
 
         const catsWithCounts = cats?.map((cat) => ({
@@ -175,17 +175,18 @@ export default function CategoriesPage() {
   const groupedCategories = ACCOUNT_TYPES.reduce(
     (acc, type) => {
       acc[type.value] = filteredCategories.filter(
-        (cat) => cat.account_type === type.value && cat.account_type !== "header"
+        (cat) =>
+          cat.account_type === type.value && cat.account_type !== "header",
       );
       return acc;
     },
-    {} as Record<string, Category[]>
+    {} as Record<string, Category[]>,
   );
 
   // Toggle expand/collapse
   const toggleType = (type: string) => {
     setExpandedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
   };
 
@@ -619,9 +620,7 @@ function CategoryModal({ category, onClose, onSave }: CategoryModalProps) {
           description: "Category updated",
         });
       } else {
-        const { error } = await supabase
-          .from("categories")
-          .insert(dataToSave);
+        const { error } = await supabase.from("categories").insert(dataToSave);
         if (error) throw error;
         toast({
           title: "Success",
@@ -696,7 +695,8 @@ function CategoryModal({ category, onClose, onSave }: CategoryModalProps) {
             />
             <p className="text-xs text-muted-foreground">
               {formData.account_type === "asset" && "Assets: 1000-1999"}
-              {formData.account_type === "liability" && "Liabilities: 2000-2999"}
+              {formData.account_type === "liability" &&
+                "Liabilities: 2000-2999"}
               {formData.account_type === "equity" && "Equity: 3000-3999"}
               {formData.account_type === "income" && "Income: 4000-4999"}
               {formData.account_type === "expense" && "Expenses: 5000-6999"}
