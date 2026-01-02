@@ -129,6 +129,7 @@ export default function Transactions() {
     searchParams.get("filter") === "needs_review",
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const [showUnconfirmed, setShowUnconfirmed] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
