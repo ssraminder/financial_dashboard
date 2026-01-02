@@ -101,6 +101,16 @@ interface ParseStatementResult {
   inserted_count?: number;
 }
 
+interface QueueJob {
+  job_id: string | null;
+  file_name: string;
+  status: "pending" | "processing" | "rate_limited" | "completed" | "failed";
+  progress: number;
+  error_message: string | null;
+  transaction_count?: number;
+  statement_import_id?: string;
+}
+
 export default function Upload() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -118,6 +128,10 @@ export default function Upload() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Queue state
+  const [queuedJobs, setQueuedJobs] = useState<QueueJob[]>([]);
+  const [pollingActive, setPollingActive] = useState(false);
 
   // Fetch bank accounts on mount
   useEffect(() => {
