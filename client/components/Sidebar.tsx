@@ -33,6 +33,7 @@ const navigation = [
   { name: "Transactions", href: "/transactions", icon: Sheet },
   { name: "View Statements", href: "/statements", icon: Archive },
   { name: "Transfers", href: "/transfers", icon: ArrowLeftRight },
+  { name: "Categories", href: "/categories", icon: Tag },
   { name: "Accounts", href: "/accounts", icon: Building2 },
   { name: "Clients", href: "/clients", icon: Users },
   { name: "Vendors", href: "/vendors", icon: Package },
