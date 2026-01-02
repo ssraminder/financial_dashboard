@@ -626,15 +626,141 @@ export default function Transactions() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Filters</span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={exportCSV}
-                  disabled={transactions.length === 0}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
+                <div className="flex gap-2 items-center">
+                  {/* Re-analyze Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() =>
+                        setReanalyzeDropdownOpen(!reanalyzeDropdownOpen)
+                      }
+                      disabled={isReanalyzing}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isReanalyzing ? (
+                        <>
+                          <svg
+                            className="animate-spin h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                          <span>Re-analyzing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                          <span>Re-analyze</span>
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {reanalyzeDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        <div className="p-2">
+                          <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            Selected ({selectedTransactions.length})
+                          </div>
+                          <button
+                            onClick={handleReanalyzeSelected}
+                            disabled={selectedTransactions.length === 0}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Re-analyze Selected (KB + AI)
+                          </button>
+                          <button
+                            onClick={() => handleReanalyzeKBOnly(true)}
+                            disabled={selectedTransactions.length === 0}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Re-analyze Selected (KB Only)
+                          </button>
+
+                          <div className="border-t border-gray-200 my-2" />
+
+                          <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            All Filtered ({transactions.length})
+                          </div>
+                          <button
+                            onClick={handleReanalyzeFiltered}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded transition-colors"
+                          >
+                            Re-analyze All Filtered (KB + AI)
+                          </button>
+                          <button
+                            onClick={() => handleReanalyzeKBOnly(false)}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded transition-colors"
+                          >
+                            Re-analyze All Filtered (KB Only)
+                          </button>
+                        </div>
+
+                        <div className="border-t border-gray-200 px-3 py-2 bg-gray-50 rounded-b-lg">
+                          <p className="text-xs text-gray-500">
+                            KB Only: Faster, uses Knowledge Base patterns only.
+                            KB + AI: More thorough, uses AI for unmatched.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Click outside to close dropdown */}
+                    {reanalyzeDropdownOpen && (
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setReanalyzeDropdownOpen(false)}
+                      />
+                    )}
+                  </div>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={exportCSV}
+                    disabled={transactions.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
