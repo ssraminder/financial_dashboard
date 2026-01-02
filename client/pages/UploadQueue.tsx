@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import { Sidebar } from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,7 @@ interface QueueJob {
   created_at: string;
   completed_at?: string;
   next_attempt_at?: string;
+  last_attempt_at?: string;
   transaction_count?: number;
   statement_import_id?: string;
   error_message?: string;
@@ -84,6 +87,110 @@ export default function UploadQueue() {
       console.error("Failed to fetch queue status:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Check if a job is stuck (processing for more than 5 minutes)
+  const isStuck = (job: QueueJob) => {
+    if (job.status !== "processing") return false;
+    if (!job.last_attempt_at) return false;
+
+    const lastAttempt = new Date(job.last_attempt_at);
+    const now = new Date();
+    const diffMinutes = (now.getTime() - lastAttempt.getTime()) / (1000 * 60);
+
+    return diffMinutes > 5; // Stuck if processing for more than 5 minutes
+  };
+
+  // Retry a stuck job - reset to pending
+  const handleRetryJob = async (jobId: string) => {
+    try {
+      const { error } = await supabase
+        .from("parse_queue")
+        .update({
+          status: "pending",
+          attempts: 0,
+          error_message: null,
+          last_attempt_at: null,
+          next_attempt_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", jobId);
+
+      if (error) throw error;
+
+      toast.success("Job queued for retry");
+      fetchQueueStatus(); // Refresh the list
+    } catch (error) {
+      console.error("Retry error:", error);
+      toast.error("Failed to retry job");
+    }
+  };
+
+  // Cancel/delete a job from queue
+  const handleCancelJob = async (jobId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to cancel this job? The file will need to be re-uploaded.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("parse_queue")
+        .delete()
+        .eq("id", jobId);
+
+      if (error) throw error;
+
+      toast.success("Job cancelled");
+      fetchQueueStatus(); // Refresh the list
+    } catch (error) {
+      console.error("Cancel error:", error);
+      toast.error("Failed to cancel job");
+    }
+  };
+
+  // Force process a job immediately (trigger Edge Function)
+  const handleForceProcess = async (jobId: string) => {
+    try {
+      // First reset to pending
+      await supabase
+        .from("parse_queue")
+        .update({
+          status: "pending",
+          attempts: 0,
+          error_message: null,
+          last_attempt_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", jobId);
+
+      // Then trigger the process-queue function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-queue`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        toast.success("Processing triggered");
+      } else {
+        toast.error("Failed to trigger processing");
+      }
+
+      // Refresh after a short delay
+      setTimeout(fetchQueueStatus, 2000);
+    } catch (error) {
+      console.error("Force process error:", error);
+      toast.error("Failed to force process");
     }
   };
 
@@ -256,6 +363,7 @@ export default function UploadQueue() {
                       <TableHead>Attempts</TableHead>
                       <TableHead>Queued At</TableHead>
                       <TableHead>Next Retry</TableHead>
+                      <TableHead>Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -271,12 +379,95 @@ export default function UploadQueue() {
                           {job.bank_account?.bank_name} -{" "}
                           {job.bank_account?.name}
                         </TableCell>
-                        <TableCell>{getStatusBadge(job.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-1 text-xs rounded ${
+                                job.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : job.status === "processing"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : job.status === "completed"
+                                      ? "bg-green-100 text-green-700"
+                                      : job.status === "failed"
+                                        ? "bg-red-100 text-red-700"
+                                        : job.status === "rate_limited"
+                                          ? "bg-orange-100 text-orange-700"
+                                          : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              {job.status === "processing" && isStuck(job)
+                                ? "Stuck"
+                                : job.status}
+                            </span>
+
+                            {job.status === "processing" && isStuck(job) && (
+                              <span
+                                className="text-red-500"
+                                title="Job appears to be stuck"
+                              >
+                                ⚠️
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           {job.attempts}/{job.max_attempts}
                         </TableCell>
                         <TableCell>{formatDate(job.created_at)}</TableCell>
                         <TableCell>{formatDate(job.next_attempt_at)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {/* Show different actions based on status */}
+                            {job.status === "processing" && isStuck(job) && (
+                              <Button
+                                onClick={() => handleRetryJob(job.id)}
+                                size="sm"
+                                variant="outline"
+                                className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-300"
+                                title="Reset and retry"
+                              >
+                                Retry
+                              </Button>
+                            )}
+
+                            {job.status === "pending" && (
+                              <Button
+                                onClick={() => handleForceProcess(job.id)}
+                                size="sm"
+                                variant="outline"
+                                className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300"
+                                title="Process now"
+                              >
+                                Process Now
+                              </Button>
+                            )}
+
+                            {(job.status === "failed" ||
+                              job.status === "rate_limited") && (
+                              <Button
+                                onClick={() => handleRetryJob(job.id)}
+                                size="sm"
+                                variant="outline"
+                                className="bg-green-100 text-green-700 hover:bg-green-200 border-green-300"
+                                title="Retry"
+                              >
+                                Retry
+                              </Button>
+                            )}
+
+                            {/* Cancel button - always available for non-completed */}
+                            <Button
+                              onClick={() => handleCancelJob(job.id)}
+                              size="sm"
+                              variant="outline"
+                              className="bg-red-100 text-red-700 hover:bg-red-200 border-red-300"
+                              title="Cancel job"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
