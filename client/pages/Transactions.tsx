@@ -934,6 +934,27 @@ export default function Transactions() {
                     Needs review only
                   </label>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="show-unconfirmed"
+                    checked={showUnconfirmed}
+                    onCheckedChange={(checked) =>
+                      setShowUnconfirmed(checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="show-unconfirmed"
+                    className="text-sm cursor-pointer"
+                  >
+                    Show unconfirmed
+                  </label>
+                  {showUnconfirmed && (
+                    <span className="px-1.5 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">
+                      ⚠️
+                    </span>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
