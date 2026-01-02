@@ -929,6 +929,23 @@ export default function Transactions() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={
+                              selectedTransactions.length ===
+                              paginatedTransactions.length
+                            }
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedTransactions(
+                                  paginatedTransactions.map((t) => t.id)
+                                );
+                              } else {
+                                setSelectedTransactions([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
                         <TableHead className="w-24">Date</TableHead>
                         <TableHead className="w-32">Payee</TableHead>
                         <TableHead className="w-48">Description</TableHead>
