@@ -219,13 +219,14 @@ export default function ViewStatements() {
 
   // Fetch transactions when statement changes
   useEffect(() => {
-    if (selectedStatementId && selectedStatement) {
+    const statement = statements.find((s) => s.id === selectedStatementId);
+    if (selectedStatementId && statement) {
       fetchTransactions();
     } else if (!selectedStatementId) {
       setTransactions([]);
       setBalanceCheck(null);
     }
-  }, [selectedStatementId, selectedStatement]);
+  }, [selectedStatementId, statements]);
 
   // Initialize editableTransactions when transactions load
   useEffect(() => {
