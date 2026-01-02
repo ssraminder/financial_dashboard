@@ -971,6 +971,27 @@ export default function Transactions() {
                               : ""
                           }
                         >
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedTransactions.includes(
+                                transaction.id
+                              )}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedTransactions([
+                                    ...selectedTransactions,
+                                    transaction.id,
+                                  ]);
+                                } else {
+                                  setSelectedTransactions(
+                                    selectedTransactions.filter(
+                                      (id) => id !== transaction.id
+                                    )
+                                  );
+                                }
+                              }}
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">
                             {formatDate(transaction.transaction_date)}
                           </TableCell>
