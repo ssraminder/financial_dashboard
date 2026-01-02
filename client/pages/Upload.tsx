@@ -342,7 +342,48 @@ export default function Upload() {
     setError(null);
   };
 
-  // Process files sequentially
+  // Queue-based upload handler
+  const handleQueueUpload = async () => {
+    if (!selectedBankAccountId) {
+      setError("Please select a bank account");
+      return;
+    }
+
+    setError(null);
+
+    try {
+      // Queue all files
+      const jobs: QueueJob[] = [];
+      for (const file of files) {
+        try {
+          const result = await uploadToQueue(file.file, selectedBankAccountId);
+          jobs.push({
+            job_id: result.job_id,
+            file_name: result.file_name,
+            status: "pending",
+            progress: 10,
+            error_message: null,
+          });
+        } catch (err: any) {
+          jobs.push({
+            job_id: null,
+            file_name: file.name,
+            status: "failed",
+            progress: 0,
+            error_message: err.message,
+          });
+        }
+      }
+
+      setQueuedJobs(jobs);
+      setPollingActive(true);
+      setFiles([]); // Clear file input
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  // Process files sequentially (legacy method)
   const processFiles = async () => {
     if (!selectedBankAccountId) {
       setError("Please select a bank account");
