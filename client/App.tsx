@@ -35,6 +35,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/review-queue" element={<ReviewQueue />} />
           <Route path="/upload" element={<Upload />} />
+          <Route path="/upload/queue" element={<UploadQueue />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/statements" element={<ViewStatements />} />
           <Route path="/transfers" element={<Transfers />} />
