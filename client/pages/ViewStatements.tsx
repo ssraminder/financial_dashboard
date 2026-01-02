@@ -1104,21 +1104,19 @@ export default function ViewStatements() {
                       },
                     ) || "0.00"}
                   </p>
-                  {balanceCheck && (
-                    <div className="mt-2">
-                      {balanceCheck.isBalanced ? (
-                        <div className="flex items-center text-green-600 text-xs font-semibold">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Balanced ✓
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-red-600 text-xs font-semibold">
-                          <AlertCircle className="w-3 h-3 mr-1" />
-                          Off by ${Math.abs(balanceCheck.difference).toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="mt-2">
+                    {isBalanced ? (
+                      <div className="flex items-center text-green-600 text-xs font-semibold">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Balanced ✓
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-red-600 text-xs font-semibold">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        Off by ${Math.abs(expectedClosing - calculatedClosing).toFixed(2)}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
