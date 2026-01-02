@@ -14,6 +14,7 @@ import UploadQueue from "./pages/UploadQueue";
 import Transactions from "./pages/Transactions";
 import ViewStatements from "./pages/ViewStatements";
 import Transfers from "./pages/Transfers";
+import Categories from "./pages/Categories";
 import Accounts from "./pages/Accounts";
 import Clients from "./pages/Clients";
 import Vendors from "./pages/Vendors";
