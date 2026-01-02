@@ -97,6 +97,7 @@ interface FilterOptions {
 export default function Transactions() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // State
