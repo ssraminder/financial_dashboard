@@ -1151,6 +1151,47 @@ export default function Transactions() {
         </div>
       </div>
 
+      {/* Re-analyze Result Modal */}
+      {reanalyzeResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Re-analyze Complete</h3>
+
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Processed:</span>
+                <span className="font-medium">{reanalyzeResult.total}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">KB Matched:</span>
+                <span className="font-medium text-green-600">
+                  {reanalyzeResult.kb_matched}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">AI Matched:</span>
+                <span className="font-medium text-blue-600">
+                  {reanalyzeResult.ai_matched}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Unmatched:</span>
+                <span className="font-medium text-orange-600">
+                  {reanalyzeResult.unmatched}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setReanalyzeResult(null)}
+              className="mt-6 w-full py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Transaction Edit Modal */}
       <TransactionEditModal
         transaction={selectedTransaction}
