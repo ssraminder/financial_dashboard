@@ -278,6 +278,253 @@ export default function Transactions() {
     }
   };
 
+  // Re-analyze selected transactions
+  const handleReanalyzeSelected = async () => {
+    if (selectedTransactions.length === 0) {
+      toast({
+        title: "Error",
+        description: "No transactions selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsReanalyzing(true);
+    setReanalyzeDropdownOpen(false);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-transactions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            transaction_ids: selectedTransactions,
+            kb_only: false,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setReanalyzeResult(result.summary);
+        toast({
+          title: "Success",
+          description: `Re-analyzed ${result.summary.total} transactions: ${result.summary.kb_matched} KB matches, ${result.summary.ai_matched} AI matches`,
+        });
+        fetchTransactions();
+        setSelectedTransactions([]);
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Re-analyze failed",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Re-analyze error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to re-analyze transactions",
+        variant: "destructive",
+      });
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
+
+  // Re-analyze all filtered transactions
+  const handleReanalyzeFiltered = async () => {
+    setIsReanalyzing(true);
+    setReanalyzeDropdownOpen(false);
+
+    // Build filter object from current filter state
+    const filter: any = {};
+
+    if (selectedBankAccount !== "all") {
+      filter.bank_account_id = selectedBankAccount;
+    }
+    if (selectedCategory !== "all") {
+      const category = filterOptions.categories.find(
+        (c) => c.id === selectedCategory
+      );
+      if (category) filter.category_code = category.code;
+    }
+    if (selectedStatus !== "all") {
+      filter.status = selectedStatus;
+    }
+    if (showNeedsReview) {
+      filter.needs_review = true;
+    }
+    if (fromDate) {
+      filter.date_from = fromDate;
+    }
+    if (toDate) {
+      filter.date_to = toDate;
+    }
+    if (searchTerm) {
+      filter.description_contains = searchTerm;
+    }
+
+    // Safety check - require at least one filter
+    if (Object.keys(filter).length === 0) {
+      toast({
+        title: "Error",
+        description: "Please apply at least one filter before re-analyzing all",
+        variant: "destructive",
+      });
+      setIsReanalyzing(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-transactions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            filter,
+            kb_only: false,
+            max_transactions: 500,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setReanalyzeResult(result.summary);
+        toast({
+          title: "Success",
+          description: `Re-analyzed ${result.summary.total} transactions: ${result.summary.kb_matched} KB matches, ${result.summary.ai_matched} AI matches`,
+        });
+        fetchTransactions();
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Re-analyze failed",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Re-analyze error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to re-analyze transactions",
+        variant: "destructive",
+      });
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
+
+  // KB-only re-analyze (faster, no AI)
+  const handleReanalyzeKBOnly = async (useSelected: boolean) => {
+    setIsReanalyzing(true);
+    setReanalyzeDropdownOpen(false);
+
+    const payload: any = { kb_only: true };
+
+    if (useSelected) {
+      if (selectedTransactions.length === 0) {
+        toast({
+          title: "Error",
+          description: "No transactions selected",
+          variant: "destructive",
+        });
+        setIsReanalyzing(false);
+        return;
+      }
+      payload.transaction_ids = selectedTransactions;
+    } else {
+      // Build filter from current state
+      const filter: any = {};
+      if (selectedBankAccount !== "all") {
+        filter.bank_account_id = selectedBankAccount;
+      }
+      if (selectedCategory !== "all") {
+        const category = filterOptions.categories.find(
+          (c) => c.id === selectedCategory
+        );
+        if (category) filter.category_code = category.code;
+      }
+      if (selectedStatus !== "all") {
+        filter.status = selectedStatus;
+      }
+      if (showNeedsReview) {
+        filter.needs_review = true;
+      }
+      if (fromDate) {
+        filter.date_from = fromDate;
+      }
+      if (toDate) {
+        filter.date_to = toDate;
+      }
+      if (searchTerm) {
+        filter.description_contains = searchTerm;
+      }
+
+      if (Object.keys(filter).length === 0) {
+        toast({
+          title: "Error",
+          description: "Please apply at least one filter",
+          variant: "destructive",
+        });
+        setIsReanalyzing(false);
+        return;
+      }
+      payload.filter = filter;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-transactions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `KB matched ${result.summary.kb_matched} of ${result.summary.total} transactions`,
+        });
+        fetchTransactions();
+        if (useSelected) setSelectedTransactions([]);
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Re-analyze failed",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Re-analyze error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to re-analyze",
+        variant: "destructive",
+      });
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
+
   // Pagination
   const paginatedTransactions = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
