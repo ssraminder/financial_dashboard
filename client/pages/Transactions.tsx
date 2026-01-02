@@ -962,7 +962,14 @@ export default function Transactions() {
           {/* Transactions Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Transactions ({transactions.length})</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                Transactions ({transactions.length})
+                {showUnconfirmed && (
+                  <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full font-normal">
+                    Including unconfirmed statements
+                  </span>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
