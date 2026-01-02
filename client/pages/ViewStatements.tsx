@@ -219,8 +219,7 @@ export default function ViewStatements() {
 
   // Fetch transactions when statement changes
   useEffect(() => {
-    const statement = statements.find((s) => s.id === selectedStatementId);
-    if (selectedStatementId && statement) {
+    if (selectedStatementId && statements.length > 0) {
       fetchTransactions();
     } else if (!selectedStatementId) {
       setTransactions([]);
