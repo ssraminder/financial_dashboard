@@ -573,6 +573,7 @@ export default function Transactions() {
     setSelectedStatus("all");
     setShowNeedsReview(false);
     setSearchTerm("");
+    setShowUnconfirmed(false);
     setCurrentPage(1);
   };
 
@@ -583,6 +584,7 @@ export default function Transactions() {
     selectedCategory !== "all",
     selectedStatus !== "all",
     showNeedsReview,
+    showUnconfirmed,
   ].filter(Boolean).length;
 
   // Export CSV
