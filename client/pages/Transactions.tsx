@@ -266,6 +266,11 @@ export default function Transactions() {
         query = query.eq("needs_review", true);
       }
 
+      // Apply confirmation status filter (default: only confirmed statements)
+      if (!showUnconfirmed) {
+        query = query.eq("statement.import_status", "confirmed");
+      }
+
       const { data, error } = await query;
 
       if (error) throw error;
