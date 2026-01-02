@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ReviewQueue from "./pages/ReviewQueue";
 import Upload from "./pages/Upload";
+import UploadQueue from "./pages/UploadQueue";
 import Transactions from "./pages/Transactions";
 import ViewStatements from "./pages/ViewStatements";
 import Transfers from "./pages/Transfers";
