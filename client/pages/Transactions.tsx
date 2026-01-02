@@ -1030,7 +1030,7 @@ export default function Transactions() {
                                 {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
-                                }
+                                },
                               )}
                             </span>
                           </TableCell>
