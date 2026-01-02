@@ -20,7 +20,15 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "HITL Review Queue", href: "/review-queue", icon: ClipboardList },
-  { name: "Upload", href: "/upload", icon: Upload },
+  {
+    name: "Upload",
+    href: "/upload",
+    icon: Upload,
+    subItems: [
+      { name: "Upload Statements", href: "/upload" },
+      { name: "Processing Queue", href: "/upload/queue" },
+    ],
+  },
   { name: "Transactions", href: "/transactions", icon: Sheet },
   { name: "View Statements", href: "/statements", icon: Archive },
   { name: "Transfers", href: "/transfers", icon: ArrowLeftRight },
