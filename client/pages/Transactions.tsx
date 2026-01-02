@@ -1050,7 +1050,15 @@ export default function Transactions() {
                             />
                           </TableCell>
                           <TableCell className="font-medium">
-                            {formatDate(transaction.transaction_date)}
+                            <div className="flex items-center gap-2">
+                              {formatDate(transaction.transaction_date)}
+                              {transaction.statement?.import_status !==
+                                "confirmed" && (
+                                <span className="px-1.5 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">
+                                  Pending
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-sm">
                             {transaction.payee_name || "—"}
