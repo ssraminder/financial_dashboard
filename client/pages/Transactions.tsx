@@ -219,7 +219,7 @@ export default function Transactions() {
         .select(
           `*,
           category:categories!category_id(id, code, name, category_type),
-          bank_account:bank_accounts(id, name, nickname, bank_name, account_number),
+          bank_account:bank_accounts(id, name, nickname, bank_name, account_number, balance_type),
           company:companies(id, name),
           linked_transaction:transactions!linked_to(id, description, amount, transaction_date)`,
         )
