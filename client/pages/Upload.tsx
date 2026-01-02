@@ -666,7 +666,7 @@ export default function Upload() {
               )}
 
               <Button
-                onClick={processFiles}
+                onClick={handleQueueUpload}
                 disabled={files.length === 0 || !selectedBankAccountId}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 size="lg"
