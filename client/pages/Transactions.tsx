@@ -182,6 +182,7 @@ export default function Transactions() {
     selectedStatus,
     showNeedsReview,
     searchTerm,
+    showUnconfirmed,
   ]);
 
   const fetchFilterOptions = async () => {
