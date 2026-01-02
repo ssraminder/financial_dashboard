@@ -653,15 +653,16 @@ export default function ViewStatements() {
   const saveEditAmount = (index: number) => {
     const newAmount = parseFloat(editingAmountValue);
     if (!isNaN(newAmount) && newAmount >= 0) {
+      const absoluteAmount = Math.abs(newAmount);
       setEditableTransactions((prev) =>
         prev.map((t, i) => {
           if (i === index) {
             return {
               ...t,
-              edited_amount: newAmount,
+              edited_amount: absoluteAmount,
               changed:
                 t.edited_type !== t.original_type ||
-                newAmount !== t.original_amount,
+                absoluteAmount !== t.original_amount,
             };
           }
           return t;
