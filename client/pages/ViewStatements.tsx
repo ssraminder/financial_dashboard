@@ -1040,7 +1040,8 @@ export default function ViewStatements() {
                       {formatCurrency(calculatedClosing)}
                     </p>
                     <p className="font-semibold">
-                      Difference: {formatCurrency(expectedClosing - calculatedClosing)}
+                      Difference:{" "}
+                      {formatCurrency(expectedClosing - calculatedClosing)}
                     </p>
                   </div>
                   <p className="mt-2 text-sm text-red-600">
@@ -1113,7 +1114,10 @@ export default function ViewStatements() {
                     ) : (
                       <div className="flex items-center text-red-600 text-xs font-semibold">
                         <AlertCircle className="w-3 h-3 mr-1" />
-                        Off by ${Math.abs(expectedClosing - calculatedClosing).toFixed(2)}
+                        Off by $
+                        {Math.abs(expectedClosing - calculatedClosing).toFixed(
+                          2,
+                        )}
                       </div>
                     )}
                   </div>
