@@ -673,6 +673,108 @@ export default function Upload() {
               >
                 Upload {files.length} {files.length === 1 ? "File" : "Files"}
               </Button>
+
+              {/* Queue Status Display */}
+              {queuedJobs.length > 0 && (
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      Processing Queue
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {queuedJobs.map((job, index) => (
+                        <div
+                          key={job.job_id || index}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">
+                                {job.file_name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {job.status === "pending" &&
+                                  "Waiting to process..."}
+                                {job.status === "processing" &&
+                                  "Parsing statement..."}
+                                {job.status === "rate_limited" &&
+                                  "Rate limited, will retry..."}
+                                {job.status === "completed" &&
+                                  `✓ ${job.transaction_count} transactions imported`}
+                                {job.status === "failed" &&
+                                  `✗ ${job.error_message}`}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            {/* Status Badge */}
+                            <Badge
+                              variant={
+                                job.status === "completed"
+                                  ? "default"
+                                  : job.status === "failed"
+                                    ? "destructive"
+                                    : "secondary"
+                              }
+                              className={
+                                job.status === "completed"
+                                  ? "bg-green-100 text-green-800"
+                                  : job.status === "processing"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : job.status === "rate_limited"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : ""
+                              }
+                            >
+                              {job.status === "pending" && "Queued"}
+                              {job.status === "processing" && "Processing"}
+                              {job.status === "rate_limited" && "Retry Soon"}
+                              {job.status === "completed" && "Complete"}
+                              {job.status === "failed" && "Failed"}
+                            </Badge>
+
+                            {/* Spinner for active jobs */}
+                            {(job.status === "pending" ||
+                              job.status === "processing" ||
+                              job.status === "rate_limited") && (
+                              <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
+                            )}
+
+                            {/* View button for completed */}
+                            {job.status === "completed" &&
+                              job.statement_import_id && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    window.location.href =
+                                      `/statements?account=${selectedBankAccountId}&statement=${job.statement_import_id}`
+                                  }
+                                  className="flex-shrink-0"
+                                >
+                                  View
+                                </Button>
+                              )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Polling indicator */}
+                    {pollingActive && (
+                      <p className="text-sm text-muted-foreground mt-4 flex items-center gap-2">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Checking status every 5 seconds...
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </>
           )}
 
