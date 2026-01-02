@@ -1020,14 +1020,18 @@ export default function Transactions() {
                             </span>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
-                            <span
-                              className={
-                                (transaction.amount ?? 0) < 0
-                                  ? "text-red-600"
-                                  : "text-green-600"
-                              }
-                            >
-                              ${Math.abs(transaction.amount ?? 0).toFixed(2)}
+                            <span className={getAmountColor(transaction)}>
+                              {transaction.transaction_type === "credit"
+                                ? "+"
+                                : "-"}
+                              $
+                              {Math.abs(transaction.amount ?? 0).toLocaleString(
+                                "en-CA",
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}
                             </span>
                           </TableCell>
                           <TableCell>
