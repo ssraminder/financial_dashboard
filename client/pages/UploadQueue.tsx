@@ -163,11 +163,7 @@ export default function UploadQueue() {
               >
                 {autoRefresh ? "Pause" : "Resume"} Auto-refresh
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchQueueStatus}
-              >
+              <Button variant="outline" size="sm" onClick={fetchQueueStatus}>
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Refresh
               </Button>
@@ -272,16 +268,15 @@ export default function UploadQueue() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {job.bank_account?.bank_name} - {job.bank_account?.name}
+                          {job.bank_account?.bank_name} -{" "}
+                          {job.bank_account?.name}
                         </TableCell>
                         <TableCell>{getStatusBadge(job.status)}</TableCell>
                         <TableCell>
                           {job.attempts}/{job.max_attempts}
                         </TableCell>
                         <TableCell>{formatDate(job.created_at)}</TableCell>
-                        <TableCell>
-                          {formatDate(job.next_attempt_at)}
-                        </TableCell>
+                        <TableCell>{formatDate(job.next_attempt_at)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -327,7 +322,8 @@ export default function UploadQueue() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {job.bank_account?.bank_name} - {job.bank_account?.name}
+                          {job.bank_account?.bank_name} -{" "}
+                          {job.bank_account?.name}
                         </TableCell>
                         <TableCell>{getStatusBadge(job.status)}</TableCell>
                         <TableCell>
@@ -350,12 +346,11 @@ export default function UploadQueue() {
                                 View
                               </Button>
                             )}
-                          {job.status === "failed" &&
-                            job.error_message && (
-                              <span className="text-sm text-red-600">
-                                {job.error_message}
-                              </span>
-                            )}
+                          {job.status === "failed" && job.error_message && (
+                            <span className="text-sm text-red-600">
+                              {job.error_message}
+                            </span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
