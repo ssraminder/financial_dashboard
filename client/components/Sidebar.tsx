@@ -65,9 +65,52 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navigation.map((item) => {
+        {navigation.map((item: any) => {
           const isActive = location.pathname === item.href;
-          return (
+          const isSubActive = item.subItems?.some(
+            (sub: any) => location.pathname === sub.href,
+          );
+
+          return item.subItems ? (
+            <div key={item.name}>
+              {/* Parent item with sub-items */}
+              <Link
+                to={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  isActive || isSubActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                {item.name}
+              </Link>
+
+              {/* Sub-items */}
+              <div className="ml-6 mt-1 space-y-1">
+                {item.subItems.map((sub: any) => {
+                  const subIsActive = location.pathname === sub.href;
+                  return (
+                    <Link
+                      key={sub.href}
+                      to={sub.href}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors",
+                        subIsActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                      )}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-current opacity-50" />
+                      {sub.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            // Regular nav item (no sub-items)
             <Link
               key={item.name}
               to={item.href}
