@@ -130,6 +130,17 @@ export default function Transactions() {
     useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Re-analyze feature states
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
+  const [reanalyzeDropdownOpen, setReanalyzeDropdownOpen] = useState(false);
+  const [reanalyzeResult, setReanalyzeResult] = useState<{
+    total: number;
+    kb_matched: number;
+    ai_matched: number;
+    unmatched: number;
+  } | null>(null);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
