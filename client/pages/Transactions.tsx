@@ -529,6 +529,18 @@ export default function Transactions() {
     }
   };
 
+  // Helper function to determine amount color based on transaction type
+  const getAmountColor = (transaction: Transaction) => {
+    const { transaction_type } = transaction;
+
+    // Green = good for you (credit = money in)
+    // Red = bad for you (debit = money out)
+    if (transaction_type === "credit") {
+      return "text-green-600";
+    }
+    return "text-red-600";
+  };
+
   // Pagination
   const paginatedTransactions = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
