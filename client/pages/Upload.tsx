@@ -752,8 +752,7 @@ export default function Upload() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() =>
-                                    window.location.href =
-                                      `/statements?account=${selectedBankAccountId}&statement=${job.statement_import_id}`
+                                    (window.location.href = `/statements?account=${selectedBankAccountId}&statement=${job.statement_import_id}`)
                                   }
                                   className="flex-shrink-0"
                                 >
