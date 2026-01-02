@@ -88,6 +88,11 @@ interface Transaction {
     amount: number;
     transaction_date: string;
   };
+  statement?: {
+    id: string;
+    import_status: string;
+    confirmed_at: string | null;
+  };
 }
 
 interface FilterOptions {
