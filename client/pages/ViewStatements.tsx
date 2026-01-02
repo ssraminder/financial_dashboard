@@ -234,9 +234,9 @@ export default function ViewStatements() {
         transactions.map((t) => ({
           ...t,
           original_type: t.transaction_type,
-          original_amount: t.total_amount || Math.abs(t.amount) || 0,
+          original_amount: Math.abs(t.total_amount || t.amount || 0),
           edited_type: t.transaction_type,
-          edited_amount: t.total_amount || Math.abs(t.amount) || 0,
+          edited_amount: Math.abs(t.total_amount || t.amount || 0),
           changed: false,
         })),
       );
