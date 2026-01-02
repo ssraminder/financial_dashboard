@@ -227,7 +227,8 @@ export default function Transactions() {
           category:categories!category_id(id, code, name, category_type),
           bank_account:bank_accounts(id, name, nickname, bank_name, account_number, balance_type),
           company:companies(id, name),
-          linked_transaction:transactions!linked_to(id, description, amount, transaction_date)`,
+          linked_transaction:transactions!linked_to(id, description, amount, transaction_date),
+          statement:statement_imports(id, import_status, confirmed_at)`,
         )
         .order("transaction_date", { ascending: false })
         .limit(500);
