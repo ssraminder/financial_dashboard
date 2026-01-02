@@ -12,6 +12,7 @@ import ReviewQueue from "./pages/ReviewQueue";
 import Upload from "./pages/Upload";
 import Transactions from "./pages/Transactions";
 import ViewStatements from "./pages/ViewStatements";
+import Transfers from "./pages/Transfers";
 import Accounts from "./pages/Accounts";
 import Clients from "./pages/Clients";
 import Vendors from "./pages/Vendors";
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/upload" element={<Upload />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/statements" element={<ViewStatements />} />
+          <Route path="/transfers" element={<Transfers />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/vendors" element={<Vendors />} />
