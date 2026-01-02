@@ -133,7 +133,9 @@ export default function Transactions() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Re-analyze feature states
-  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>(
+    [],
+  );
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [reanalyzeDropdownOpen, setReanalyzeDropdownOpen] = useState(false);
   const [reanalyzeResult, setReanalyzeResult] = useState<{
@@ -305,7 +307,7 @@ export default function Transactions() {
             transaction_ids: selectedTransactions,
             kb_only: false,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -350,7 +352,7 @@ export default function Transactions() {
     }
     if (selectedCategory !== "all") {
       const category = filterOptions.categories.find(
-        (c) => c.id === selectedCategory
+        (c) => c.id === selectedCategory,
       );
       if (category) filter.category_code = category.code;
     }
@@ -395,7 +397,7 @@ export default function Transactions() {
             kb_only: false,
             max_transactions: 500,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -452,7 +454,7 @@ export default function Transactions() {
       }
       if (selectedCategory !== "all") {
         const category = filterOptions.categories.find(
-          (c) => c.id === selectedCategory
+          (c) => c.id === selectedCategory,
         );
         if (category) filter.category_code = category.code;
       }
@@ -494,7 +496,7 @@ export default function Transactions() {
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       const result = await response.json();
@@ -938,7 +940,7 @@ export default function Transactions() {
                             onCheckedChange={(checked) => {
                               if (checked) {
                                 setSelectedTransactions(
-                                  paginatedTransactions.map((t) => t.id)
+                                  paginatedTransactions.map((t) => t.id),
                                 );
                               } else {
                                 setSelectedTransactions([]);
@@ -974,7 +976,7 @@ export default function Transactions() {
                           <TableCell>
                             <Checkbox
                               checked={selectedTransactions.includes(
-                                transaction.id
+                                transaction.id,
                               )}
                               onCheckedChange={(checked) => {
                                 if (checked) {
@@ -985,8 +987,8 @@ export default function Transactions() {
                                 } else {
                                   setSelectedTransactions(
                                     selectedTransactions.filter(
-                                      (id) => id !== transaction.id
-                                    )
+                                      (id) => id !== transaction.id,
+                                    ),
                                   );
                                 }
                               }}
