@@ -14,6 +14,7 @@ import {
   Loader2,
   Trash2,
   Edit,
+  FileText,
 } from "lucide-react";
 
 interface ReceiptData {
@@ -101,12 +102,12 @@ export function ReceiptDetailModal({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (receipt) {
+    if (receipt?.id) {
       setEditedReceipt(receipt);
       fetchReceiptDetails();
       fetchReceiptImage();
     }
-  }, [receipt?.id]);
+  }, [receipt?.id, receipt?.file_path]);
 
   const fetchReceiptDetails = async () => {
     if (!receipt) return;
@@ -157,18 +158,29 @@ export function ReceiptDetailModal({
   };
 
   const fetchReceiptImage = async () => {
-    if (!receipt) return;
+    if (!receipt?.file_path) {
+      console.log('No file path for receipt');
+      return;
+    }
 
     try {
-      const { data } = await supabase.storage
-        .from("receipts")
+      console.log('Fetching image for path:', receipt.file_path);
+
+      const { data, error } = await supabase.storage
+        .from('receipts')
         .createSignedUrl(receipt.file_path, 3600); // 1 hour expiry
 
+      if (error) {
+        console.error('Error creating signed URL:', error);
+        return;
+      }
+
       if (data?.signedUrl) {
+        console.log('Signed URL created:', data.signedUrl);
         setImageUrl(data.signedUrl);
       }
     } catch (error) {
-      console.error("Error fetching receipt image:", error);
+      console.error('Error fetching receipt image:', error);
     }
   };
 
@@ -404,6 +416,14 @@ export function ReceiptDetailModal({
                       isImageZoomed ? "max-h-none" : "max-h-96"
                     }`}
                     onClick={() => setIsImageZoomed(!isImageZoomed)}
+                    onError={(e) => {
+                      console.error('Image failed to load:', imageUrl);
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="h-64 flex items-center justify-center bg-gray-100 rounded-lg"><div class="text-center text-gray-500"><svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><p>Image not available</p></div></div>';
+                      }
+                    }}
                   />
 
                   <div className="absolute bottom-2 right-2 flex gap-2">
@@ -428,9 +448,16 @@ export function ReceiptDetailModal({
                     </a>
                   </div>
                 </>
-              ) : (
+              ) : loading ? (
                 <div className="h-64 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center bg-gray-100 rounded-lg">
+                  <div className="text-center text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-2" />
+                    <p>Image not available</p>
+                  </div>
                 </div>
               )}
             </div>
