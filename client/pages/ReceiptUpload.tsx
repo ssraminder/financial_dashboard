@@ -217,7 +217,9 @@ export default function ReceiptUpload() {
           errorCount: result.error_count,
         });
 
-        toast.success(`${result.queued_count} receipt(s) queued for processing`);
+        toast.success(
+          `${result.queued_count} receipt(s) queued for processing`,
+        );
       } else {
         throw new Error(result.error || "Upload failed");
       }
@@ -403,9 +405,7 @@ export default function ReceiptUpload() {
                 <Card className="mb-6">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle>
-                        Selected Files ({files.length})
-                      </CardTitle>
+                      <CardTitle>Selected Files ({files.length})</CardTitle>
                       {files.filter((f) => f.status === "pending").length >
                         0 && (
                         <Button
