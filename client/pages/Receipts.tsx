@@ -52,11 +52,12 @@ interface ReceiptData {
   company_id: string;
   created_at: string;
   companies?: { name: string };
-  transactions?: {
+  matched_transaction?: {
     id: string;
     description: string;
     total_amount: number;
     transaction_date: string;
+    payee_name: string;
   };
 }
 
