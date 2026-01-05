@@ -166,7 +166,7 @@ export default function Receipts() {
           `
           *,
           companies(name),
-          transactions(id, description, total_amount, transaction_date)
+          matched_transaction:transactions!matched_transaction_id(id, description, total_amount, transaction_date, payee_name)
         `,
           { count: "exact" },
         )
