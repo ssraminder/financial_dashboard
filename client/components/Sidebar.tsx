@@ -63,7 +63,7 @@ export function Sidebar() {
   return (
     <div className="flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between px-6 border-b border-sidebar-border">
+      <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <FileText className="h-8 w-8 text-sidebar-primary" />
           <div>
@@ -75,7 +75,6 @@ export function Sidebar() {
             </p>
           </div>
         </div>
-        <NotificationBell />
       </div>
 
       {/* Navigation */}
@@ -143,8 +142,14 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User Profile */}
+      {/* Bottom Section: Notifications + User Profile */}
       <div className="border-t border-sidebar-border p-4">
+        {/* Notification Bell - opens upward */}
+        <div className="mb-4 pb-4 border-b border-sidebar-border">
+          <NotificationBell dropdownPosition="top" />
+        </div>
+
+        {/* User Profile */}
         <div className="mb-3">
           <p className="text-sm font-medium text-sidebar-foreground">
             {profile?.full_name || profile?.email || "User"}
