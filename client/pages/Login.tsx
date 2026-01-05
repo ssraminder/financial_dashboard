@@ -25,7 +25,7 @@ export default function Login() {
   const { toast } = useToast();
 
   // Show setup screen if Supabase is not configured
-  if (!isSupabaseConfigured) {
+  if (!isSupabaseConfigured()) {
     return <SupabaseSetup />;
   }
 
