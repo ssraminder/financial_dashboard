@@ -182,6 +182,18 @@ export function ReceiptQueueStatus({
     }).format(amount);
   };
 
+  const toggleErrorExpansion = (itemId: string) => {
+    setExpandedErrors((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
