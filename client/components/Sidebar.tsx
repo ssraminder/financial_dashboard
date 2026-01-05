@@ -33,8 +33,12 @@ const navigation = [
   },
   {
     name: "Receipts",
-    href: "/receipts/upload",
+    href: "/receipts",
     icon: Receipt,
+    subItems: [
+      { name: "View Receipts", href: "/receipts" },
+      { name: "Upload Receipts", href: "/receipts/upload" },
+    ],
   },
   { name: "Transactions", href: "/transactions", icon: Sheet },
   { name: "View Statements", href: "/statements", icon: Archive },
