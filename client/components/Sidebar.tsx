@@ -14,6 +14,7 @@ import {
   Database,
   ArrowLeftRight,
   Tag,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,11 @@ const navigation = [
       { name: "Upload Statements", href: "/upload" },
       { name: "Processing Queue", href: "/upload/queue" },
     ],
+  },
+  {
+    name: "Receipts",
+    href: "/receipts/upload",
+    icon: Receipt,
   },
   { name: "Transactions", href: "/transactions", icon: Sheet },
   { name: "View Statements", href: "/statements", icon: Archive },
