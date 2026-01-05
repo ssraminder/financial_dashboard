@@ -272,7 +272,11 @@ export function ReceiptDetailModal({
 
       if (result.success) {
         toast.success("Receipt marked as no match expected");
-        onUpdate({ ...receipt, status: "no_match_expected", needs_review: false });
+        onUpdate({
+          ...receipt,
+          status: "no_match_expected",
+          needs_review: false,
+        });
         onClose();
       } else {
         throw new Error(result.error);
@@ -360,9 +364,7 @@ export function ReceiptDetailModal({
   if (!receipt) return null;
 
   return (
-    <div
-      className={`fixed inset-0 z-50 ${isOpen ? "visible" : "invisible"}`}
-    >
+    <div className={`fixed inset-0 z-50 ${isOpen ? "visible" : "invisible"}`}>
       {/* Backdrop */}
       <div
         className={`absolute inset-0 bg-black transition-opacity duration-300 ${
@@ -511,7 +513,9 @@ export function ReceiptDetailModal({
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Subtotal</span>
-                <span className="text-sm">{formatAmount(receipt.subtotal)}</span>
+                <span className="text-sm">
+                  {formatAmount(receipt.subtotal)}
+                </span>
               </div>
 
               {receipt.gst_amount > 0 && (
@@ -636,7 +640,9 @@ export function ReceiptDetailModal({
                   <div
                     key={candidate.id}
                     className="bg-white rounded-lg p-3 border hover:border-blue-300 cursor-pointer"
-                    onClick={() => handleLinkTransaction(candidate.transaction_id)}
+                    onClick={() =>
+                      handleLinkTransaction(candidate.transaction_id)
+                    }
                   >
                     <div className="flex items-center justify-between">
                       <div>

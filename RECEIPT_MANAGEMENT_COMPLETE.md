@@ -3,6 +3,7 @@
 ## Overview
 
 A complete receipt management system has been implemented with three main components:
+
 1. **Receipt Upload Page** - Drag & drop file upload with mobile camera support
 2. **Receipt List Page** - Filterable, paginated list with bulk actions
 3. **Receipt Detail Modal** - Slide-out panel with image viewer and transaction matching
@@ -12,6 +13,7 @@ A complete receipt management system has been implemented with three main compon
 ## 1. Receipt Upload Page (`client/pages/ReceiptUpload.tsx`)
 
 ### Features Implemented ✅
+
 - Drag & drop file upload zone with visual feedback
 - Click to browse files
 - Mobile camera support (rear camera)
@@ -23,6 +25,7 @@ A complete receipt management system has been implemented with three main compon
 - Toast notifications for all actions
 
 ### Route
+
 - `/receipts/upload`
 
 ---
@@ -32,6 +35,7 @@ A complete receipt management system has been implemented with three main compon
 ### Features Implemented ✅
 
 #### Stats Cards (Interactive Filters)
+
 - **All Receipts** - Total count
 - **Pending** - Unmatched receipts
 - **Matched** - Successfully matched
@@ -39,6 +43,7 @@ A complete receipt management system has been implemented with three main compon
 - Click to filter the list
 
 #### Advanced Filtering
+
 - Search by vendor name
 - Company dropdown filter
 - Date range (from/to)
@@ -46,13 +51,14 @@ A complete receipt management system has been implemented with three main compon
 - Clear all filters button
 
 #### Receipt Table
+
 - Checkbox selection (individual + select all)
 - Date column (formatted)
 - Vendor name + GST number
 - Amount with tax breakdown
 - Status badges with icons:
   - 🟢 Matched (green)
-  - 🟡 Pending (yellow)  
+  - 🟡 Pending (yellow)
   - 🟠 Review (orange)
   - 🔴 Duplicate (red)
   - ⚪ No Match Expected (gray)
@@ -61,18 +67,21 @@ A complete receipt management system has been implemented with three main compon
 - Click row to open detail modal
 
 #### Pagination
+
 - Shows range (e.g., "Showing 1-20 of 156")
 - Previous/Next buttons
 - Page counter
 - 20 items per page
 
 #### Bulk Actions
+
 - Fixed bottom bar when items selected
 - Shows selection count
 - Bulk delete with confirmation
 - Clear selection button
 
 #### User Experience
+
 - Empty state with icon
 - Loading spinner
 - Toast notifications
@@ -81,6 +90,7 @@ A complete receipt management system has been implemented with three main compon
 - Responsive design
 
 ### Route
+
 - `/receipts`
 
 ---
@@ -90,6 +100,7 @@ A complete receipt management system has been implemented with three main compon
 ### Features Implemented ✅
 
 #### Modal Behavior
+
 - Slide-out from right
 - Backdrop overlay (click to close)
 - Smooth animations
@@ -97,6 +108,7 @@ A complete receipt management system has been implemented with three main compon
 - Sticky header and footer
 
 #### Receipt Image Section
+
 - Image viewer with zoom in/out
 - Click image to toggle zoom
 - Download button
@@ -104,12 +116,14 @@ A complete receipt management system has been implemented with three main compon
 - Signed URL from Supabase Storage (1 hour expiry)
 
 #### Vendor Information
+
 - Vendor name (editable)
 - GST/HST number (editable)
 - Address (read-only)
 - Edit mode with input fields
 
 #### Receipt Details
+
 - Receipt date (formatted)
 - Receipt time
 - Subtotal
@@ -119,12 +133,14 @@ A complete receipt management system has been implemented with three main compon
 - All amounts formatted as CAD currency
 
 #### AI Confidence Bar
+
 - Visual progress bar
 - Percentage display
 - Color-coded (green ≥80%, yellow ≥50%, red <50%)
 - Extraction notes
 
 #### Transaction Matching
+
 - **Linked Transaction Display**:
   - Shows matched transaction details
   - Match confidence percentage
@@ -141,26 +157,27 @@ A complete receipt management system has been implemented with three main compon
   - Search transactions option
 
 #### Line Items
+
 - Extracted receipt line items
 - Quantity × Description
 - Total price per item
 - Only shown if items exist
 
 #### Action Buttons
+
 - **Delete Receipt** (left side)
   - Confirmation dialog
   - Removes from database
-  
 - **Edit Details** (right side)
   - Toggle edit mode
   - Editable fields: vendor name, GST number
-  
 - **Save Changes** (when editing)
   - Updates database
   - Shows saving state
   - Toast notification
 
 ### Integration
+
 - Opens when clicking a receipt row
 - Fetches additional data:
   - Line items
@@ -187,6 +204,7 @@ Added to sidebar with Receipt icon and expandable submenu.
 ## Database Integration
 
 ### Tables Used
+
 - `receipts` - Main receipt data
 - `receipt_line_items` - Extracted line items
 - `receipt_match_candidates` - Potential transaction matches
@@ -194,9 +212,11 @@ Added to sidebar with Receipt icon and expandable submenu.
 - `companies` - Company data
 
 ### Storage
+
 - `receipts` bucket - Stores uploaded receipt images
 
 ### Edge Functions (Expected)
+
 - `upload-receipts` - Handles file upload and queuing
 - `link-receipt` - Links/unlinks receipts to transactions
   - Actions: `link`, `unlink`, `mark_no_match`
@@ -206,6 +226,7 @@ Added to sidebar with Receipt icon and expandable submenu.
 ## Key Features
 
 ### Receipt Upload
+
 ✅ Drag & drop with visual feedback  
 ✅ Mobile camera integration  
 ✅ Multi-file selection  
@@ -213,9 +234,10 @@ Added to sidebar with Receipt icon and expandable submenu.
 ✅ Company selection  
 ✅ Upload progress tracking  
 ✅ Success state with navigation  
-✅ Toast notifications  
+✅ Toast notifications
 
 ### Receipt List
+
 ✅ Stats cards with live counts  
 ✅ Interactive stat filtering  
 ✅ Search by vendor  
@@ -229,9 +251,10 @@ Added to sidebar with Receipt icon and expandable submenu.
 ✅ Pagination  
 ✅ Empty state  
 ✅ Loading state  
-✅ Click to view details  
+✅ Click to view details
 
 ### Receipt Detail Modal
+
 ✅ Slide-out animation  
 ✅ Image zoom in/out  
 ✅ Download image  
@@ -245,22 +268,25 @@ Added to sidebar with Receipt icon and expandable submenu.
 ✅ Mark no match expected  
 ✅ Line items display  
 ✅ Delete receipt  
-✅ Save changes  
+✅ Save changes
 
 ---
 
 ## Files Created/Modified
 
 ### New Files
+
 1. `client/pages/ReceiptUpload.tsx` (520 lines)
 2. `client/pages/Receipts.tsx` (725 lines)
 3. `client/components/ReceiptDetailModal.tsx` (764 lines)
 
 ### Modified Files
+
 1. `client/App.tsx` - Added routes
 2. `client/components/Sidebar.tsx` - Added navigation
 
 ### Routes Added
+
 - `/receipts` - Receipt list
 - `/receipts/upload` - Upload page
 
@@ -341,6 +367,7 @@ Added to sidebar with Receipt icon and expandable submenu.
 ## Testing Checklist
 
 ### Upload Page
+
 - [x] Drag & drop works
 - [x] Click to browse works
 - [x] Camera button (mobile only)
@@ -353,6 +380,7 @@ Added to sidebar with Receipt icon and expandable submenu.
 - [x] Navigate to receipts
 
 ### List Page
+
 - [x] Stats display correctly
 - [x] Click stats to filter
 - [x] Search works
@@ -369,6 +397,7 @@ Added to sidebar with Receipt icon and expandable submenu.
 - [x] Click row opens modal
 
 ### Detail Modal
+
 - [x] Slides in from right
 - [x] Backdrop closes modal
 - [x] Image loads
