@@ -557,7 +557,8 @@ export default function UploadQueue() {
                               <div className="bg-red-50 border border-red-200 rounded-lg p-2">
                                 <p
                                   className={`text-sm text-red-700 break-words whitespace-pre-wrap ${
-                                    !expandedErrors.has(job.id) && job.error_message.length > 100
+                                    !expandedErrors.has(job.id) &&
+                                    job.error_message.length > 100
                                       ? "line-clamp-2"
                                       : ""
                                   }`}
