@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import ReviewQueue from "./pages/ReviewQueue";
 import Upload from "./pages/Upload";
 import UploadQueue from "./pages/UploadQueue";
+import ReceiptUpload from "./pages/ReceiptUpload";
 import Transactions from "./pages/Transactions";
 import ViewStatements from "./pages/ViewStatements";
 import Transfers from "./pages/Transfers";
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/review-queue" element={<ReviewQueue />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/upload/queue" element={<UploadQueue />} />
+          <Route path="/receipts/upload" element={<ReceiptUpload />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/statements" element={<ViewStatements />} />
           <Route path="/transfers" element={<Transfers />} />
