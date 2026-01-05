@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { Sidebar } from "@/components/Sidebar";
+import { ReceiptQueueStatus } from "@/components/ReceiptQueueStatus";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   TrendingUp,
@@ -304,6 +305,13 @@ export default function Dashboard() {
                   </p>
                 </CardContent>
               </Card>
+            </div>
+          )}
+
+          {/* Receipt Queue Status */}
+          {!loading && !dbSetupRequired && (
+            <div className="mt-6">
+              <ReceiptQueueStatus showHeader={true} compactView={false} />
             </div>
           )}
 
