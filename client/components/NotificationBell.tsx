@@ -231,10 +231,11 @@ export function NotificationBell({ dropdownPosition = 'bottom' }: NotificationBe
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="relative w-full flex items-center gap-3 p-2 hover:bg-sidebar-accent rounded-lg transition-colors"
         aria-label="Notifications"
       >
-        <Bell className="w-5 h-5 text-gray-600" />
+        <Bell className="w-5 h-5 text-sidebar-foreground/70" />
+        <span className="text-sm font-medium text-sidebar-foreground/70">Notifications</span>
 
         {/* Unread badge */}
         {unreadCount > 0 && (
