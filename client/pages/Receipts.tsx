@@ -136,7 +136,8 @@ export default function Receipts() {
           (acc, r) => ({
             total: acc.total + 1,
             pending:
-              acc.pending + (r.status === "pending" || r.status === "unmatched" ? 1 : 0),
+              acc.pending +
+              (r.status === "pending" || r.status === "unmatched" ? 1 : 0),
             matched: acc.matched + (r.status === "matched" ? 1 : 0),
             needsReview: acc.needsReview + (r.needs_review ? 1 : 0),
           }),
@@ -465,7 +466,9 @@ export default function Receipts() {
                           }
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedIds(new Set(receipts.map((r) => r.id)));
+                              setSelectedIds(
+                                new Set(receipts.map((r) => r.id)),
+                              );
                             } else {
                               setSelectedIds(new Set());
                             }
@@ -549,7 +552,9 @@ export default function Receipts() {
                     </span>
 
                     <button
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={page === totalPages}
                       className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
