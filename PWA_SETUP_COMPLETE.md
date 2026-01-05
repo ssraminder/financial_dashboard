@@ -5,6 +5,7 @@ The Cethos Finance app is now configured as a Progressive Web App (PWA) and can 
 ## What Was Added:
 
 ### 1. PWA Manifest (`public/manifest.json`)
+
 - **App Name**: "Cethos Finance" (short: "Cethos")
 - **Start URL**: `/receipts/upload` (opens directly to receipt upload)
 - **Display Mode**: Standalone (app-like experience)
@@ -12,7 +13,9 @@ The Cethos Finance app is now configured as a Progressive Web App (PWA) and can 
 - **Icons**: Configured for 192x192 and 512x512 sizes
 
 ### 2. HTML Meta Tags (`index.html`)
+
 Added to `<head>`:
+
 - `<link rel="manifest" href="/manifest.json">` - Links the PWA manifest
 - `<meta name="apple-mobile-web-app-capable" content="yes">` - Enables iOS standalone mode
 - `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">` - iOS status bar styling
@@ -21,6 +24,7 @@ Added to `<head>`:
 ## What You Need to Do:
 
 ### Create App Icons
+
 You need to add two PNG icon files to the `public/` folder:
 
 1. **`public/icon-192.png`** - 192x192 pixels
@@ -33,18 +37,21 @@ See `public/ICONS_README.md` for detailed instructions on creating these icons.
 ## How to Test:
 
 ### On Mobile (iOS/Android):
+
 1. Open the app in Safari (iOS) or Chrome (Android)
 2. Tap the share button
 3. Select "Add to Home Screen"
 4. The app will appear as an icon on your home screen
 
 ### On Desktop (Chrome):
+
 1. Open the app in Chrome
 2. Look for the install icon (⊕) in the address bar
 3. Click it and select "Install"
 4. The app opens in its own window
 
 ### On Desktop (Edge):
+
 1. Open the app in Edge
 2. Click the "..." menu
 3. Select "Apps" → "Install this site as an app"
