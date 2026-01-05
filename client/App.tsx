@@ -34,8 +34,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <FloatingQueueStatus />
       <BrowserRouter>
+        <FloatingQueueStatus />
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
