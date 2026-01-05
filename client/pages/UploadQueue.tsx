@@ -24,6 +24,8 @@ import {
   RefreshCw,
   FileText,
   Eye,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface QueueStats {
@@ -65,6 +67,7 @@ export default function UploadQueue() {
   });
   const [jobs, setJobs] = useState<QueueJob[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -228,6 +231,18 @@ export default function UploadQueue() {
   const formatDate = (dateStr: string | undefined) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleString();
+  };
+
+  const toggleErrorExpansion = (jobId: string) => {
+    setExpandedErrors((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(jobId)) {
+        newSet.delete(jobId);
+      } else {
+        newSet.add(jobId);
+      }
+      return newSet;
+    });
   };
 
   if (authLoading || loading) {
@@ -538,9 +553,40 @@ export default function UploadQueue() {
                               </Button>
                             )}
                           {job.status === "failed" && job.error_message && (
-                            <span className="text-sm text-red-600">
-                              {job.error_message}
-                            </span>
+                            <div className="mt-2 max-w-md">
+                              <div className="bg-red-50 border border-red-200 rounded-lg p-2">
+                                <p
+                                  className={`text-sm text-red-700 break-words whitespace-pre-wrap ${
+                                    !expandedErrors.has(job.id) && job.error_message.length > 100
+                                      ? "line-clamp-2"
+                                      : ""
+                                  }`}
+                                >
+                                  {job.error_message}
+                                </p>
+                                {job.error_message.length > 100 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleErrorExpansion(job.id);
+                                    }}
+                                    className="mt-2 text-xs text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
+                                  >
+                                    {expandedErrors.has(job.id) ? (
+                                      <>
+                                        <ChevronUp className="w-3 h-3" />
+                                        Show less
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ChevronDown className="w-3 h-3" />
+                                        Show more
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           )}
                         </TableCell>
                       </TableRow>
