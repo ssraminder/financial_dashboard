@@ -3,9 +3,9 @@
 ## Issue
 
 ```
-GoTrueClient@sb-llxlkawdmuwsothxaada-auth-token:1 (2.89.0) 2026-01-05T22:23:45.863Z 
-Multiple GoTrueClient instances detected in the same browser context. 
-It is not an error, but this should be avoided as it may produce undefined 
+GoTrueClient@sb-llxlkawdmuwsothxaada-auth-token:1 (2.89.0) 2026-01-05T22:23:45.863Z
+Multiple GoTrueClient instances detected in the same browser context.
+It is not an error, but this should be avoided as it may produce undefined
 behavior when used concurrently under the same storage key.
 ```
 
@@ -20,6 +20,7 @@ export const supabaseTyped = createClient<Database>(url, key);
 ```
 
 This caused:
+
 1. Two independent auth clients competing for the same storage
 2. Potential race conditions in session management
 3. Undefined behavior with concurrent auth operations
@@ -78,7 +79,7 @@ if (import.meta.hot) {
 ✅ **HMR safe** - Instance preserved across hot reloads  
 ✅ **Better performance** - No duplicate clients in memory  
 ✅ **Type safety** - Still uses `Database` type for queries  
-✅ **Backward compatible** - `supabaseTyped` still available  
+✅ **Backward compatible** - `supabaseTyped` still available
 
 ## How It Works
 
@@ -125,6 +126,7 @@ Added explicit auth configuration:
 ```
 
 This ensures:
+
 - Sessions persist across page reloads
 - Tokens refresh automatically before expiration
 - OAuth flows work correctly
@@ -145,11 +147,11 @@ No changes required! The fix is transparent to all existing code:
 
 ```typescript
 // Both work exactly the same now
-import { supabase } from '@/lib/supabase';
-import { supabaseTyped } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
+import { supabaseTyped } from "@/lib/supabase";
 
 // They reference the SAME instance
-supabase === supabaseTyped  // true
+supabase === supabaseTyped; // true
 ```
 
 ---
