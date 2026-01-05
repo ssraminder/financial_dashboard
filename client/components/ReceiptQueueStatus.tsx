@@ -54,6 +54,7 @@ export function ReceiptQueueStatus({
   const [recentItems, setRecentItems] = useState<QueueItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
 
   const fetchQueueStatus = async () => {
     try {
