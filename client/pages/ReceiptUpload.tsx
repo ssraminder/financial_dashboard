@@ -278,41 +278,46 @@ export default function ReceiptUpload() {
 
           {/* Success State */}
           {uploadResult && uploadResult.success ? (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-3 mb-4">
-                    <CheckCircle className="w-8 h-8 text-green-500" />
-                    <div>
-                      <h3 className="text-lg font-medium text-green-800">
-                        {uploadResult.queuedCount} receipt(s) queued for
-                        processing
-                      </h3>
-                      <p className="text-sm text-green-600">
-                        Your receipts will be processed in the background.
-                        You'll be notified when they're ready.
-                      </p>
+            <>
+              <Card className="mb-6">
+                <CardContent className="pt-6">
+                  <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <CheckCircle className="w-8 h-8 text-green-500" />
+                      <div>
+                        <h3 className="text-lg font-medium text-green-800">
+                          {uploadResult.queuedCount} receipt(s) queued for
+                          processing
+                        </h3>
+                        <p className="text-sm text-green-600">
+                          Your receipts will be processed in the background.
+                          You'll be notified when they're ready.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={resetUpload}
+                        variant="outline"
+                        className="border-green-300 text-green-700 hover:bg-green-50"
+                      >
+                        Upload More
+                      </Button>
+                      <Button
+                        onClick={() => navigate("/receipts")}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        View Receipts
+                      </Button>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
 
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={resetUpload}
-                      variant="outline"
-                      className="border-green-300 text-green-700 hover:bg-green-50"
-                    >
-                      Upload More
-                    </Button>
-                    <Button
-                      onClick={() => navigate("/receipts")}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      View Receipt Queue
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              {/* Queue Status */}
+              <ReceiptQueueStatus showHeader={true} />
+            </>
           ) : (
             <>
               {/* Company Selection */}
