@@ -10,6 +10,8 @@ import {
   FileText,
   RefreshCw,
   Inbox,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface QueueStats {
