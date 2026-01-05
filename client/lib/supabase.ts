@@ -9,11 +9,18 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const url = supabaseUrl || "https://placeholder.supabase.co";
 const key = supabaseAnonKey || "placeholder-key";
 
-// Create client without strict typing to allow flexible updates
-export const supabase = createClient(url, key);
+// Create a single Supabase client instance (singleton pattern)
+// This prevents "Multiple GoTrueClient instances" warnings
+export const supabase = createClient<Database>(url, key, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
 
-// Export a typed version for type-safe queries
-export const supabaseTyped = createClient<Database>(url, key);
+// Export the same client with different name for backward compatibility
+export const supabaseTyped = supabase;
 
 // Export a flag to check if Supabase is properly configured
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
