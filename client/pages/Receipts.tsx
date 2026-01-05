@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Sidebar } from "@/components/Sidebar";
+import { ReceiptDetailModal } from "@/components/ReceiptDetailModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,6 +98,10 @@ export default function Receipts() {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(
+    null,
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [stats, setStats] = useState<Stats>({
     total: 0,
     pending: 0,
@@ -257,6 +262,22 @@ export default function Receipts() {
     filters.dateTo;
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  const handleOpenReceipt = (receipt: ReceiptData) => {
+    setSelectedReceipt(receipt);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedReceipt(null), 300); // Delay clearing to allow animation
+  };
+
+  const handleReceiptUpdate = (updatedReceipt: ReceiptData) => {
+    // Refresh the list
+    fetchReceipts();
+    fetchStats();
+  };
 
   if (authLoading) {
     return (
@@ -523,6 +544,7 @@ export default function Receipts() {
                             }
                             setSelectedIds(newIds);
                           }}
+                          onClick={() => handleOpenReceipt(receipt)}
                         />
                       ))
                     )}
@@ -588,6 +610,14 @@ export default function Receipts() {
           )}
         </div>
       </div>
+
+      {/* Receipt Detail Modal */}
+      <ReceiptDetailModal
+        receipt={selectedReceipt}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onUpdate={handleReceiptUpdate}
+      />
     </div>
   );
 }
@@ -597,10 +627,12 @@ function ReceiptRow({
   receipt,
   selected,
   onSelect,
+  onClick,
 }: {
   receipt: ReceiptData;
   selected: boolean;
   onSelect: (selected: boolean) => void;
+  onClick: () => void;
 }) {
   const getStatusBadge = (receipt: ReceiptData) => {
     if (receipt.needs_review) {
@@ -669,7 +701,10 @@ function ReceiptRow({
   };
 
   return (
-    <tr className={`hover:bg-gray-50 ${selected ? "bg-blue-50" : ""}`}>
+    <tr
+      className={`hover:bg-gray-50 cursor-pointer ${selected ? "bg-blue-50" : ""}`}
+      onClick={onClick}
+    >
       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <input
           type="checkbox"
