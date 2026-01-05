@@ -162,35 +162,36 @@ export function ReceiptDetailModal({
 
   const fetchReceiptImage = async () => {
     if (!receipt?.file_path) {
-      console.log('No file path available');
+      console.log("No file path available");
       return;
     }
 
     // Detect if PDF
-    const fileIsPDF = receipt.file_path.toLowerCase().endsWith('.pdf') ||
-                      receipt.file_name?.toLowerCase().endsWith('.pdf');
+    const fileIsPDF =
+      receipt.file_path.toLowerCase().endsWith(".pdf") ||
+      receipt.file_name?.toLowerCase().endsWith(".pdf");
     setIsPDF(fileIsPDF);
 
     try {
-      console.log('Fetching signed URL for:', receipt.file_path);
+      console.log("Fetching signed URL for:", receipt.file_path);
 
       const { data, error } = await supabase.storage
-        .from('receipts')
+        .from("receipts")
         .createSignedUrl(receipt.file_path, 3600);
 
       if (error) {
-        console.error('Storage error:', error);
+        console.error("Storage error:", error);
         return;
       }
 
       if (data?.signedUrl) {
-        console.log('Got signed URL:', data.signedUrl);
+        console.log("Got signed URL:", data.signedUrl);
         setImageUrl(data.signedUrl);
       } else {
-        console.error('No signed URL returned');
+        console.error("No signed URL returned");
       }
     } catch (err) {
-      console.error('Fetch error:', err);
+      console.error("Fetch error:", err);
     }
   };
 
