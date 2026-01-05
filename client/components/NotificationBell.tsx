@@ -98,9 +98,7 @@ export function NotificationBell() {
           (payload) => {
             const newNotif = payload.new as Notification;
             // Add new notification to the list
-            setNotifications((prev) =>
-              [newNotif, ...prev].slice(0, 10),
-            );
+            setNotifications((prev) => [newNotif, ...prev].slice(0, 10));
             setUnreadCount((prev) => prev + 1);
 
             // Show toast for new notification

@@ -212,11 +212,7 @@ export default function Notifications() {
                 Unread
               </Button>
               {notifications.some((n) => !n.is_read) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={markAllAsRead}
-                >
+                <Button variant="outline" size="sm" onClick={markAllAsRead}>
                   Mark all read
                 </Button>
               )}

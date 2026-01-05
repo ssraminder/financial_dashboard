@@ -13,6 +13,7 @@ A comprehensive notification system with a bell icon, dropdown, and full notific
 A dropdown notification center that appears in the sidebar header.
 
 #### Features:
+
 - **Bell icon** with unread count badge
 - **Dropdown menu** with recent 10 notifications
 - **Real-time updates** via Supabase subscriptions
@@ -23,6 +24,7 @@ A dropdown notification center that appears in the sidebar header.
 - **Click outside to close** dropdown
 
 #### Visual Elements:
+
 - 🔔 Bell icon (always visible)
 - Red badge with count (when unread > 0)
 - Shows "99+" for counts over 99
@@ -40,6 +42,7 @@ A dropdown notification center that appears in the sidebar header.
 Full-page notification center with filtering.
 
 #### Features:
+
 - **All notifications** displayed with pagination
 - **Filter by status** (All / Unread)
 - **Mark all as read** button
@@ -53,6 +56,7 @@ Full-page notification center with filtering.
 ## Notification Types
 
 ### Supported Types:
+
 1. **receipt_processed** (🧾 Blue) - Receipt extracted and ready
 2. **receipt_matched** (🔗 Green) - Receipt matched to transaction
 3. **receipt_needs_review** (⚠️ Orange) - Manual review required
@@ -94,21 +98,26 @@ CREATE INDEX idx_notifications_created ON notifications(created_at DESC);
 
 ```typescript
 supabase
-  .channel('notifications')
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'notifications',
-    filter: `user_id=eq.${user.id}`,
-  }, (payload) => {
-    // Add to notification list
-    // Update unread count
-    // Show toast
-  })
+  .channel("notifications")
+  .on(
+    "postgres_changes",
+    {
+      event: "INSERT",
+      schema: "public",
+      table: "notifications",
+      filter: `user_id=eq.${user.id}`,
+    },
+    (payload) => {
+      // Add to notification list
+      // Update unread count
+      // Show toast
+    },
+  )
   .subscribe();
 ```
 
 **Benefits:**
+
 - Instant updates when new notifications arrive
 - No polling delay
 - Minimal server load
@@ -123,12 +132,12 @@ supabase
 
 When clicking a notification, users are redirected based on `reference_type`:
 
-| Reference Type | Navigation Path |
-|----------------|-----------------|
-| `receipt` | `/receipts?id={reference_id}` |
-| `transaction` | `/transactions?id={reference_id}` |
-| `statement` | `/statements?id={reference_id}` |
-| `batch` | (No navigation) |
+| Reference Type | Navigation Path                   |
+| -------------- | --------------------------------- |
+| `receipt`      | `/receipts?id={reference_id}`     |
+| `transaction`  | `/transactions?id={reference_id}` |
+| `statement`    | `/statements?id={reference_id}`   |
+| `batch`        | (No navigation)                   |
 
 ---
 
@@ -166,27 +175,32 @@ Added route for full notifications page:
 ## User Experience Flow
 
 ### 1. **New Notification Arrives**
+
 - Bell icon badge updates (+1)
 - Toast appears with title & message
 - Real-time via Supabase subscription
 
 ### 2. **User Clicks Bell**
+
 - Dropdown opens
 - Shows last 10 notifications
 - Unread have blue background
 
 ### 3. **User Clicks Notification**
+
 - Marks as read
 - Navigates to referenced item
 - Dropdown closes
 - Badge count decreases
 
 ### 4. **User Clicks "Mark All Read"**
+
 - All unread marked as read
 - Blue backgrounds removed
 - Badge disappears
 
 ### 5. **User Clicks "View All"**
+
 - Navigates to `/notifications`
 - Full page with filtering
 - Can filter by All/Unread
@@ -210,7 +224,7 @@ Added route for full notifications page:
 ✅ **Full Page** - Complete notifications view  
 ✅ **Filtering** - All/Unread toggle  
 ✅ **Loading States** - Spinner while fetching  
-✅ **Type Icons** - Visual notification types  
+✅ **Type Icons** - Visual notification types
 
 ---
 
@@ -225,6 +239,7 @@ toast(notification.title, {
 ```
 
 **Appears when:**
+
 - New notification arrives (real-time)
 - User is on any page
 - Auto-dismisses after 5 seconds
@@ -234,12 +249,14 @@ toast(notification.title, {
 ## Styling & Design
 
 ### Color Scheme:
+
 - **Unread background:** Blue-50 (`bg-blue-50`)
 - **Badge:** Red-500 (`bg-red-500`)
 - **Hover:** Gray-50 (`hover:bg-gray-50`)
 - **Border:** Gray-200 (`border-gray-200`)
 
 ### Icon Colors:
+
 - Blue: Receipt processed
 - Green: Matched items
 - Orange: Needs review
@@ -247,6 +264,7 @@ toast(notification.title, {
 - Gray: System/default
 
 ### Typography:
+
 - **Title:** 14px, medium weight (unread) / normal (read)
 - **Message:** 12px, gray-500
 - **Time:** 12px, gray-400
@@ -256,6 +274,7 @@ toast(notification.title, {
 ## Performance Considerations
 
 ### Optimization:
+
 - **Limit to 10** recent items in dropdown
 - **Debounced updates** on rapid changes
 - **Index on user_id** for fast queries
@@ -263,6 +282,7 @@ toast(notification.title, {
 - **Auto-cleanup** of old notifications (recommended)
 
 ### Future Enhancements:
+
 - [ ] Pagination on full page
 - [ ] Delete notifications
 - [ ] Notification preferences
@@ -292,17 +312,19 @@ toast(notification.title, {
 ✅ Toast shows for new notifications  
 ✅ Empty state displays when no notifications  
 ✅ Loading state shows while fetching  
-✅ Filter (All/Unread) works on full page  
+✅ Filter (All/Unread) works on full page
 
 ---
 
 ## Files Created/Modified
 
 ### New Files:
+
 1. `client/components/NotificationBell.tsx` (329 lines)
 2. `client/pages/Notifications.tsx` (290 lines)
 
 ### Modified Files:
+
 1. `client/App.tsx` - Added `/notifications` route
 2. `client/components/Sidebar.tsx` - Added NotificationBell to header
 
@@ -313,17 +335,15 @@ toast(notification.title, {
 To create a notification programmatically (e.g., from Edge Functions):
 
 ```typescript
-await supabase
-  .from('notifications')
-  .insert({
-    user_id: userId,
-    title: 'Receipt Processed',
-    message: 'McDonald\'s - $12.50',
-    type: 'receipt_processed',
-    reference_type: 'receipt',
-    reference_id: receiptId,
-    is_read: false,
-  });
+await supabase.from("notifications").insert({
+  user_id: userId,
+  title: "Receipt Processed",
+  message: "McDonald's - $12.50",
+  type: "receipt_processed",
+  reference_type: "receipt",
+  reference_id: receiptId,
+  is_read: false,
+});
 ```
 
 The notification will automatically appear in real-time for the user!

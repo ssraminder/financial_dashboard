@@ -3,6 +3,7 @@
 ## Overview
 
 Added multiple ways for users to access and monitor the receipt processing queue:
+
 1. **Dedicated Queue Page** - Full-page view at `/receipts/queue`
 2. **Floating Status Indicator** - Global floating button (shows when items are processing)
 3. **Sidebar Navigation** - Added to Receipts submenu
@@ -18,6 +19,7 @@ A dedicated page that displays the full `ReceiptQueueStatus` component.
 **Route:** `/receipts/queue`
 
 **Features:**
+
 - Full-page layout with sidebar
 - Uses existing `ReceiptQueueStatus` component
 - Non-compact view (shows all details)
@@ -25,6 +27,7 @@ A dedicated page that displays the full `ReceiptQueueStatus` component.
 - Authentication protected
 
 **Purpose:**
+
 - Primary destination for viewing queue details
 - Accessed from floating button, sidebar, and other links
 
@@ -37,11 +40,13 @@ A floating button that appears globally when receipts are being processed.
 **Location:** Bottom-right corner of screen (fixed position)
 
 **Visibility Rules:**
+
 - **Shows when:** Items are queued OR processing
 - **Hides when:** Queue is empty
 - **Hides on:** `/receipts/queue` page itself (to avoid redundancy)
 
 **Features:**
+
 - Animated spinner icon
 - Active/queued count display
 - Auto-refresh every 10 seconds
@@ -50,6 +55,7 @@ A floating button that appears globally when receipts are being processed.
 - z-index 50 (above most content)
 
 **Visual Design:**
+
 ```
 ┌─────────────────────────────────────┐
 │ ⚙️  Processing Receipts             │
@@ -64,6 +70,7 @@ A floating button that appears globally when receipts are being processed.
 Added "Processing Queue" to the Receipts submenu.
 
 **Navigation Structure:**
+
 ```
 📄 Receipts
    ├── View Receipts (/receipts)
@@ -78,22 +85,26 @@ Added "Processing Queue" to the Receipts submenu.
 Users can access the Processing Queue via:
 
 ### **1. Floating Button** (Global)
+
 - Appears when items are processing
 - Visible from any page (except queue page itself)
 - Bottom-right corner
 - Click to view queue
 
 ### **2. Sidebar Navigation**
+
 - Receipts → Processing Queue
 - Always available
 - Consistent with other navigation items
 
 ### **3. Direct Links**
+
 - "View Receipt Queue" button on upload success
 - "View Processing Queue" in dashboard
 - Links in notification messages
 
 ### **4. Direct URL**
+
 - Users can bookmark: `/receipts/queue`
 
 ---
@@ -103,9 +114,9 @@ Users can access the Processing Queue via:
 ### Floating Button State Management
 
 ```typescript
-const [stats, setStats] = useState({ 
-  queued: 0, 
-  processing: 0 
+const [stats, setStats] = useState({
+  queued: 0,
+  processing: 0,
 });
 const [isVisible, setIsVisible] = useState(false);
 
@@ -113,17 +124,18 @@ const [isVisible, setIsVisible] = useState(false);
 useEffect(() => {
   const fetchStats = async () => {
     const { data } = await supabase
-      .from('receipt_upload_queue')
-      .select('status')
-      .in('status', ['queued', 'processing']);
-    
-    const queued = data?.filter(r => r.status === 'queued').length || 0;
-    const processing = data?.filter(r => r.status === 'processing').length || 0;
-    
+      .from("receipt_upload_queue")
+      .select("status")
+      .in("status", ["queued", "processing"]);
+
+    const queued = data?.filter((r) => r.status === "queued").length || 0;
+    const processing =
+      data?.filter((r) => r.status === "processing").length || 0;
+
     setStats({ queued, processing });
     setIsVisible(queued > 0 || processing > 0);
   };
-  
+
   fetchStats();
   const interval = setInterval(fetchStats, 10000);
   return () => clearInterval(interval);
@@ -167,17 +179,17 @@ const App = () => (
   bottom: 24px;
   right: 24px;
   z-index: 50;
-  
+
   /* Appearance */
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   border-radius: 9999px;
   padding: 12px 16px;
-  
+
   /* Animation */
   transition: all 0.2s;
-  
+
   &:hover {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     transform: scale(1.05);
@@ -212,13 +224,14 @@ const App = () => (
 
 ## Auto-Refresh Behavior
 
-| Component | Refresh Rate | Method |
-|-----------|-------------|---------|
-| Floating Button | 10 seconds | Polling |
-| Queue Page Stats | 10 seconds | Polling + Realtime |
-| Queue Page Activity | 5 seconds | Polling + Realtime |
+| Component           | Refresh Rate | Method             |
+| ------------------- | ------------ | ------------------ |
+| Floating Button     | 10 seconds   | Polling            |
+| Queue Page Stats    | 10 seconds   | Polling + Realtime |
+| Queue Page Activity | 5 seconds    | Polling + Realtime |
 
 **Realtime Updates:**
+
 - Supabase subscriptions enabled on queue page
 - Instant updates when status changes
 - No refresh delay for new items
@@ -238,17 +251,19 @@ const App = () => (
 ✅ **Hover effects** - Smooth animations  
 ✅ **Route protection** - Auth required  
 ✅ **Hide on queue page** - Avoid redundancy  
-✅ **Responsive design** - Mobile-friendly  
+✅ **Responsive design** - Mobile-friendly
 
 ---
 
 ## Files Created/Modified
 
 ### New Files:
+
 1. `client/pages/ReceiptQueue.tsx` (38 lines)
 2. `client/components/FloatingQueueStatus.tsx` (60 lines)
 
 ### Modified Files:
+
 1. `client/App.tsx` - Added route, imported FloatingQueueStatus
 2. `client/components/Sidebar.tsx` - Added queue to Receipts submenu
 
@@ -274,12 +289,14 @@ After:
 ## Mobile Responsiveness
 
 ### Floating Button on Mobile:
+
 - Positioned bottom-right (consistent)
 - Smaller padding on mobile screens
 - Touch-friendly size (48px+ touch target)
 - Hover effects replaced with active states
 
 ### Queue Page on Mobile:
+
 - Sidebar collapses (existing behavior)
 - Stats cards stack vertically
 - Full-width layout
@@ -300,7 +317,7 @@ After:
 ✅ Auto-refresh updates counts  
 ✅ Spinner animates  
 ✅ Hover effects work  
-✅ Mobile responsive  
+✅ Mobile responsive
 
 ---
 
@@ -326,20 +343,23 @@ Potential improvements:
 ### Accessing the Queue
 
 **From Anywhere:**
+
 ```
-User on any page → Floating button appears (if processing) 
+User on any page → Floating button appears (if processing)
 → Click button → Queue page
 ```
 
 **From Sidebar:**
+
 ```
-User clicks "Receipts" → Submenu expands 
+User clicks "Receipts" → Submenu expands
 → Click "Processing Queue" → Queue page
 ```
 
 **After Upload:**
+
 ```
-User uploads receipts → Success message 
+User uploads receipts → Success message
 → Click "View Receipt Queue" → Queue page
 ```
 
@@ -364,6 +384,7 @@ User uploads receipts → Success message
 ## Summary
 
 Users now have **three ways** to access the processing queue:
+
 1. 🔘 **Floating button** - Appears when processing (click to view)
 2. 📱 **Sidebar menu** - Always available under Receipts
 3. 🔗 **Direct links** - From various pages (upload, dashboard, etc.)

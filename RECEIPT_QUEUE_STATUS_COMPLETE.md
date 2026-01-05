@@ -9,21 +9,27 @@ A real-time receipt processing queue status component has been created and integ
 ## Component Features
 
 ### **1. Stats Cards**
+
 Four color-coded cards showing queue status:
+
 - **Queued** (Yellow) - Number of receipts waiting to be processed
 - **Processing** (Blue) - Currently being processed (animated spinner)
 - **Completed** (Green) - Successfully processed receipts
 - **Failed** (Red) - Failed processing attempts
 
 ### **2. Currently Processing Section**
+
 Shows active receipt being processed with:
+
 - File name
 - Animated progress bar
 - Status message ("Extracting data...")
 - Elapsed time counter (updates in real-time)
 
 ### **3. Recent Activity List**
+
 Displays the last 5-10 processed receipts with:
+
 - Success/failure icons (✓/✗)
 - File names
 - Extracted vendor name and amount (for completed)
@@ -31,17 +37,20 @@ Displays the last 5-10 processed receipts with:
 - Time ago indicators (e.g., "2m ago", "5h ago")
 
 ### **4. Auto-Refresh**
+
 - Toggle checkbox to enable/disable
 - Refreshes every 10 seconds when enabled
 - Manual refresh button
 - Loading spinner indicator
 
 ### **5. Real-time Updates**
+
 - Supabase Realtime subscription to `receipt_upload_queue` table
 - Automatically refreshes when queue changes
 - No polling delay for instant updates
 
 ### **6. Empty State**
+
 - Friendly message when queue is empty
 - "Upload Receipts" button to navigate to upload page
 - Inbox icon illustration
@@ -54,41 +63,50 @@ Displays the last 5-10 processed receipts with:
 
 ```typescript
 interface ReceiptQueueStatusProps {
-  compactView?: boolean;      // Show fewer items (5 vs 10)
-  showHeader?: boolean;        // Display header with title & controls
+  compactView?: boolean; // Show fewer items (5 vs 10)
+  showHeader?: boolean; // Display header with title & controls
 }
 ```
 
 ### Component File
+
 `client/components/ReceiptQueueStatus.tsx` (394 lines)
 
 ### Key Functions
 
 #### **fetchQueueStatus()**
+
 - Fetches current queue stats
 - Gets currently processing item
 - Retrieves recent activity (completed/failed)
 - Joins with `receipts` table for vendor/amount data
 
 #### **getElapsedTime(startTime)**
+
 - Calculates time since processing started
 - Formats as "45s", "2m 30s", or "1h 15m"
 
 #### **getTimeAgo(timestamp)**
+
 - Calculates time since completion
 - Formats as "Just now", "2m ago", "5h ago", "3d ago"
 
 #### **Real-time Subscription**
+
 ```typescript
 supabase
-  .channel('receipt_queue_changes')
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'receipt_upload_queue',
-  }, (payload) => {
-    fetchQueueStatus();
-  })
+  .channel("receipt_queue_changes")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "receipt_upload_queue",
+    },
+    (payload) => {
+      fetchQueueStatus();
+    },
+  )
   .subscribe();
 ```
 
@@ -103,19 +121,23 @@ supabase
 **Purpose:** Show queue status immediately after uploading receipts
 
 **Implementation:**
+
 ```tsx
-{uploadResult && uploadResult.success && (
-  <>
-    {/* Success message */}
-    <Card>...</Card>
-    
-    {/* Queue Status */}
-    <ReceiptQueueStatus showHeader={true} />
-  </>
-)}
+{
+  uploadResult && uploadResult.success && (
+    <>
+      {/* Success message */}
+      <Card>...</Card>
+
+      {/* Queue Status */}
+      <ReceiptQueueStatus showHeader={true} />
+    </>
+  );
+}
 ```
 
 **User Flow:**
+
 1. User uploads receipts
 2. Success message appears
 3. Queue status shows below with real-time processing
@@ -129,12 +151,15 @@ supabase
 **Purpose:** Provide at-a-glance queue status on main dashboard
 
 **Implementation:**
+
 ```tsx
-{!loading && !dbSetupRequired && (
-  <div className="mt-6">
-    <ReceiptQueueStatus showHeader={true} compactView={false} />
-  </div>
-)}
+{
+  !loading && !dbSetupRequired && (
+    <div className="mt-6">
+      <ReceiptQueueStatus showHeader={true} compactView={false} />
+    </div>
+  );
+}
 ```
 
 **Location:** Between stats cards and "Getting Started" section
@@ -146,6 +171,7 @@ supabase
 ### Table: `receipt_upload_queue`
 
 **Columns Used:**
+
 - `id` - Queue item ID
 - `file_name` - Original filename
 - `status` - queued | processing | completed | failed
@@ -158,6 +184,7 @@ supabase
 ### Related Tables
 
 **`receipts`** - Joined for vendor/amount data:
+
 - `vendor_name`
 - `total_amount`
 
@@ -166,10 +193,12 @@ supabase
 ## UI Components Used
 
 ### Cards & Layout
+
 - `Card`, `CardContent` from shadcn/ui
 - Grid layout for stats (2 columns mobile, 4 desktop)
 
 ### Icons (lucide-react)
+
 - `Clock` - Queued status
 - `Loader2` - Processing (animated)
 - `CheckCircle` - Completed
@@ -179,6 +208,7 @@ supabase
 - `Inbox` - Empty state
 
 ### Styling
+
 - Tailwind CSS utility classes
 - Color-coded backgrounds (yellow, blue, green, red)
 - Responsive grid layouts
@@ -201,24 +231,27 @@ supabase
 ✅ **Optional Header** - Toggle title and controls  
 ✅ **Responsive Design** - Mobile-friendly grid  
 ✅ **Loading State** - Spinner while fetching  
-✅ **Error Handling** - Graceful failures  
+✅ **Error Handling** - Graceful failures
 
 ---
 
 ## User Experience
 
 ### Visual Feedback
+
 - **Color coding** - Instant status recognition
 - **Animations** - Spinners show active processing
 - **Progress bars** - Visual processing indicator
 - **Icons** - Clear success/failure states
 
 ### Real-time Updates
+
 - No manual refresh needed
 - Instant updates via Supabase Realtime
 - Smooth transitions when items change
 
 ### Information Hierarchy
+
 1. **Stats at top** - Quick overview
 2. **Active processing** - What's happening now
 3. **Recent activity** - What just happened
@@ -240,7 +273,7 @@ supabase
 ✅ Compact view reduces item count  
 ✅ Header toggle works  
 ✅ Loading state shows  
-✅ Error handling graceful  
+✅ Error handling graceful
 
 ---
 
@@ -264,9 +297,11 @@ Potential improvements:
 ## Files Created/Modified
 
 ### New Files
+
 1. `client/components/ReceiptQueueStatus.tsx` (394 lines)
 
 ### Modified Files
+
 1. `client/pages/ReceiptUpload.tsx` - Added queue status after upload
 2. `client/pages/Dashboard.tsx` - Added queue status to main dashboard
 
@@ -275,26 +310,27 @@ Potential improvements:
 ## Usage Examples
 
 ### Default (Full View)
+
 ```tsx
 <ReceiptQueueStatus />
 ```
 
 ### Compact View
+
 ```tsx
 <ReceiptQueueStatus compactView={true} />
 ```
 
 ### Without Header
+
 ```tsx
 <ReceiptQueueStatus showHeader={false} />
 ```
 
 ### All Options
+
 ```tsx
-<ReceiptQueueStatus 
-  compactView={true}
-  showHeader={false}
-/>
+<ReceiptQueueStatus compactView={true} showHeader={false} />
 ```
 
 ---
