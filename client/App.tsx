@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { FloatingQueueStatus } from "@/components/FloatingQueueStatus";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ReviewQueue from "./pages/ReviewQueue";
@@ -13,6 +14,7 @@ import Upload from "./pages/Upload";
 import UploadQueue from "./pages/UploadQueue";
 import ReceiptUpload from "./pages/ReceiptUpload";
 import Receipts from "./pages/Receipts";
+import ReceiptQueue from "./pages/ReceiptQueue";
 import Transactions from "./pages/Transactions";
 import ViewStatements from "./pages/ViewStatements";
 import Transfers from "./pages/Transfers";
@@ -32,6 +34,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <FloatingQueueStatus />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -42,6 +45,7 @@ const App = () => (
           <Route path="/upload/queue" element={<UploadQueue />} />
           <Route path="/receipts" element={<Receipts />} />
           <Route path="/receipts/upload" element={<ReceiptUpload />} />
+          <Route path="/receipts/queue" element={<ReceiptQueue />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/statements" element={<ViewStatements />} />
           <Route path="/transfers" element={<Transfers />} />

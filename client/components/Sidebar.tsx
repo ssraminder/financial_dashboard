@@ -39,6 +39,7 @@ const navigation = [
     subItems: [
       { name: "View Receipts", href: "/receipts" },
       { name: "Upload Receipts", href: "/receipts/upload" },
+      { name: "Processing Queue", href: "/receipts/queue" },
     ],
   },
   { name: "Transactions", href: "/transactions", icon: Sheet },
