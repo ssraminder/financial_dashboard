@@ -15,6 +15,7 @@ import {
   Trash2,
   Edit,
   FileText,
+  ExternalLink,
 } from "lucide-react";
 
 interface ReceiptData {
@@ -97,17 +98,19 @@ export function ReceiptDetailModal({
   const [linkedTransaction, setLinkedTransaction] =
     useState<Transaction | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isPDF, setIsPDF] = useState(false);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (receipt?.id) {
+    if (receipt?.file_path) {
       setEditedReceipt(receipt);
+      setImageUrl(null); // Reset first
       fetchReceiptDetails();
       fetchReceiptImage();
     }
-  }, [receipt?.id, receipt?.file_path]);
+  }, [receipt?.id]);
 
   const fetchReceiptDetails = async () => {
     if (!receipt) return;
@@ -159,28 +162,35 @@ export function ReceiptDetailModal({
 
   const fetchReceiptImage = async () => {
     if (!receipt?.file_path) {
-      console.log("No file path for receipt");
+      console.log('No file path available');
       return;
     }
 
+    // Detect if PDF
+    const fileIsPDF = receipt.file_path.toLowerCase().endsWith('.pdf') ||
+                      receipt.file_name?.toLowerCase().endsWith('.pdf');
+    setIsPDF(fileIsPDF);
+
     try {
-      console.log("Fetching image for path:", receipt.file_path);
+      console.log('Fetching signed URL for:', receipt.file_path);
 
       const { data, error } = await supabase.storage
-        .from("receipts")
-        .createSignedUrl(receipt.file_path, 3600); // 1 hour expiry
+        .from('receipts')
+        .createSignedUrl(receipt.file_path, 3600);
 
       if (error) {
-        console.error("Error creating signed URL:", error);
+        console.error('Storage error:', error);
         return;
       }
 
       if (data?.signedUrl) {
-        console.log("Signed URL created:", data.signedUrl);
+        console.log('Got signed URL:', data.signedUrl);
         setImageUrl(data.signedUrl);
+      } else {
+        console.error('No signed URL returned');
       }
-    } catch (error) {
-      console.error("Error fetching receipt image:", error);
+    } catch (err) {
+      console.error('Fetch error:', err);
     }
   };
 
@@ -408,56 +418,37 @@ export function ReceiptDetailModal({
           <div className="mb-6">
             <div className="relative bg-gray-100 rounded-lg overflow-hidden">
               {imageUrl ? (
-                <>
+                isPDF ? (
+                  <div className="bg-gray-100 rounded-lg overflow-hidden">
+                    <iframe
+                      src={imageUrl}
+                      className="w-full h-96 border-0"
+                      title="Receipt PDF"
+                    />
+                    <div className="p-2 bg-white border-t flex justify-center">
+                      <a
+                        href={imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Open PDF in New Tab
+                      </a>
+                    </div>
+                  </div>
+                ) : (
                   <img
                     src={imageUrl}
                     alt="Receipt"
-                    className={`w-full object-contain cursor-zoom-in transition-all ${
-                      isImageZoomed ? "max-h-none" : "max-h-96"
-                    }`}
-                    onClick={() => setIsImageZoomed(!isImageZoomed)}
-                    onError={(e) => {
-                      console.error("Image failed to load:", imageUrl);
-                      e.currentTarget.style.display = "none";
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        parent.innerHTML =
-                          '<div class="h-64 flex items-center justify-center bg-gray-100 rounded-lg"><div class="text-center text-gray-500"><svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><p>Image not available</p></div></div>';
-                      }
-                    }}
+                    className="w-full object-contain max-h-96 rounded-lg"
                   />
-
-                  <div className="absolute bottom-2 right-2 flex gap-2">
-                    <button
-                      onClick={() => setIsImageZoomed(!isImageZoomed)}
-                      className="p-2 bg-white/90 rounded-lg shadow hover:bg-white"
-                      title={isImageZoomed ? "Zoom Out" : "Zoom In"}
-                    >
-                      {isImageZoomed ? (
-                        <ZoomOut className="w-4 h-4" />
-                      ) : (
-                        <ZoomIn className="w-4 h-4" />
-                      )}
-                    </button>
-                    <a
-                      href={imageUrl}
-                      download={receipt.file_name}
-                      className="p-2 bg-white/90 rounded-lg shadow hover:bg-white"
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4" />
-                    </a>
-                  </div>
-                </>
-              ) : loading ? (
-                <div className="h-64 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                </div>
+                )
               ) : (
                 <div className="h-64 flex items-center justify-center bg-gray-100 rounded-lg">
                   <div className="text-center text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-2" />
-                    <p>Image not available</p>
+                    <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin" />
+                    <p>Loading receipt...</p>
                   </div>
                 </div>
               )}
