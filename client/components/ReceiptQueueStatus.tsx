@@ -366,39 +366,80 @@ export function ReceiptQueueStatus({
           </div>
 
           <div className="divide-y">
-            {recentItems.map((item) => (
-              <div key={item.id} className="px-4 py-3 flex items-center gap-3">
-                {/* Status icon */}
-                {item.status === "completed" ? (
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                )}
+            {recentItems.map((item) => {
+              const isExpanded = expandedErrors.has(item.id);
+              const errorTooLong =
+                item.error_message && item.error_message.length > 100;
 
-                {/* File name */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {item.file_name}
-                  </p>
-                  {item.status === "completed" && item.receipt && (
-                    <p className="text-xs text-gray-500">
-                      {item.receipt.vendor_name || "Unknown"} -{" "}
-                      {formatAmount(item.receipt.total_amount)}
-                    </p>
-                  )}
-                  {item.status === "failed" && item.error_message && (
-                    <p className="text-xs text-red-500 truncate">
-                      {item.error_message}
-                    </p>
-                  )}
+              return (
+                <div key={item.id} className="px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    {/* Status icon */}
+                    {item.status === "completed" ? (
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    )}
+
+                    {/* File name and details */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {item.file_name}
+                      </p>
+
+                      {/* Success details */}
+                      {item.status === "completed" && item.receipt && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {item.receipt.vendor_name || "Unknown"} -{" "}
+                          {formatAmount(item.receipt.total_amount)}
+                        </p>
+                      )}
+
+                      {/* Error details - with wrapping and show more */}
+                      {item.status === "failed" && item.error_message && (
+                        <div className="mt-1 bg-red-50 border border-red-200 rounded-lg p-2">
+                          <p
+                            className={`text-sm text-red-700 break-words whitespace-pre-wrap ${
+                              !isExpanded && errorTooLong ? "line-clamp-2" : ""
+                            }`}
+                          >
+                            {item.error_message}
+                          </p>
+
+                          {/* Show more/less button for long errors */}
+                          {errorTooLong && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleErrorExpansion(item.id);
+                              }}
+                              className="mt-2 text-xs text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
+                            >
+                              {isExpanded ? (
+                                <>
+                                  <ChevronUp className="w-3 h-3" />
+                                  Show less
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-3 h-3" />
+                                  Show more
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Time ago */}
+                    <span className="text-xs text-gray-400 flex-shrink-0 mt-0.5">
+                      {getTimeAgo(item.completed_at)}
+                    </span>
+                  </div>
                 </div>
-
-                {/* Time ago */}
-                <span className="text-xs text-gray-400 flex-shrink-0">
-                  {getTimeAgo(item.completed_at)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       )}
