@@ -32,7 +32,11 @@ interface Notification {
   user_id: string;
 }
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  dropdownPosition?: 'top' | 'bottom';
+}
+
+export function NotificationBell({ dropdownPosition = 'bottom' }: NotificationBellProps = {}) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -242,7 +246,9 @@ export function NotificationBell() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
+        <div className={`absolute right-0 w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50 ${
+          dropdownPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
+        }`}>
           {/* Header */}
           <div className="px-4 py-3 border-b flex items-center justify-between">
             <h3 className="font-medium text-gray-900">Notifications</h3>
