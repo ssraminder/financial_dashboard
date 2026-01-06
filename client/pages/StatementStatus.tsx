@@ -136,6 +136,20 @@ export default function StatementStatus() {
 
       if (gapsError) throw gapsError;
       setDateGaps(gapsData || []);
+
+      // Fetch exclusions
+      const { data: exclusionsData } = await supabase
+        .from("statement_tracking_exclusions")
+        .select("bank_account_id, period_year, period_month")
+        .eq("period_year", selectedYear);
+
+      setExclusions(exclusionsData || []);
+
+      // Create a Set for fast lookup
+      const newExclusionSet = new Set(
+        exclusionsData?.map(e => `${e.bank_account_id}-${e.period_year}-${e.period_month}`) || []
+      );
+      setExclusionSet(newExclusionSet);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
