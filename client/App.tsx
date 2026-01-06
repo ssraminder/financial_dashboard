@@ -18,6 +18,7 @@ import ReceiptQueue from "./pages/ReceiptQueue";
 import Transactions from "./pages/Transactions";
 import ViewStatements from "./pages/ViewStatements";
 import Transfers from "./pages/Transfers";
+import TransferReview from "./pages/TransferReview";
 import Categories from "./pages/Categories";
 import Accounts from "./pages/Accounts";
 import Clients from "./pages/Clients";
