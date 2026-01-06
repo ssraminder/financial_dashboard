@@ -42,6 +42,7 @@ import {
   Search,
   X as XIcon,
   Lock,
+  LockOpen,
 } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { formatDate } from "@/lib/dateUtils";
