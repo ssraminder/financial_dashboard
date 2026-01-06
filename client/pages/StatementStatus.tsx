@@ -157,22 +157,116 @@ export default function StatementStatus() {
     }
   };
 
-  // Calculate totals
+  // Get unique bank accounts from data
+  const bankAccountOptions = useMemo(() => {
+    const uniqueAccounts = new Map();
+    statementStatus?.forEach(s => {
+      if (!uniqueAccounts.has(s.bank_account_id)) {
+        uniqueAccounts.set(s.bank_account_id, {
+          id: s.bank_account_id,
+          bank_name: s.bank_name,
+          nickname: s.nickname,
+          account_number_last4: s.account_number_last4,
+          label: `${s.bank_name} - ${s.nickname || 'Account'} (••••${s.account_number_last4})`
+        });
+      }
+    });
+    return Array.from(uniqueAccounts.values()).sort((a, b) =>
+      a.bank_name.localeCompare(b.bank_name) || (a.nickname || '').localeCompare(b.nickname || '')
+    );
+  }, [statementStatus]);
+
+  // Apply filters
+  const filteredByAccount = useMemo(() => {
+    if (selectedAccounts.length === 0) {
+      return statementStatus;
+    }
+    return statementStatus?.filter(s => selectedAccounts.includes(s.bank_account_id));
+  }, [statementStatus, selectedAccounts]);
+
+  // Apply exclusion and status filters
+  const displayStatements = useMemo(() => {
+    let result = filteredByAccount;
+
+    // Apply exclusion filter (hidden accounts)
+    if (!showHidden && exclusionSet.size > 0) {
+      result = result?.filter(s =>
+        !exclusionSet.has(`${s.bank_account_id}-${s.period_year}-${s.period_month}`)
+      );
+    }
+
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      result = result?.filter((s) => {
+        if (filterStatus === 'pending')
+          return s.status === 'pending_review' || s.status === 'uploaded';
+        return s.status === filterStatus;
+      });
+    }
+
+    return result;
+  }, [filteredByAccount, showHidden, exclusionSet, filterStatus]);
+
+  // Calculate totals from filtered/displayed statements
   const totals = {
-    confirmed: statementStatus.filter((s) => s.status === "confirmed").length,
-    pending: statementStatus.filter(
+    confirmed: displayStatements.filter((s) => s.status === "confirmed").length,
+    pending: displayStatements.filter(
       (s) => s.status === "pending_review" || s.status === "uploaded",
     ).length,
-    missing: statementStatus.filter((s) => s.status === "missing").length,
+    missing: displayStatements.filter((s) => s.status === "missing").length,
   };
 
-  // Filter statements
-  const filteredStatements = statementStatus.filter((s) => {
-    if (filterStatus === "all") return true;
-    if (filterStatus === "pending")
-      return s.status === "pending_review" || s.status === "uploaded";
-    return s.status === filterStatus;
-  });
+  // Handler functions
+  const handleExcludeAccount = async (item: StatementStatus) => {
+    const confirmed = window.confirm(
+      `Hide ${item.nickname || item.bank_name} for ${item.period_month_name} ${item.period_year}?\n\nUse this if the account didn't exist during this period.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from('statement_tracking_exclusions')
+        .insert({
+          bank_account_id: item.bank_account_id,
+          period_year: item.period_year,
+          period_month: item.period_month,
+          reason: 'account_not_open',
+          notes: 'Hidden from statement status view'
+        });
+
+      if (error) throw error;
+
+      fetchData();
+      sonnerToast.success(`Hidden ${item.nickname || item.bank_name} for ${item.period_month_name}`);
+    } catch (err) {
+      console.error('Error excluding account:', err);
+      sonnerToast.error('Failed to hide account');
+    }
+  };
+
+  const handleRestoreAccount = async (item: StatementStatus) => {
+    try {
+      const { error } = await supabase
+        .from('statement_tracking_exclusions')
+        .delete()
+        .eq('bank_account_id', item.bank_account_id)
+        .eq('period_year', item.period_year)
+        .eq('period_month', item.period_month);
+
+      if (error) throw error;
+
+      fetchData();
+      sonnerToast.success(`Restored ${item.nickname || item.bank_name}`);
+    } catch (err) {
+      console.error('Error restoring account:', err);
+      sonnerToast.error('Failed to restore account');
+    }
+  };
+
+  const handleViewStatement = (statementId: string) => {
+    navigate(`/statements?view=${statementId}&autoOpen=true`);
+  };
 
   // Group by month for display
   const groupedByMonth = filteredStatements.reduce(
