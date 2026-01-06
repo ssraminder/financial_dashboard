@@ -196,29 +196,32 @@ export default function ViewStatements() {
       const autoOpenParam = searchParams.get("autoOpen");
 
       // Handle autoOpen - direct statement viewing from Statement Status page
-      if (viewParam && autoOpenParam === 'true') {
+      if (viewParam && autoOpenParam === "true") {
         // We need to find which bank account this statement belongs to
         // We'll fetch the statement first to get the bank_account_id
         const fetchStatementAndOpen = async () => {
           try {
             const { data: statement, error } = await supabase
-              .from('statement_imports')
-              .select('id, bank_account_id')
-              .eq('id', viewParam)
+              .from("statement_imports")
+              .select("id, bank_account_id")
+              .eq("id", viewParam)
               .single();
 
             if (error) throw error;
 
-            if (statement && bankAccounts.some(acc => acc.id === statement.bank_account_id)) {
+            if (
+              statement &&
+              bankAccounts.some((acc) => acc.id === statement.bank_account_id)
+            ) {
               setSelectedBankAccountId(statement.bank_account_id);
               setSelectedStatementId(statement.id);
               setParamsProcessed(true);
               // Clean up URL
-              window.history.replaceState({}, '', '/statements');
+              window.history.replaceState({}, "", "/statements");
             }
           } catch (err) {
-            console.error('Error fetching statement for autoOpen:', err);
-            sonnerToast.error('Could not open statement');
+            console.error("Error fetching statement for autoOpen:", err);
+            sonnerToast.error("Could not open statement");
           }
         };
 

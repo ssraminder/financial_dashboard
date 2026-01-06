@@ -1,6 +1,7 @@
 # Statement Status Improvements - Implementation Complete
 
 ## Version 1.1.0
+
 **Date:** January 6, 2026
 
 ---
@@ -21,6 +22,7 @@ Successfully implemented all four enhancements to the Statement Status page:
 ### 1. Database Changes
 
 Created `statement_tracking_exclusions` table:
+
 - Tracks account-month combinations that should be hidden
 - Prevents "Missing" status for accounts that didn't exist yet
 - Supports restore functionality
@@ -31,6 +33,7 @@ Created `statement_tracking_exclusions` table:
 **Location:** StatementStatus.tsx - Below year selector
 
 **Features:**
+
 - Multi-select dropdown with all bank accounts
 - Shows account name, nickname, and last 4 digits
 - "Show All" / "Select All" quick actions
@@ -38,6 +41,7 @@ Created `statement_tracking_exclusions` table:
 - Summary cards and counts update based on filter
 
 **Usage:**
+
 1. Click "All Accounts" dropdown
 2. Select one or multiple accounts
 3. Click "Apply Filter"
@@ -46,31 +50,37 @@ Created `statement_tracking_exclusions` table:
 ### 3. Hide/Restore Functionality
 
 **For Missing Statements:**
+
 - "Hide" button (eye-off icon) appears next to Upload button
 - Confirmation dialog explains purpose
 - Hidden items excluded from view by default
 - Summary cards exclude hidden accounts
 
 **Show Hidden Toggle:**
+
 - Checkbox: "Show hidden accounts"
 - Displays count of hidden items
 - When enabled, shows hidden items with "Restore" button
 
 **For Hidden Items:**
+
 - "Hidden" label with "Restore" button
 - One click to unhide and return to normal view
 
 ### 4. View Buttons for Statements
 
 **Pending Review / Uploaded:**
+
 - Status badge + "View" button with eye icon
 - Click to open statement directly in viewer
 
 **Confirmed:**
+
 - Green checkmark badge + eye icon button
 - Click to view confirmed statement
 
 **Missing:**
+
 - Red badge + "Hide" button + "Upload" button
 - Hide for non-existent accounts
 - Upload for legitimate missing statements
@@ -78,12 +88,14 @@ Created `statement_tracking_exclusions` table:
 ### 5. Deep Linking
 
 **Statement Status → View Statements:**
+
 - Uses URL: `/statements?view={id}&autoOpen=true`
 - Automatically finds bank account for statement
 - Selects statement and loads transactions
 - Cleans up URL after navigation
 
 **ViewStatements.tsx Changes:**
+
 - New useEffect handles `view` and `autoOpen` parameters
 - Fetches statement to determine bank account
 - Auto-selects both account and statement
@@ -93,17 +105,18 @@ Created `statement_tracking_exclusions` table:
 
 ## File Changes
 
-| File | Changes |
-|------|---------|
+| File                               | Changes                                               |
+| ---------------------------------- | ----------------------------------------------------- |
 | `client/pages/StatementStatus.tsx` | Added bank filter, exclusions, view buttons, handlers |
-| `client/pages/ViewStatements.tsx` | Added autoOpen parameter handling |
-| Database (Supabase) | Created `statement_tracking_exclusions` table |
+| `client/pages/ViewStatements.tsx`  | Added autoOpen parameter handling                     |
+| Database (Supabase)                | Created `statement_tracking_exclusions` table         |
 
 ---
 
 ## New Imports Added
 
 ### StatementStatus.tsx
+
 ```typescript
 import { useState, useEffect, useMemo } from "react";
 import { EyeOff, Filter, ChevronDown, X } from "lucide-react";
@@ -118,14 +131,23 @@ import { toast as sonnerToast } from "sonner";
 
 ```typescript
 // 1. Filter by selected accounts
-const filteredByAccount = selectedAccounts.length === 0 
-  ? statementStatus 
-  : statementStatus.filter(s => selectedAccounts.includes(s.bank_account_id));
+const filteredByAccount =
+  selectedAccounts.length === 0
+    ? statementStatus
+    : statementStatus.filter((s) =>
+        selectedAccounts.includes(s.bank_account_id),
+      );
 
 // 2. Filter by exclusions (unless showing hidden)
-const displayStatements = !showHidden && exclusionSet.size > 0
-  ? filteredByAccount.filter(s => !exclusionSet.has(`${s.bank_account_id}-${s.period_year}-${s.period_month}`))
-  : filteredByAccount;
+const displayStatements =
+  !showHidden && exclusionSet.size > 0
+    ? filteredByAccount.filter(
+        (s) =>
+          !exclusionSet.has(
+            `${s.bank_account_id}-${s.period_year}-${s.period_month}`,
+          ),
+      )
+    : filteredByAccount;
 
 // 3. Filter by status (all/confirmed/pending/missing)
 // Applied in displayStatements calculation
@@ -134,17 +156,20 @@ const displayStatements = !showHidden && exclusionSet.size > 0
 ### Handler Functions
 
 **handleExcludeAccount:**
+
 - Confirms with user
 - Inserts exclusion record
 - Refreshes data
 - Shows success toast
 
 **handleRestoreAccount:**
+
 - Deletes exclusion record
 - Refreshes data
 - Shows success toast
 
 **handleViewStatement:**
+
 - Navigates with `view={id}&autoOpen=true` parameters
 - Triggers auto-selection in ViewStatements
 
@@ -153,6 +178,7 @@ const displayStatements = !showHidden && exclusionSet.size > 0
 ## User Experience Flow
 
 ### Scenario 1: Hiding a Non-Existent Account
+
 1. User sees "TD Savings - Missing" for Jan 2024
 2. Account was opened in March 2024
 3. Click "Hide" button (eye-off icon)
@@ -161,6 +187,7 @@ const displayStatements = !showHidden && exclusionSet.size > 0
 6. Summary cards update (Missing count decreases)
 
 ### Scenario 2: Viewing a Pending Statement
+
 1. User sees "BMO Checking - Pending Review"
 2. Click "View" button (eye icon)
 3. Instantly navigated to ViewStatements page
@@ -169,6 +196,7 @@ const displayStatements = !showHidden && exclusionSet.size > 0
 6. Ready to review/confirm
 
 ### Scenario 3: Filtering by Account
+
 1. User has 20 accounts showing
 2. Click "All Accounts" dropdown
 3. Select "TD Savings" and "BMO Checking"
@@ -177,6 +205,7 @@ const displayStatements = !showHidden && exclusionSet.size > 0
 6. Summary cards show counts for filtered accounts only
 
 ### Scenario 4: Restoring a Hidden Account
+
 1. Enable "Show hidden accounts" checkbox
 2. Hidden items appear with "Hidden" label
 3. Click "Restore" button on TD Savings - Jan 2024
@@ -221,7 +250,7 @@ CREATE TABLE statement_tracking_exclusions (
     CONSTRAINT unique_account_period UNIQUE (bank_account_id, period_year, period_month)
 );
 
-CREATE INDEX idx_exclusions_account_period 
+CREATE INDEX idx_exclusions_account_period
 ON statement_tracking_exclusions (bank_account_id, period_year, period_month);
 ```
 
@@ -249,6 +278,7 @@ ON statement_tracking_exclusions (bank_account_id, period_year, period_month);
 ## Changelog
 
 ### v1.1.0 (January 6, 2026)
+
 - ✨ Added bank account filter dropdown with multi-select
 - ✨ Filter shows account name, nickname, last 4 digits
 - ✨ Summary cards update based on filtered accounts
@@ -256,6 +286,7 @@ ON statement_tracking_exclusions (bank_account_id, period_year, period_month);
 - ✨ "Show All" / "Select All" quick actions
 
 ### v1.0.0 (January 6, 2026)
+
 - ✨ Created `statement_tracking_exclusions` table
 - ✨ Added Hide button for missing statements
 - ✨ Added Restore button for hidden items
@@ -270,6 +301,7 @@ ON statement_tracking_exclusions (bank_account_id, period_year, period_month);
 ## Support
 
 For questions or issues:
+
 - Check `/statements/status` page for live functionality
 - Review code comments in `StatementStatus.tsx`
 - Test with real data to see all features in action

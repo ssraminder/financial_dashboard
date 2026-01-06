@@ -82,7 +82,9 @@ export default function StatementStatus() {
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
-  const [exclusions, setExclusions] = useState<{bank_account_id: string; period_year: number; period_month: number}[]>([]);
+  const [exclusions, setExclusions] = useState<
+    { bank_account_id: string; period_year: number; period_month: number }[]
+  >([]);
   const [exclusionSet, setExclusionSet] = useState<Set<string>>(new Set());
 
   // Redirect if not authenticated
@@ -147,7 +149,9 @@ export default function StatementStatus() {
 
       // Create a Set for fast lookup
       const newExclusionSet = new Set(
-        exclusionsData?.map(e => `${e.bank_account_id}-${e.period_year}-${e.period_month}`) || []
+        exclusionsData?.map(
+          (e) => `${e.bank_account_id}-${e.period_year}-${e.period_month}`,
+        ) || [],
       );
       setExclusionSet(newExclusionSet);
     } catch (error) {
@@ -160,19 +164,21 @@ export default function StatementStatus() {
   // Get unique bank accounts from data
   const bankAccountOptions = useMemo(() => {
     const uniqueAccounts = new Map();
-    statementStatus?.forEach(s => {
+    statementStatus?.forEach((s) => {
       if (!uniqueAccounts.has(s.bank_account_id)) {
         uniqueAccounts.set(s.bank_account_id, {
           id: s.bank_account_id,
           bank_name: s.bank_name,
           nickname: s.nickname,
           account_number_last4: s.account_number_last4,
-          label: `${s.bank_name} - ${s.nickname || 'Account'} (••••${s.account_number_last4})`
+          label: `${s.bank_name} - ${s.nickname || "Account"} (••••${s.account_number_last4})`,
         });
       }
     });
-    return Array.from(uniqueAccounts.values()).sort((a, b) =>
-      a.bank_name.localeCompare(b.bank_name) || (a.nickname || '').localeCompare(b.nickname || '')
+    return Array.from(uniqueAccounts.values()).sort(
+      (a, b) =>
+        a.bank_name.localeCompare(b.bank_name) ||
+        (a.nickname || "").localeCompare(b.nickname || ""),
     );
   }, [statementStatus]);
 
@@ -181,7 +187,9 @@ export default function StatementStatus() {
     if (selectedAccounts.length === 0) {
       return statementStatus;
     }
-    return statementStatus?.filter(s => selectedAccounts.includes(s.bank_account_id));
+    return statementStatus?.filter((s) =>
+      selectedAccounts.includes(s.bank_account_id),
+    );
   }, [statementStatus, selectedAccounts]);
 
   // Apply exclusion and status filters
@@ -190,16 +198,19 @@ export default function StatementStatus() {
 
     // Apply exclusion filter (hidden accounts)
     if (!showHidden && exclusionSet.size > 0) {
-      result = result?.filter(s =>
-        !exclusionSet.has(`${s.bank_account_id}-${s.period_year}-${s.period_month}`)
+      result = result?.filter(
+        (s) =>
+          !exclusionSet.has(
+            `${s.bank_account_id}-${s.period_year}-${s.period_month}`,
+          ),
       );
     }
 
     // Apply status filter
-    if (filterStatus !== 'all') {
+    if (filterStatus !== "all") {
       result = result?.filter((s) => {
-        if (filterStatus === 'pending')
-          return s.status === 'pending_review' || s.status === 'uploaded';
+        if (filterStatus === "pending")
+          return s.status === "pending_review" || s.status === "uploaded";
         return s.status === filterStatus;
       });
     }
@@ -219,48 +230,50 @@ export default function StatementStatus() {
   // Handler functions
   const handleExcludeAccount = async (item: StatementStatus) => {
     const confirmed = window.confirm(
-      `Hide ${item.nickname || item.bank_name} for ${item.period_month_name} ${item.period_year}?\n\nUse this if the account didn't exist during this period.`
+      `Hide ${item.nickname || item.bank_name} for ${item.period_month_name} ${item.period_year}?\n\nUse this if the account didn't exist during this period.`,
     );
 
     if (!confirmed) return;
 
     try {
       const { error } = await supabase
-        .from('statement_tracking_exclusions')
+        .from("statement_tracking_exclusions")
         .insert({
           bank_account_id: item.bank_account_id,
           period_year: item.period_year,
           period_month: item.period_month,
-          reason: 'account_not_open',
-          notes: 'Hidden from statement status view'
+          reason: "account_not_open",
+          notes: "Hidden from statement status view",
         });
 
       if (error) throw error;
 
       fetchData();
-      sonnerToast.success(`Hidden ${item.nickname || item.bank_name} for ${item.period_month_name}`);
+      sonnerToast.success(
+        `Hidden ${item.nickname || item.bank_name} for ${item.period_month_name}`,
+      );
     } catch (err) {
-      console.error('Error excluding account:', err);
-      sonnerToast.error('Failed to hide account');
+      console.error("Error excluding account:", err);
+      sonnerToast.error("Failed to hide account");
     }
   };
 
   const handleRestoreAccount = async (item: StatementStatus) => {
     try {
       const { error } = await supabase
-        .from('statement_tracking_exclusions')
+        .from("statement_tracking_exclusions")
         .delete()
-        .eq('bank_account_id', item.bank_account_id)
-        .eq('period_year', item.period_year)
-        .eq('period_month', item.period_month);
+        .eq("bank_account_id", item.bank_account_id)
+        .eq("period_year", item.period_year)
+        .eq("period_month", item.period_month);
 
       if (error) throw error;
 
       fetchData();
       sonnerToast.success(`Restored ${item.nickname || item.bank_name}`);
     } catch (err) {
-      console.error('Error restoring account:', err);
-      sonnerToast.error('Failed to restore account');
+      console.error("Error restoring account:", err);
+      sonnerToast.error("Failed to restore account");
     }
   };
 
@@ -422,11 +435,12 @@ export default function StatementStatus() {
                 <Filter className="h-4 w-4 text-gray-500" />
                 <span className="text-sm">
                   {selectedAccounts.length === 0
-                    ? 'All Accounts'
+                    ? "All Accounts"
                     : selectedAccounts.length === 1
-                      ? bankAccountOptions.find(a => a.id === selectedAccounts[0])?.nickname || 'Selected'
-                      : `${selectedAccounts.length} Accounts`
-                  }
+                      ? bankAccountOptions.find(
+                          (a) => a.id === selectedAccounts[0],
+                        )?.nickname || "Selected"
+                      : `${selectedAccounts.length} Accounts`}
                 </span>
                 <ChevronDown className="h-4 w-4 text-gray-400" />
               </button>
@@ -442,7 +456,9 @@ export default function StatementStatus() {
                       Show All
                     </button>
                     <button
-                      onClick={() => setSelectedAccounts(bankAccountOptions.map(a => a.id))}
+                      onClick={() =>
+                        setSelectedAccounts(bankAccountOptions.map((a) => a.id))
+                      }
                       className="text-xs text-blue-600 hover:underline"
                     >
                       Select All
@@ -451,7 +467,7 @@ export default function StatementStatus() {
 
                   {/* Account List */}
                   <div className="p-2">
-                    {bankAccountOptions.map(account => (
+                    {bankAccountOptions.map((account) => (
                       <label
                         key={account.id}
                         className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
@@ -461,17 +477,27 @@ export default function StatementStatus() {
                           checked={selectedAccounts.includes(account.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedAccounts([...selectedAccounts, account.id]);
+                              setSelectedAccounts([
+                                ...selectedAccounts,
+                                account.id,
+                              ]);
                             } else {
-                              setSelectedAccounts(selectedAccounts.filter(id => id !== account.id));
+                              setSelectedAccounts(
+                                selectedAccounts.filter(
+                                  (id) => id !== account.id,
+                                ),
+                              );
                             }
                           }}
                           className="rounded"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">{account.bank_name}</div>
+                          <div className="text-sm font-medium truncate">
+                            {account.bank_name}
+                          </div>
                           <div className="text-xs text-gray-500 truncate">
-                            {account.nickname} • ••••{account.account_number_last4}
+                            {account.nickname} • ••••
+                            {account.account_number_last4}
                           </div>
                         </div>
                       </label>
@@ -693,9 +719,14 @@ export default function StatementStatus() {
                           )}
 
                           {/* Check if this item is hidden */}
-                          {showHidden && exclusionSet.has(`${statement.bank_account_id}-${statement.period_year}-${statement.period_month}`) ? (
+                          {showHidden &&
+                          exclusionSet.has(
+                            `${statement.bank_account_id}-${statement.period_year}-${statement.period_month}`,
+                          ) ? (
                             <div className="flex items-center gap-2">
-                              <span className="text-gray-400 text-sm italic">Hidden</span>
+                              <span className="text-gray-400 text-sm italic">
+                                Hidden
+                              </span>
                               <button
                                 onClick={() => handleRestoreAccount(statement)}
                                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
@@ -708,40 +739,53 @@ export default function StatementStatus() {
                           ) : (
                             <>
                               {/* For pending_review or uploaded status - show badge and View button */}
-                              {(statement.status === 'pending_review' || statement.status === 'uploaded') && statement.statement_import_id && (
-                                <>
-                                  <StatusBadge status={statement.status} />
-                                  <button
-                                    onClick={() => handleViewStatement(statement.statement_import_id!)}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
-                                    title="View Statement"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                    View
-                                  </button>
-                                </>
-                              )}
+                              {(statement.status === "pending_review" ||
+                                statement.status === "uploaded") &&
+                                statement.statement_import_id && (
+                                  <>
+                                    <StatusBadge status={statement.status} />
+                                    <button
+                                      onClick={() =>
+                                        handleViewStatement(
+                                          statement.statement_import_id!,
+                                        )
+                                      }
+                                      className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
+                                      title="View Statement"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                      View
+                                    </button>
+                                  </>
+                                )}
 
                               {/* For confirmed status - show badge and View button */}
-                              {statement.status === 'confirmed' && statement.statement_import_id && (
-                                <>
-                                  <StatusBadge status={statement.status} />
-                                  <button
-                                    onClick={() => handleViewStatement(statement.statement_import_id!)}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
-                                    title="View Statement"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </button>
-                                </>
-                              )}
+                              {statement.status === "confirmed" &&
+                                statement.statement_import_id && (
+                                  <>
+                                    <StatusBadge status={statement.status} />
+                                    <button
+                                      onClick={() =>
+                                        handleViewStatement(
+                                          statement.statement_import_id!,
+                                        )
+                                      }
+                                      className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
+                                      title="View Statement"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                )}
 
                               {/* For missing status - show Hide and Upload buttons */}
-                              {statement.status === 'missing' && (
+                              {statement.status === "missing" && (
                                 <div className="flex items-center gap-2">
                                   <StatusBadge status={statement.status} />
                                   <button
-                                    onClick={() => handleExcludeAccount(statement)}
+                                    onClick={() =>
+                                      handleExcludeAccount(statement)
+                                    }
                                     className="px-2 py-1 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded flex items-center gap-1"
                                     title="Hide - Account didn't exist this month"
                                   >
