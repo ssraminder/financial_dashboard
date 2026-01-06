@@ -1027,6 +1027,7 @@ export default function Transactions() {
                         <TableHead className="w-20">Review</TableHead>
                         <TableHead className="w-16">Linked</TableHead>
                         <TableHead className="w-16">Edited</TableHead>
+                        <TableHead className="w-16">Lock</TableHead>
                         <TableHead className="w-20">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1139,6 +1140,18 @@ export default function Transactions() {
                                       )
                                     : ""
                                 }`}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {(transaction.is_locked || transaction.manually_locked) && (
+                              <Lock
+                                className="h-4 w-4 text-gray-600"
+                                title={
+                                  transaction.is_locked
+                                    ? "Statement confirmed - locked"
+                                    : "Manually locked"
+                                }
                               />
                             )}
                           </TableCell>
