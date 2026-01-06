@@ -44,7 +44,15 @@ const navigation = [
     ],
   },
   { name: "Transactions", href: "/transactions", icon: Sheet },
-  { name: "View Statements", href: "/statements", icon: Archive },
+  {
+    name: "Statements",
+    href: "/statements",
+    icon: Archive,
+    subItems: [
+      { name: "View Statements", href: "/statements" },
+      { name: "Statement Status", href: "/statements/status" },
+    ],
+  },
   { name: "Transfers", href: "/transfers", icon: ArrowLeftRight },
   { name: "Categories", href: "/categories", icon: Tag },
   { name: "Accounts", href: "/accounts", icon: Building2 },
