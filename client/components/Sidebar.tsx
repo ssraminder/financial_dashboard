@@ -15,6 +15,7 @@ import {
   ArrowLeftRight,
   Tag,
   Receipt,
+  Calendar,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
