@@ -490,30 +490,24 @@ export function ReceiptQueueStatus({
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-2">
-        {(
-          [
-            "all",
-            "queued",
-            "processing",
-            "completed",
-            "failed",
-          ] as const
-        ).map((status) => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(status)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg capitalize transition-colors ${
-              statusFilter === status
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {status}
-            {status !== "all" && stats && (
-              <span className="ml-1.5">({stats[status]})</span>
-            )}
-          </button>
-        ))}
+        {(["all", "queued", "processing", "completed", "failed"] as const).map(
+          (status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg capitalize transition-colors ${
+                statusFilter === status
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {status}
+              {status !== "all" && stats && (
+                <span className="ml-1.5">({stats[status]})</span>
+              )}
+            </button>
+          ),
+        )}
       </div>
 
       {/* Queue Items List */}

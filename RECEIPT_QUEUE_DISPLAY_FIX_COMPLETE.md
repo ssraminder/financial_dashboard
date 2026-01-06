@@ -15,12 +15,14 @@ Successfully fixed the Receipt Processing Queue page to display ALL queue items 
 ## Issue Fixed
 
 ### Before ❌
+
 - Summary counts showed correctly (3 Queued, 0 Processing, 8 Completed, 1 Failed)
 - List below only displayed completed and failed items
 - **Queued items were missing** from the display
 - No way to take actions on queued or failed items
 
 ### After ✅
+
 - Summary counts remain accurate
 - **All items now visible** in the list (queued, processing, completed, failed)
 - Filter tabs to view specific statuses
@@ -32,13 +34,14 @@ Successfully fixed the Receipt Processing Queue page to display ALL queue items 
 ## Root Cause
 
 Line 126 in the original code:
+
 ```typescript
 // ❌ BROKEN - Only fetching completed and failed
 const { data: recentData } = await supabase
   .from("receipt_upload_queue")
   .select(`*, receipt:receipts(vendor_name, total_amount)`)
-  .in("status", ["completed", "failed"])  // Missing queued and processing!
-  .order("completed_at", { ascending: false })  // completed_at is null for queued
+  .in("status", ["completed", "failed"]) // Missing queued and processing!
+  .order("completed_at", { ascending: false }) // completed_at is null for queued
   .limit(compactView ? 5 : 10);
 ```
 
@@ -49,21 +52,25 @@ const { data: recentData } = await supabase
 ### 1. ✅ Updated Fetch Query
 
 **New query (Line 112):**
+
 ```typescript
 // ✅ FIXED - Fetch ALL items
 const { data: itemsData } = await supabase
   .from("receipt_upload_queue")
-  .select(`
+  .select(
+    `
     *,
     receipt:receipts(vendor_name, total_amount)
-  `)
-  .order("created_at", { ascending: false })  // Use created_at (always exists)
-  .limit(100);  // Fetch up to 100 items
+  `,
+  )
+  .order("created_at", { ascending: false }) // Use created_at (always exists)
+  .limit(100); // Fetch up to 100 items
 
 setAllItems(itemsData || []);
 ```
 
 **Key improvements:**
+
 - Removed status filter (now fetches all statuses)
 - Changed ordering from `completed_at` to `created_at`
 - Increased limit from 10 to 100
@@ -98,6 +105,7 @@ const [statusFilter, setStatusFilter] = useState<
 ```
 
 **Filter options:**
+
 - **All** - Shows all items (default)
 - **Queued** - Only queued items (3)
 - **Processing** - Only processing items (0)
@@ -111,21 +119,23 @@ const [statusFilter, setStatusFilter] = useState<
 ```typescript
 const displayItems = useMemo(() => {
   // Filter by selected status
-  let filtered = statusFilter === "all" 
-    ? allItems 
-    : allItems.filter((item) => item.status === statusFilter);
+  let filtered =
+    statusFilter === "all"
+      ? allItems
+      : allItems.filter((item) => item.status === statusFilter);
 
   // Sort by status priority, then by date
   const statusOrder = {
-    processing: 0,  // Show first (urgent)
-    queued: 1,      // Show second (waiting)
-    failed: 2,      // Show third (needs attention)
-    completed: 3,   // Show last (done)
+    processing: 0, // Show first (urgent)
+    queued: 1, // Show second (waiting)
+    failed: 2, // Show third (needs attention)
+    completed: 3, // Show last (done)
   };
 
   return filtered.sort((a, b) => {
     // First, sort by status priority
-    const statusDiff = (statusOrder[a.status] ?? 4) - (statusOrder[b.status] ?? 4);
+    const statusDiff =
+      (statusOrder[a.status] ?? 4) - (statusOrder[b.status] ?? 4);
     if (statusDiff !== 0) return statusDiff;
 
     // Within same status, sort by newest first
@@ -135,6 +145,7 @@ const displayItems = useMemo(() => {
 ```
 
 **Sort order:**
+
 1. **Processing** - Active items shown first
 2. **Queued** - Waiting items shown next
 3. **Failed** - Items needing attention
@@ -176,6 +187,7 @@ const getStatusBadge = (status: string) => {
 ```
 
 **Visual indicators:**
+
 - 🟡 **Queued** - Yellow badge with clock icon
 - 🔵 **Processing** - Blue badge with spinning loader
 - 🟢 **Completed** - Green badge with checkmark
@@ -186,6 +198,7 @@ const getStatusBadge = (status: string) => {
 ### 5. ✅ Action Buttons by Status
 
 #### Queued Items
+
 ```typescript
 {item.status === "queued" && (
   <>
@@ -200,12 +213,14 @@ const getStatusBadge = (status: string) => {
 ```
 
 **Actions:**
+
 - **Process Now** - Immediately start processing (blue button)
 - **Cancel** - Remove from queue (red button)
 
 ---
 
 #### Failed Items
+
 ```typescript
 {item.status === "failed" && (
   <button onClick={() => handleRetry(item.id)}>
@@ -215,11 +230,13 @@ const getStatusBadge = (status: string) => {
 ```
 
 **Actions:**
+
 - **Retry** - Reset to queued status and try again (yellow button)
 
 ---
 
 #### Completed Items
+
 ```typescript
 {item.status === "completed" && item.receipt_id && (
   <button onClick={() => navigate(`/receipts?id=${item.receipt_id}`)}>
@@ -229,6 +246,7 @@ const getStatusBadge = (status: string) => {
 ```
 
 **Actions:**
+
 - **View** - Navigate to the created receipt (gray button)
 
 ---
@@ -236,6 +254,7 @@ const getStatusBadge = (status: string) => {
 ### 6. ✅ Handler Functions
 
 #### Process Now
+
 ```typescript
 const handleProcessNow = async (itemId: string) => {
   const { error } = await supabase
@@ -256,6 +275,7 @@ const handleProcessNow = async (itemId: string) => {
 ---
 
 #### Cancel
+
 ```typescript
 const handleCancel = async (itemId: string) => {
   const { error } = await supabase
@@ -273,6 +293,7 @@ const handleCancel = async (itemId: string) => {
 ---
 
 #### Retry
+
 ```typescript
 const handleRetry = async (itemId: string) => {
   const { error } = await supabase
@@ -297,6 +318,7 @@ const handleRetry = async (itemId: string) => {
 ## New UI Components
 
 ### Filter Tabs
+
 ```
 ┌────────────────────────────────────────────────┐
 │ [All] [Queued (3)] [Processing (0)]           │
@@ -305,6 +327,7 @@ const handleRetry = async (itemId: string) => {
 ```
 
 ### Queue Item (Queued)
+
 ```
 ┌────────────────────────────────────────────────┐
 │ 📄 receipt-2024-01.pdf                         │
@@ -313,6 +336,7 @@ const handleRetry = async (itemId: string) => {
 ```
 
 ### Queue Item (Failed)
+
 ```
 ┌────────────────────────────────────────────────┐
 │ 📄 receipt-corrupted.pdf                       │
@@ -322,6 +346,7 @@ const handleRetry = async (itemId: string) => {
 ```
 
 ### Queue Item (Completed)
+
 ```
 ┌────────────────────────────────────────────────┐
 │ 📄 receipt-2024-02.pdf                         │
@@ -335,6 +360,7 @@ const handleRetry = async (itemId: string) => {
 ## Visual Changes
 
 ### Before ❌
+
 ```
 Receipt Processing Queue
 
@@ -350,6 +376,7 @@ Recent Activity (Only showing completed/failed):
 ```
 
 ### After ✅
+
 ```
 Receipt Processing Queue
 
@@ -371,21 +398,22 @@ All Queue Items (12):
 
 ## Benefits
 
-| Feature | Before ❌ | After ✅ |
-|---------|----------|----------|
-| **Queued items visible** | No | Yes |
-| **Processing items visible** | No | Yes |
-| **Status filtering** | No | Yes (5 filters) |
-| **Smart sorting** | By completed_at only | By priority + date |
-| **Action buttons** | None | Process, Cancel, Retry, View |
-| **Total items limit** | 10 | 100 |
-| **Empty states** | Wrong condition | Fixed |
+| Feature                      | Before ❌            | After ✅                     |
+| ---------------------------- | -------------------- | ---------------------------- |
+| **Queued items visible**     | No                   | Yes                          |
+| **Processing items visible** | No                   | Yes                          |
+| **Status filtering**         | No                   | Yes (5 filters)              |
+| **Smart sorting**            | By completed_at only | By priority + date           |
+| **Action buttons**           | None                 | Process, Cancel, Retry, View |
+| **Total items limit**        | 10                   | 100                          |
+| **Empty states**             | Wrong condition      | Fixed                        |
 
 ---
 
 ## Technical Details
 
 ### State Management
+
 ```typescript
 const [allItems, setAllItems] = useState<QueueItem[]>([]);  // All fetched items
 const [statusFilter, setStatusFilter] = useState<...>("all");  // Current filter
@@ -393,6 +421,7 @@ const displayItems = useMemo(() => { ... }, [allItems, statusFilter]);  // Filte
 ```
 
 ### Performance
+
 - **Memoization:** `useMemo` prevents unnecessary re-sorting
 - **Real-time updates:** Supabase subscription refreshes on changes
 - **Auto-refresh:** Poll every 10 seconds (configurable)
@@ -403,6 +432,7 @@ const displayItems = useMemo(() => { ... }, [allItems, statusFilter]);  // Filte
 ## Empty State Fix
 
 ### Before ❌
+
 ```typescript
 if (
   stats?.queued === 0 &&
@@ -414,6 +444,7 @@ if (
 ```
 
 ### After ✅
+
 ```typescript
 if (
   stats?.queued === 0 &&
@@ -429,8 +460,8 @@ if (
 
 ## Files Modified
 
-| File | Changes | Lines |
-|------|---------|-------|
+| File                                       | Changes                                     | Lines            |
+| ------------------------------------------ | ------------------------------------------- | ---------------- |
 | `client/components/ReceiptQueueStatus.tsx` | Complete rewrite with filtering and actions | 449 → 663 (+214) |
 
 ---
@@ -438,6 +469,7 @@ if (
 ## New Dependencies (Icons)
 
 Added Lucide icons:
+
 - `Play` - Process Now button
 - `X` - Cancel button
 - `RotateCw` - Retry button
@@ -448,23 +480,27 @@ Added Lucide icons:
 ## Testing Recommendations
 
 ### 1. Test Queued Items Display
+
 - ✅ Upload 3 receipts
 - ✅ Verify all 3 appear in the "Queued" section
 - ✅ Verify they show yellow badges with clock icon
 
 ### 2. Test Filter Tabs
+
 - ✅ Click "All" - should show all items
 - ✅ Click "Queued" - should show only queued items
 - ✅ Click "Completed" - should show only completed items
 - ✅ Badge counts should match stats cards
 
 ### 3. Test Action Buttons
+
 - ✅ Click "Process Now" on queued item - should start processing
 - ✅ Click "Cancel" on queued item - should remove from queue
 - ✅ Click "Retry" on failed item - should reset to queued
 - ✅ Click "View" on completed item - should navigate to receipt
 
 ### 4. Test Sorting
+
 - ✅ Processing items should appear first
 - ✅ Then queued items
 - ✅ Then failed items
@@ -472,6 +508,7 @@ Added Lucide icons:
 - ✅ Within each status, newest should be first
 
 ### 5. Test Real-time Updates
+
 - ✅ Process an item - UI should update automatically
 - ✅ Add new item to queue - should appear immediately
 - ✅ Auto-refresh every 10 seconds
@@ -501,12 +538,14 @@ Added Lucide icons:
 ## Summary
 
 The Receipt Processing Queue now correctly displays ALL queue items including:
+
 - ✅ **3 Queued items** (previously hidden)
 - ✅ **0 Processing items**
 - ✅ **8 Completed items**
 - ✅ **1 Failed item**
 
 Users can now:
+
 - ✅ See all queued items waiting for processing
 - ✅ Filter by status type
 - ✅ Process items manually with "Process Now"
