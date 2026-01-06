@@ -86,6 +86,7 @@ const sidebarSections: SidebarSection[] = [
       { label: "Accounts", href: "/accounts" },
       { label: "Categories", href: "/categories" },
       { label: "Knowledge Base", href: "/admin/knowledge-base" },
+      { label: "User Management", href: "/admin/users" },
     ],
   },
   {
