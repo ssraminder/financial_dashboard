@@ -15,6 +15,7 @@ Fixed notification panel text overflow issue where notification titles were bein
 ## Investigation Findings
 
 ### Component Location
+
 - **File:** `client/components/NotificationBell.tsx`
 - **Dropdown Container:** Lines 258-262
 - **Parent Component:** Notification bell button in sidebar (bottom-left)
@@ -47,7 +48,7 @@ BEFORE (BROKEN):
                               └─────────────────┘
  ← Extends LEFT (clipped)              │
 ┌──────────────────────────────────────┘
-│ [Cut off text]                       
+│ [Cut off text]
 │ "ng Statement: Airwallex"    ← "Missi" is hidden
 │ (should show "Missing Sta...")
 └──────────────────────────────
@@ -66,11 +67,11 @@ className={`absolute left-0 w-80 max-w-[calc(100vw-10rem)] ...`}
 
 ### What This Changes
 
-| Property | Before | After | Effect |
-|----------|--------|-------|--------|
-| **Anchor Point** | `right-0` | `left-0` | Dropdown aligns to LEFT edge of parent |
-| **Extension Direction** | Extends left | Extends right | No clipping on left side |
-| **Text Visibility** | Cut off on left | Fully visible | Proper truncation with ellipsis |
+| Property                | Before          | After         | Effect                                 |
+| ----------------------- | --------------- | ------------- | -------------------------------------- |
+| **Anchor Point**        | `right-0`       | `left-0`      | Dropdown aligns to LEFT edge of parent |
+| **Extension Direction** | Extends left    | Extends right | No clipping on left side               |
+| **Text Visibility**     | Cut off on left | Fully visible | Proper truncation with ellipsis        |
 
 ---
 
@@ -114,15 +115,15 @@ AFTER (FIXED):
 ```typescript
 <div
   className={`
-    absolute 
+    absolute
     left-0                        // ✅ FIXED: Anchor to left
     w-80                          // Fixed width 320px
     max-w-[calc(100vw-10rem)]    // Don't exceed viewport
-    bg-white 
-    rounded-lg 
-    shadow-lg 
-    border 
-    border-gray-200 
+    bg-white
+    rounded-lg
+    shadow-lg
+    border
+    border-gray-200
     overflow-hidden              // Prevent content overflow
     z-50                         // Above other elements
     ${dropdownPosition === "top" ? "bottom-full mb-2" : "top-full mt-2"}
@@ -157,12 +158,12 @@ AFTER (FIXED):
               <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" />
             )}
           </div>
-          
+
           {/* Message - 2 lines max */}
           <p className="text-xs text-gray-500 line-clamp-2 break-words">
             {notification.message}
           </p>
-          
+
           {/* Timestamp */}
           <p className="text-xs text-gray-400 mt-1">
             {getTimeAgo(notification.created_at)}
@@ -178,30 +179,32 @@ AFTER (FIXED):
 
 ## Key CSS Properties (All Correct Now)
 
-| Property | Value | Purpose |
-|----------|-------|---------|
-| `position` | `absolute` | Float above page content |
-| `left` | `0` | ✅ **FIXED** - Anchor to left edge |
-| `width` | `320px` (w-80) | Fixed dropdown width |
-| `max-width` | `calc(100vw-10rem)` | Responsive on small screens |
-| `overflow` | `hidden` | Clip content to container |
-| `overflow-x-hidden` | Applied to list | Prevent horizontal scroll |
-| `min-w-0` | On text container | Allow text truncation |
-| `truncate` | On title | Show ellipsis for long titles |
-| `line-clamp-2` | On message | Limit to 2 lines |
-| `break-words` | On message | Wrap long words |
+| Property            | Value               | Purpose                            |
+| ------------------- | ------------------- | ---------------------------------- |
+| `position`          | `absolute`          | Float above page content           |
+| `left`              | `0`                 | ✅ **FIXED** - Anchor to left edge |
+| `width`             | `320px` (w-80)      | Fixed dropdown width               |
+| `max-width`         | `calc(100vw-10rem)` | Responsive on small screens        |
+| `overflow`          | `hidden`            | Clip content to container          |
+| `overflow-x-hidden` | Applied to list     | Prevent horizontal scroll          |
+| `min-w-0`           | On text container   | Allow text truncation              |
+| `truncate`          | On title            | Show ellipsis for long titles      |
+| `line-clamp-2`      | On message          | Limit to 2 lines                   |
+| `break-words`       | On message          | Wrap long words                    |
 
 ---
 
 ## Testing Results
 
 ### Before Fix ❌
+
 - ❌ Text cut off on left: "ng Statement: Airwallex"
 - ❌ First few characters hidden
 - ❌ Dropdown extended beyond visible area
 - ❌ Poor UX - couldn't read notification titles
 
 ### After Fix ✅
+
 - ✅ Full text visible: "Missing Statement: Airwa..."
 - ✅ Proper ellipsis truncation on the right
 - ✅ Dropdown fully within viewport
@@ -213,6 +216,7 @@ AFTER (FIXED):
 ## Related Issues Fixed
 
 This fix also resolves:
+
 1. ✅ Notification items appearing partially off-screen
 2. ✅ Difficulty reading notification content
 3. ✅ Inconsistent text truncation
@@ -231,9 +235,9 @@ This fix also resolves:
 
 ## Files Modified
 
-| File | Change | Lines |
-|------|--------|-------|
-| `client/components/NotificationBell.tsx` | Changed `right-0` to `left-0` | 259 |
+| File                                     | Change                        | Lines |
+| ---------------------------------------- | ----------------------------- | ----- |
+| `client/components/NotificationBell.tsx` | Changed `right-0` to `left-0` | 259   |
 
 **Net Change:** 1 word (5 characters)
 
@@ -242,6 +246,7 @@ This fix also resolves:
 ## Previous Related Fixes
 
 This complements the earlier notification overflow fixes from `NOTIFICATION_OVERFLOW_FIX_COMPLETE.md`:
+
 - ✅ Container max-width constraints
 - ✅ Text truncation with ellipsis
 - ✅ Message line clamping
@@ -255,6 +260,7 @@ All notification panel issues are now resolved.
 ## Testing Checklist
 
 After this fix, verify:
+
 - [x] Panel opens next to bell icon (not behind/beyond)
 - [x] Full notification titles visible (or properly truncated)
 - [x] Text reads left-to-right correctly
@@ -273,6 +279,7 @@ After this fix, verify:
 **Solution:** Changed anchor point from `right-0` to `left-0` so the dropdown extends rightward from the bell icon, keeping all content visible.
 
 **Result:** Notification titles now display correctly with proper truncation:
+
 - Before: "ng Statement: Airwallex" (cut off)
 - After: "Missing Statement: Airwa..." (full text with ellipsis)
 
