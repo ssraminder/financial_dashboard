@@ -25,6 +25,7 @@ const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 ```
 
 These states track whether:
+
 - `sessionReady`: User has a valid authenticated session
 - `needsEmailConfirmation`: User needs to check email for Supabase magic link
 
@@ -33,8 +34,10 @@ These states track whether:
 ```typescript
 const checkAndSetSession = async () => {
   // 1. Check for existing session
-  const { data: { session: existingSession } } = await supabase.auth.getSession();
-  
+  const {
+    data: { session: existingSession },
+  } = await supabase.auth.getSession();
+
   if (existingSession) {
     setSessionReady(true);
     return;
@@ -54,7 +57,11 @@ const checkAndSetSession = async () => {
     if (data.session) {
       setSessionReady(true);
       // Clean up hash from URL
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search,
+      );
       return;
     }
   }
@@ -65,6 +72,7 @@ const checkAndSetSession = async () => {
 ```
 
 **Flow Logic**:
+
 1. First tries to use any existing session
 2. If no session, checks for hash tokens (from Supabase magic link redirect)
 3. If hash tokens exist, sets the session and cleans up the URL
@@ -87,6 +95,7 @@ if (needsEmailConfirmation && invitation) {
 ```
 
 **Features**:
+
 - Clear visual indicator (Mail icon)
 - Shows the exact email address
 - Step-by-step instructions for users
@@ -103,9 +112,11 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   // Verify session is still valid
-  const { data: { user: currentUser }, error: getUserError } = 
-    await supabase.auth.getUser();
-  
+  const {
+    data: { user: currentUser },
+    error: getUserError,
+  } = await supabase.auth.getUser();
+
   if (getUserError || !currentUser) {
     setError("Session expired. Please click the confirmation link...");
     setSessionReady(false);
@@ -119,6 +130,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 ```
 
 **Safety Checks**:
+
 1. Validates `sessionReady` state before proceeding
 2. Re-verifies the session is still valid via `getUser()`
 3. If session expired, resets state and shows email confirmation screen
@@ -127,6 +139,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 ### 5. UI Improvements
 
 **Session Ready Indicator**:
+
 ```typescript
 {sessionReady && (
   <div className="bg-green-50 border border-green-200 p-3 rounded-lg mb-4">
@@ -180,10 +193,10 @@ The session check happens in the `useEffect` after invitation validation:
 useEffect(() => {
   const validateInvitation = async () => {
     // ... validate invitation ...
-    
+
     // Check session after invitation is valid
     await checkAndSetSession();
-    
+
     setValidating(false);
   };
 
@@ -197,9 +210,9 @@ After successfully setting a session from hash tokens, the URL is cleaned:
 
 ```typescript
 window.history.replaceState(
-  null, 
-  "", 
-  window.location.pathname + window.location.search
+  null,
+  "",
+  window.location.pathname + window.location.search,
 );
 ```
 
@@ -208,6 +221,7 @@ This removes the hash fragment for better security and UX, preventing accidental
 ### Error Recovery
 
 If the session expires during registration:
+
 - Form submission detects the invalid session
 - Resets `sessionReady` to `false`
 - Sets `needsEmailConfirmation` to `true`
@@ -217,39 +231,44 @@ If the session expires during registration:
 ## Testing Scenarios
 
 ### ✅ Test Case 1: First-Time User (No Session)
+
 - Navigate to `/auth/accept-invite?token=...` without logging in
 - Should see "Check Your Email" screen
 - Click "I've Clicked the Email Link" after using magic link
 - Should reload and show registration form
 
 ### ✅ Test Case 2: User Clicks Magic Link
+
 - Click Supabase magic link from email
 - Should redirect with hash tokens
 - Should show registration form immediately
 - Hash should be cleaned from URL after session is set
 
 ### ✅ Test Case 3: Already Logged In
+
 - Log in to the app first
 - Navigate to invitation link
 - Should show registration form immediately
 - Should use existing session
 
 ### ✅ Test Case 4: Session Expires During Registration
+
 - Start registration with valid session
 - Session expires (manually or timeout)
 - Try to submit form
 - Should show error and reset to email confirmation screen
 
 ### ✅ Test Case 5: Invalid/Expired Invitation
+
 - Use invalid or expired token
 - Should show "Invalid Invitation" error screen
 - Should not proceed to registration
 
 ## Files Changed
 
-| File | Changes | Lines Added |
-|------|---------|-------------|
-| `client/pages/AcceptInvite.tsx` | Complete session handling overhaul | +127 |
+| File                            | Changes                            | Lines Added |
+| ------------------------------- | ---------------------------------- | ----------- |
+| `client/pages/AcceptInvite.tsx` | Complete session handling overhaul | +127        |
 
 ## Key Improvements
 
@@ -263,12 +282,14 @@ If the session expires during registration:
 ## Integration Points
 
 ### Works With
+
 - **AdminUsers.tsx**: Invitation creation and link copying
 - **Supabase Auth**: Email magic link flow
 - **User Profiles**: Creates/updates user profile in database
 - **Edge Functions**: `invite-user` function that creates auth user
 
 ### Database Tables
+
 - `user_invitations`: Validates token and marks as accepted
 - `user_profiles`: Creates or updates user profile with role
 

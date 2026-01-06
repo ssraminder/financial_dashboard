@@ -5,7 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Loader2, AlertTriangle, CheckCircle, Mail } from "lucide-react";
+import {
+  FileText,
+  Loader2,
+  AlertTriangle,
+  CheckCircle,
+  Mail,
+} from "lucide-react";
 
 interface Invitation {
   id: string;
@@ -69,7 +75,7 @@ export default function AcceptInvite() {
 
         // Now check for session
         await checkAndSetSession();
-        
+
         setValidating(false);
       } catch (err) {
         console.error("Error validating invitation:", err);
@@ -84,8 +90,10 @@ export default function AcceptInvite() {
   const checkAndSetSession = async () => {
     try {
       // First, check if we already have a session
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session: existingSession },
+      } = await supabase.auth.getSession();
+
       if (existingSession) {
         setSessionReady(true);
         return;
@@ -112,7 +120,11 @@ export default function AcceptInvite() {
         if (data.session) {
           setSessionReady(true);
           // Clean up the hash from URL for better UX
-          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+          window.history.replaceState(
+            null,
+            "",
+            window.location.pathname + window.location.search,
+          );
           return;
         }
       }
@@ -131,7 +143,9 @@ export default function AcceptInvite() {
 
     // Validate we have a session
     if (!sessionReady) {
-      setError("You must confirm your email before setting a password. Please check your inbox for the confirmation link.");
+      setError(
+        "You must confirm your email before setting a password. Please check your inbox for the confirmation link.",
+      );
       return;
     }
 
@@ -155,10 +169,15 @@ export default function AcceptInvite() {
 
     try {
       // Verify we still have a valid session
-      const { data: { user: currentUser }, error: getUserError } = await supabase.auth.getUser();
-      
+      const {
+        data: { user: currentUser },
+        error: getUserError,
+      } = await supabase.auth.getUser();
+
       if (getUserError || !currentUser) {
-        setError("Session expired. Please click the confirmation link in your email again.");
+        setError(
+          "Session expired. Please click the confirmation link in your email again.",
+        );
         setLoading(false);
         setSessionReady(false);
         setNeedsEmailConfirmation(true);
@@ -329,9 +348,10 @@ export default function AcceptInvite() {
             {/* Help Text */}
             <div className="text-center space-y-4">
               <p className="text-sm text-gray-600">
-                Didn't receive the email? Check your spam folder or contact your administrator.
+                Didn't receive the email? Check your spam folder or contact your
+                administrator.
               </p>
-              
+
               <Button
                 variant="outline"
                 onClick={() => window.location.reload()}
@@ -396,7 +416,9 @@ export default function AcceptInvite() {
           {sessionReady && (
             <div className="bg-green-50 border border-green-200 p-3 rounded-lg mb-4 flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <p className="text-sm text-green-800">Email confirmed! You can now set your password.</p>
+              <p className="text-sm text-green-800">
+                Email confirmed! You can now set your password.
+              </p>
             </div>
           )}
 
