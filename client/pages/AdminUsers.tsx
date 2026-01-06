@@ -13,6 +13,8 @@ import {
   BarChart3,
   Crown,
   X,
+  Copy,
+  Check,
 } from "lucide-react";
 
 interface UserProfile {
@@ -76,6 +78,9 @@ export default function AdminUsers() {
 
   // Confirmation state
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Copy link state
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -215,6 +220,28 @@ export default function AdminUsers() {
     } catch (error: any) {
       console.error("Error cancelling invitation:", error);
       toast.error(error.message || "Failed to cancel invitation");
+    }
+  };
+
+  const copyInviteLink = async (token: string) => {
+    const link = `${window.location.origin}/auth/accept-invite?token=${token}`;
+
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedToken(token);
+      toast.success("Invitation link copied to clipboard!");
+
+      // Reset after 2 seconds
+      setTimeout(() => setCopiedToken(null), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      toast.success("Invitation link copied to clipboard!");
     }
   };
 
@@ -532,6 +559,9 @@ export default function AdminUsers() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Expires
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Link
+                    </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
@@ -568,6 +598,28 @@ export default function AdminUsers() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
                           {formatDate(inv.expires_at)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => copyInviteLink(inv.invitation_token)}
+                            className={`px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-1.5 ${
+                              copiedToken === inv.invitation_token
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
+                            {copiedToken === inv.invitation_token ? (
+                              <>
+                                <Check className="w-3 h-3" />
+                                Copied!
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3" />
+                                Copy Link
+                              </>
+                            )}
+                          </button>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button
