@@ -269,7 +269,7 @@ export default function StatementStatus() {
   };
 
   // Group by month for display
-  const groupedByMonth = filteredStatements.reduce(
+  const groupedByMonth = displayStatements.reduce(
     (acc, s) => {
       const key = `${s.period_year}-${s.period_month}`;
       if (!acc[key]) {
