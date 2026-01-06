@@ -256,7 +256,7 @@ export function NotificationBell({
       {/* Dropdown */}
       {isOpen && (
         <div
-          className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50 ${
+          className={`absolute left-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50 ${
             dropdownPosition === "top" ? "bottom-full mb-2" : "top-full mt-2"
           }`}
         >
