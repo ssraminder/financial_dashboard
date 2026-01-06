@@ -691,31 +691,75 @@ export default function StatementStatus() {
                               {formatDateSafe(statement.actual_end)}
                             </div>
                           )}
-                          <StatusBadge status={statement.status} />
-                          {statement.status === "missing" ? (
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/upload?account=${statement.bank_account_id}`,
-                                )
-                              }
-                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                            >
-                              Upload
-                            </button>
-                          ) : (
-                            statement.statement_import_id && (
+
+                          {/* Check if this item is hidden */}
+                          {showHidden && exclusionSet.has(`${statement.bank_account_id}-${statement.period_year}-${statement.period_month}`) ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-400 text-sm italic">Hidden</span>
                               <button
-                                onClick={() =>
-                                  navigate(
-                                    `/statements?statement=${statement.statement_import_id}`,
-                                  )
-                                }
+                                onClick={() => handleRestoreAccount(statement)}
                                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
+                                title="Restore - Show this account again"
                               >
                                 <Eye className="w-4 h-4" />
+                                Restore
                               </button>
-                            )
+                            </div>
+                          ) : (
+                            <>
+                              {/* For pending_review or uploaded status - show badge and View button */}
+                              {(statement.status === 'pending_review' || statement.status === 'uploaded') && statement.statement_import_id && (
+                                <>
+                                  <StatusBadge status={statement.status} />
+                                  <button
+                                    onClick={() => handleViewStatement(statement.statement_import_id!)}
+                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
+                                    title="View Statement"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                    View
+                                  </button>
+                                </>
+                              )}
+
+                              {/* For confirmed status - show badge and View button */}
+                              {statement.status === 'confirmed' && statement.statement_import_id && (
+                                <>
+                                  <StatusBadge status={statement.status} />
+                                  <button
+                                    onClick={() => handleViewStatement(statement.statement_import_id!)}
+                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
+                                    title="View Statement"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                </>
+                              )}
+
+                              {/* For missing status - show Hide and Upload buttons */}
+                              {statement.status === 'missing' && (
+                                <div className="flex items-center gap-2">
+                                  <StatusBadge status={statement.status} />
+                                  <button
+                                    onClick={() => handleExcludeAccount(statement)}
+                                    className="px-2 py-1 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded flex items-center gap-1"
+                                    title="Hide - Account didn't exist this month"
+                                  >
+                                    <EyeOff className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      navigate(
+                                        `/upload?account=${statement.bank_account_id}`,
+                                      )
+                                    }
+                                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                                  >
+                                    Upload
+                                  </button>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
