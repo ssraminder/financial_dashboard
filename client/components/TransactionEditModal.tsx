@@ -31,6 +31,7 @@ import {
   Link2,
   ChevronDown,
   ChevronUp,
+  Lock,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -60,6 +61,10 @@ interface Transaction {
   needs_review: boolean;
   review_reason?: string;
   is_edited?: boolean;
+  manually_locked?: boolean;
+  manually_locked_at?: string;
+  manually_locked_by?: string;
+  is_locked?: boolean;
 }
 
 interface AIRecommendation {
@@ -113,6 +118,7 @@ export function TransactionEditModal({
   const [gstAmount, setGstAmount] = useState(0);
   const [needsReview, setNeedsReview] = useState(false);
   const [contextText, setContextText] = useState("");
+  const [manuallyLocked, setManuallyLocked] = useState(false);
 
   // AI processing state
   const [isProcessing, setIsProcessing] = useState(false);
@@ -145,6 +151,7 @@ export function TransactionEditModal({
       setGstAmount(transaction.gst_amount || 0);
       setNeedsReview(transaction.needs_review || false);
       setContextText("");
+      setManuallyLocked(transaction.manually_locked || false);
       setError(null);
       setShowAiResults(false);
       setAiResults(null);
@@ -155,24 +162,40 @@ export function TransactionEditModal({
     if (!transaction) return;
 
     try {
+      const updates: any = {
+        payee_name: payeeName,
+        category_id: selectedCategoryId,
+        has_gst: hasGst,
+        gst_amount: hasGst ? gstAmount : 0,
+        needs_review: needsReview,
+        is_edited: true,
+        edited_at: new Date().toISOString(),
+        manually_locked: manuallyLocked,
+      };
+
+      // Only set lock timestamp if locking (not unlocking)
+      if (manuallyLocked && !transaction.manually_locked) {
+        updates.manually_locked_at = new Date().toISOString();
+      }
+
+      // Clear lock timestamp if unlocking
+      if (!manuallyLocked && transaction.manually_locked) {
+        updates.manually_locked_at = null;
+        updates.manually_locked_by = null;
+      }
+
       const { error: updateError } = await supabase
         .from("transactions")
-        .update({
-          payee_name: payeeName,
-          category_id: selectedCategoryId,
-          has_gst: hasGst,
-          gst_amount: hasGst ? gstAmount : 0,
-          needs_review: needsReview,
-          is_edited: true,
-          edited_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq("id", transaction.id);
 
       if (updateError) throw updateError;
 
       toast({
         title: "Success",
-        description: "Transaction changes saved!",
+        description: manuallyLocked
+          ? "Transaction saved and locked!"
+          : "Transaction changes saved!",
       });
 
       onSave();
@@ -192,17 +215,31 @@ export function TransactionEditModal({
 
     // First save the basic changes
     try {
+      const updates: any = {
+        payee_name: payeeName,
+        category_id: selectedCategoryId,
+        has_gst: hasGst,
+        gst_amount: hasGst ? gstAmount : 0,
+        needs_review: needsReview,
+        is_edited: true,
+        edited_at: new Date().toISOString(),
+        manually_locked: manuallyLocked,
+      };
+
+      // Only set lock timestamp if locking (not unlocking)
+      if (manuallyLocked && !transaction.manually_locked) {
+        updates.manually_locked_at = new Date().toISOString();
+      }
+
+      // Clear lock timestamp if unlocking
+      if (!manuallyLocked && transaction.manually_locked) {
+        updates.manually_locked_at = null;
+        updates.manually_locked_by = null;
+      }
+
       await supabase
         .from("transactions")
-        .update({
-          payee_name: payeeName,
-          category_id: selectedCategoryId,
-          has_gst: hasGst,
-          gst_amount: hasGst ? gstAmount : 0,
-          needs_review: needsReview,
-          is_edited: true,
-          edited_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq("id", transaction.id);
     } catch (err) {
       setError("Failed to save changes");
@@ -529,6 +566,32 @@ export function TransactionEditModal({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Lock & Protect */}
+            <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Lock className="h-4 w-4 text-gray-600" />
+                <span className="font-medium text-gray-700">Lock & Protect</span>
+              </div>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <Checkbox
+                  id="manually-locked"
+                  checked={manuallyLocked}
+                  onCheckedChange={(checked) =>
+                    setManuallyLocked(checked as boolean)
+                  }
+                  className="mt-1"
+                />
+                <div>
+                  <Label htmlFor="manually-locked" className="cursor-pointer text-sm text-gray-700">
+                    Lock this transaction
+                  </Label>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Prevent re-analysis from changing this transaction. You can still edit it manually.
+                  </p>
+                </div>
+              </label>
+            </div>
 
             {/* AI Context */}
             <Card>
