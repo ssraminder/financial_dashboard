@@ -19,6 +19,7 @@ Successfully added a "Copy Link" button to the Pending Invitations table, allowi
 Added a new column to the Pending Invitations table with a copy button for each invitation.
 
 **Table Headers:**
+
 ```
 | Email | Role | Sent | Expires | Link | Actions |
 ```
@@ -51,6 +52,7 @@ const copyInviteLink = async (token: string) => {
 ```
 
 **Features:**
+
 - ✅ Uses modern `navigator.clipboard.writeText()` API
 - ✅ Fallback for older browsers using `document.execCommand()`
 - ✅ Dynamic link generation using `window.location.origin`
@@ -83,6 +85,7 @@ const copyInviteLink = async (token: string) => {
 ```
 
 **States:**
+
 - **Default:** Gray button with Copy icon + "Copy Link" text
 - **Copied:** Green button with Check icon + "Copied!" text (2 seconds)
 
@@ -98,8 +101,8 @@ Tracks which invitation link was just copied to show visual feedback.
 
 ```typescript
 import {
-  Copy,   // Copy icon for the button
-  Check,  // Checkmark icon for copied state
+  Copy, // Copy icon for the button
+  Check, // Checkmark icon for copied state
 } from "lucide-react";
 ```
 
@@ -108,6 +111,7 @@ import {
 ## Visual Design
 
 ### Table Row (Before)
+
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │ Email          │ Role      │ Sent  │ Expires │ Actions      │
@@ -117,6 +121,7 @@ import {
 ```
 
 ### Table Row (After) ✅
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ Email          │ Role      │ Sent  │ Expires │ Link      │ Actions      │
@@ -128,6 +133,7 @@ import {
 ### Copy Button States
 
 **Default State:**
+
 ```
 ┌──────────────┐
 │ 📋 Copy Link │  (Gray background)
@@ -135,6 +141,7 @@ import {
 ```
 
 **Copied State (2 seconds):**
+
 ```
 ┌──────────────┐
 │ ✓ Copied!    │  (Green background)
@@ -152,6 +159,7 @@ https://cethos-finance.netlify.app/auth/accept-invite?token=ec856a5d-ed45-4285-b
 ```
 
 **Dynamic Origin:**
+
 - Production: `https://cethos-finance.netlify.app`
 - Development: `http://localhost:5173`
 - Staging: `https://staging-cethos.netlify.app`
@@ -176,6 +184,7 @@ Uses `window.location.origin` to automatically adapt to the current environment.
 ## Browser Compatibility
 
 ### Modern Browsers (Clipboard API)
+
 - ✅ Chrome 63+
 - ✅ Edge 79+
 - ✅ Firefox 53+
@@ -183,6 +192,7 @@ Uses `window.location.origin` to automatically adapt to the current environment.
 - ✅ Opera 50+
 
 ### Older Browsers (Fallback)
+
 - ✅ Internet Explorer 11
 - ✅ Safari < 13.1
 - ✅ Older mobile browsers
@@ -194,12 +204,14 @@ The fallback uses `document.execCommand('copy')` which is supported in all brows
 ## Benefits
 
 ### For Admins
+
 - ✅ **Quick sharing** - One click to copy invitation link
 - ✅ **Manual control** - Can share via any channel (email, Slack, WhatsApp, etc.)
 - ✅ **No email dependency** - Works even if email delivery fails
 - ✅ **Instant feedback** - Visual confirmation that link was copied
 
 ### For Users
+
 - ✅ **Flexible delivery** - Receive link through preferred channel
 - ✅ **Reliable** - No spam folder or email delivery issues
 - ✅ **Fast onboarding** - Can complete registration immediately
@@ -210,26 +222,30 @@ The fallback uses `document.execCommand('copy')` which is supported in all brows
 
 ### Files Modified
 
-| File | Changes | Lines |
-|------|---------|-------|
-| `client/pages/AdminUsers.tsx` | Added copy link feature | +40 |
+| File                          | Changes                 | Lines |
+| ----------------------------- | ----------------------- | ----- |
+| `client/pages/AdminUsers.tsx` | Added copy link feature | +40   |
 
 ### New Imports
+
 ```typescript
 import { Copy, Check } from "lucide-react";
 ```
 
 ### New State
+
 ```typescript
 const [copiedToken, setCopiedToken] = useState<string | null>(null);
 ```
 
 ### New Function
+
 ```typescript
 const copyInviteLink = async (token: string) => { ... }
 ```
 
 ### Updated Table
+
 - Added "Link" column header
 - Added copy button cell
 - Updated table structure
@@ -239,6 +255,7 @@ const copyInviteLink = async (token: string) => { ... }
 ## Testing Checklist
 
 ### Functionality
+
 - [x] Copy button copies correct link
 - [x] Link includes correct token
 - [x] Link uses current domain
@@ -247,18 +264,21 @@ const copyInviteLink = async (token: string) => { ... }
 - [x] Button reverts after 2 seconds
 
 ### Browser Compatibility
+
 - [x] Works in Chrome (Clipboard API)
 - [x] Works in Firefox (Clipboard API)
 - [x] Works in Safari (Clipboard API)
 - [x] Works in older browsers (fallback)
 
 ### Edge Cases
+
 - [x] Multiple rapid clicks handled correctly
 - [x] Copying different invitations works
 - [x] State resets properly
 - [x] Link format is valid URL
 
 ### Visual
+
 - [x] Button aligns properly
 - [x] Icon displays correctly
 - [x] Colors match design system
@@ -270,15 +290,19 @@ const copyInviteLink = async (token: string) => { ... }
 ## Alternative Use Cases
 
 ### 1. Sharing via Slack
+
 Admin copies link and pastes in Slack DM or channel.
 
 ### 2. SMS/WhatsApp
+
 Admin copies link and sends via text message.
 
 ### 3. In-Person Onboarding
+
 Admin copies link and sends to user's personal email while helping them set up.
 
 ### 4. Bulk Invitations
+
 Admin can copy multiple links and send them through a preferred mass communication tool.
 
 ---
@@ -299,12 +323,14 @@ Admin can copy multiple links and send them through a preferred mass communicati
 ## Security Considerations
 
 ### Link Security
+
 - ✅ Token is UUID v4 (cryptographically random)
 - ✅ Token expires after set duration
 - ✅ Token can only be used once
 - ✅ No sensitive data in URL (only token)
 
 ### Clipboard Security
+
 - ✅ Only copies to clipboard, doesn't read
 - ✅ No access to other clipboard content
 - ✅ User action required (button click)
