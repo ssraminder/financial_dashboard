@@ -746,7 +746,9 @@ export function ReceiptQueueStatus({
                           <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg p-3 z-20 w-48">
                             <div className="flex items-start gap-2 mb-2">
                               <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                              <p className="text-sm text-gray-700">Delete this item?</p>
+                              <p className="text-sm text-gray-700">
+                                Delete this item?
+                              </p>
                             </div>
                             <div className="flex gap-2">
                               <button
@@ -782,7 +784,8 @@ export function ReceiptQueueStatus({
               <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {bulkConfirm === "clear_completed" && "Clear Completed Items?"}
+                  {bulkConfirm === "clear_completed" &&
+                    "Clear Completed Items?"}
                   {bulkConfirm === "clear_all" && "Clear All Items?"}
                 </h3>
                 <p className="text-sm text-gray-600">
