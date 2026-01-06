@@ -28,9 +28,11 @@ The invitation link contains two tokens:
 ```
 
 **Query Parameters:**
+
 - `token` - Custom invitation token from `user_invitations` table
 
 **Hash Parameters (after #):**
+
 - `access_token` - Supabase auth token
 - `refresh_token` - Supabase refresh token
 - `type=invite` - Indicates this is an invite flow
@@ -42,6 +44,7 @@ The invitation link contains two tokens:
 ### 1. ✅ Token Validation
 
 **On Page Load:**
+
 ```typescript
 useEffect(() => {
   const validateInvitation = async () => {
@@ -73,6 +76,7 @@ useEffect(() => {
 ```
 
 **Validation Checks:**
+
 - ✅ Token exists in URL
 - ✅ Token matches database record
 - ✅ Invitation status is "pending"
@@ -83,11 +87,13 @@ useEffect(() => {
 ### 2. ✅ Registration Form
 
 **Fields:**
+
 - **Full Name** (optional) - Defaults to email username if not provided
 - **Password** (required) - Minimum 8 characters
 - **Confirm Password** (required) - Must match password
 
 **Validation:**
+
 ```typescript
 // Password length
 if (password.length < 8) {
@@ -130,8 +136,10 @@ const handleSubmit = async (e) => {
   });
 
   // 4. Create or update user profile
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   await supabase.from("user_profiles").insert({
     id: user.id,
     email: invitation.email,
@@ -160,6 +168,7 @@ const handleSubmit = async (e) => {
 ### 4. ✅ UI States
 
 #### Loading State
+
 ```tsx
 <div className="text-center">
   <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
@@ -168,18 +177,18 @@ const handleSubmit = async (e) => {
 ```
 
 #### Invalid/Expired State
+
 ```tsx
 <Card>
   <AlertTriangle className="w-16 h-16 text-red-500" />
   <h1>Invalid Invitation</h1>
   <p>{error}</p>
-  <Button onClick={() => navigate("/login")}>
-    Go to Login
-  </Button>
+  <Button onClick={() => navigate("/login")}>Go to Login</Button>
 </Card>
 ```
 
 #### Success State
+
 ```tsx
 <Card>
   <CheckCircle className="w-16 h-16 text-green-500" />
@@ -190,6 +199,7 @@ const handleSubmit = async (e) => {
 ```
 
 #### Registration Form State
+
 ```tsx
 <Card>
   <CardHeader>
@@ -197,7 +207,7 @@ const handleSubmit = async (e) => {
     <h1>Welcome to Cethos</h1>
     <p>Complete your account setup</p>
   </CardHeader>
-  
+
   <CardContent>
     {/* Invitation Info Box */}
     <div className="bg-blue-50 border border-blue-200">
@@ -221,6 +231,7 @@ const handleSubmit = async (e) => {
 ## Visual Design
 
 ### Registration Form
+
 ```
 ┌────────────────────────────────────────────┐
 │                                            │
@@ -259,6 +270,7 @@ const handleSubmit = async (e) => {
 ```
 
 ### Success Screen
+
 ```
 ┌────────────────────────────────────────────┐
 │                                            │
@@ -281,18 +293,19 @@ const handleSubmit = async (e) => {
 
 ### Validation Errors
 
-| Condition | Error Message |
-|-----------|---------------|
-| No token in URL | "Invalid invitation link - no token provided" |
-| Token not found in DB | "This invitation is invalid or has already been used" |
-| Invitation expired | "This invitation has expired. Please request a new one." |
-| Password too short | "Password must be at least 8 characters" |
-| Passwords don't match | "Passwords do not match" |
-| Registration failed | "Failed to complete registration" |
+| Condition             | Error Message                                            |
+| --------------------- | -------------------------------------------------------- |
+| No token in URL       | "Invalid invitation link - no token provided"            |
+| Token not found in DB | "This invitation is invalid or has already been used"    |
+| Invitation expired    | "This invitation has expired. Please request a new one." |
+| Password too short    | "Password must be at least 8 characters"                 |
+| Passwords don't match | "Passwords do not match"                                 |
+| Registration failed   | "Failed to complete registration"                        |
 
 ### Database Errors
 
 All database errors are caught and displayed to the user:
+
 ```typescript
 try {
   // Registration logic
@@ -307,6 +320,7 @@ try {
 ## Database Operations
 
 ### 1. Validate Invitation
+
 ```sql
 SELECT * FROM user_invitations
 WHERE invitation_token = ?
@@ -315,21 +329,23 @@ LIMIT 1
 ```
 
 ### 2. Create User Profile
+
 ```sql
 INSERT INTO user_profiles (
-  id, 
-  email, 
-  full_name, 
-  role, 
+  id,
+  email,
+  full_name,
+  role,
   is_active,
   last_login_at
 ) VALUES (?, ?, ?, ?, true, NOW())
 ```
 
 ### 3. Mark Invitation as Accepted
+
 ```sql
 UPDATE user_invitations
-SET 
+SET
   status = 'accepted',
   accepted_at = NOW()
 WHERE id = ?
@@ -341,35 +357,37 @@ WHERE id = ?
 
 Uses existing UI components for consistency:
 
-| Component | From | Usage |
-|-----------|------|-------|
-| `Card` | `@/components/ui/card` | Main container |
-| `CardHeader` | `@/components/ui/card` | Page header |
-| `CardContent` | `@/components/ui/card` | Form content |
-| `Button` | `@/components/ui/button` | Submit button |
-| `Input` | `@/components/ui/input` | Form inputs |
-| `Label` | `@/components/ui/label` | Input labels |
-| `FileText` | `lucide-react` | Logo icon |
-| `Loader2` | `lucide-react` | Loading spinner |
-| `AlertTriangle` | `lucide-react` | Error icon |
-| `CheckCircle` | `lucide-react` | Success icon |
+| Component       | From                     | Usage           |
+| --------------- | ------------------------ | --------------- |
+| `Card`          | `@/components/ui/card`   | Main container  |
+| `CardHeader`    | `@/components/ui/card`   | Page header     |
+| `CardContent`   | `@/components/ui/card`   | Form content    |
+| `Button`        | `@/components/ui/button` | Submit button   |
+| `Input`         | `@/components/ui/input`  | Form inputs     |
+| `Label`         | `@/components/ui/label`  | Input labels    |
+| `FileText`      | `lucide-react`           | Logo icon       |
+| `Loader2`       | `lucide-react`           | Loading spinner |
+| `AlertTriangle` | `lucide-react`           | Error icon      |
+| `CheckCircle`   | `lucide-react`           | Success icon    |
 
 ---
 
 ## Files Modified
 
-| File | Changes | Lines |
-|------|---------|-------|
-| `client/pages/AcceptInvite.tsx` | NEW - Accept invite page | 366 |
-| `client/App.tsx` | Added route import | +1 |
-| `client/App.tsx` | Added route definition | +1 |
+| File                            | Changes                  | Lines |
+| ------------------------------- | ------------------------ | ----- |
+| `client/pages/AcceptInvite.tsx` | NEW - Accept invite page | 366   |
+| `client/App.tsx`                | Added route import       | +1    |
+| `client/App.tsx`                | Added route definition   | +1    |
 
 ---
 
 ## Integration Points
 
 ### With User Management
+
 When admin invites a user:
+
 1. Admin clicks "Invite User" in User Management
 2. System creates record in `user_invitations` with `invitation_token`
 3. Edge Function sends email with link to `/auth/accept-invite?token=...`
@@ -378,6 +396,7 @@ When admin invites a user:
 6. Invitation marked as "accepted"
 
 ### With Authentication
+
 - Uses Supabase Auth for session management
 - Extracts `access_token` and `refresh_token` from URL hash
 - Sets session before updating password
@@ -414,6 +433,7 @@ When admin invites a user:
 ## Testing Checklist
 
 ### Token Validation
+
 - [x] Valid token loads form
 - [x] Invalid token shows error
 - [x] Expired token shows error
@@ -421,12 +441,14 @@ When admin invites a user:
 - [x] Already used token shows error
 
 ### Form Validation
+
 - [x] Password < 8 chars shows error
 - [x] Passwords don't match shows error
 - [x] Empty required fields prevented
 - [x] Submit button disabled while loading
 
 ### Account Creation
+
 - [x] User profile created with correct role
 - [x] Password set successfully
 - [x] Full name saved (or defaults to email)
@@ -434,6 +456,7 @@ When admin invites a user:
 - [x] Last login timestamp set
 
 ### UI States
+
 - [x] Loading spinner shows while validating
 - [x] Error state displays correctly
 - [x] Success state displays correctly
@@ -441,6 +464,7 @@ When admin invites a user:
 - [x] Auto-redirect works after 2s
 
 ### Edge Cases
+
 - [x] User refreshes page mid-registration
 - [x] User navigates back after success
 - [x] Token from cancelled invitation
@@ -451,18 +475,21 @@ When admin invites a user:
 ## Security Considerations
 
 ### Token Security
+
 - ✅ Token is UUID v4 (cryptographically random)
 - ✅ Token expires after set duration
 - ✅ Token can only be used once
 - ✅ Token checked against database
 
 ### Password Security
+
 - ✅ Minimum 8 characters enforced
 - ✅ Password stored as hash by Supabase
 - ✅ Password not logged or exposed
 - ✅ Confirm password prevents typos
 
 ### Session Security
+
 - ✅ Session tokens from Supabase Auth
 - ✅ Tokens validated before use
 - ✅ Session set securely

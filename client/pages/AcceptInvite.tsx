@@ -224,9 +224,7 @@ export default function AcceptInvite() {
           <CardContent className="pt-6">
             <div className="text-center">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h1 className="text-xl font-bold text-gray-900 mb-2">
-                Welcome!
-              </h1>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome!</h1>
               <p className="text-gray-600 mb-4">
                 Your account has been created successfully.
               </p>
