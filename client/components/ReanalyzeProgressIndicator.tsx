@@ -65,7 +65,9 @@ const StatusSteps = ({ batch }: StatusStepsProps) => {
     {
       key: "transfers",
       label: "Transfer detection",
-      done: ["matching_kb", "processing_ai", "completed"].includes(batch.status),
+      done: ["matching_kb", "processing_ai", "completed"].includes(
+        batch.status,
+      ),
       active: batch.status === "detecting_transfers",
       result:
         batch.transfers_detected > 0
@@ -321,9 +323,7 @@ export function ReanalyzeProgressIndicator({
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-medium flex items-center gap-2">
-          {isActive && (
-            <span className="animate-pulse text-lg">🔄</span>
-          )}
+          {isActive && <span className="animate-pulse text-lg">🔄</span>}
           {isCompleted && <CheckCircle className="w-5 h-5 text-green-600" />}
           {(isFailed || isCancelled) && (
             <XCircle className="w-5 h-5 text-red-600" />

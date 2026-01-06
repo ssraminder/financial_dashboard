@@ -1,6 +1,7 @@
 # Re-Analyze Progress Indicator - Implementation Complete
 
 ## Version 1.0.0
+
 **Date:** January 6, 2026
 
 ---
@@ -66,6 +67,7 @@ Successfully implemented a live progress indicator component that shows real-tim
 ### 2. Integration with Transactions Page
 
 **Seamless integration:**
+
 - Appears at top of page (below header)
 - Auto-shows when batch exists
 - Auto-hides when dismissed
@@ -75,11 +77,18 @@ Successfully implemented a live progress indicator component that shows real-tim
 ### 3. Data Model Support
 
 **Polls `reanalyze_batches` table:**
+
 ```typescript
 interface ReanalyzeBatch {
   id: string;
-  status: 'pending' | 'detecting_transfers' | 'matching_kb' | 
-          'processing_ai' | 'completed' | 'failed' | 'cancelled';
+  status:
+    | "pending"
+    | "detecting_transfers"
+    | "matching_kb"
+    | "processing_ai"
+    | "completed"
+    | "failed"
+    | "cancelled";
   total_transactions: number;
   progress_current: number;
   progress_total: number;
@@ -101,10 +110,10 @@ interface ReanalyzeBatch {
 
 ## File Changes
 
-| File                                            | Changes                                   |
-| ----------------------------------------------- | ----------------------------------------- |
-| `client/components/ReanalyzeProgressIndicator.tsx` | **NEW** - Complete component (441 lines)  |
-| `client/pages/Transactions.tsx`                 | Added import and component integration    |
+| File                                               | Changes                                  |
+| -------------------------------------------------- | ---------------------------------------- |
+| `client/components/ReanalyzeProgressIndicator.tsx` | **NEW** - Complete component (441 lines) |
+| `client/pages/Transactions.tsx`                    | Added import and component integration   |
 
 ---
 
@@ -124,11 +133,13 @@ interface ReanalyzeBatch {
 ### Sub-Components
 
 **ProgressBar:**
+
 - Shows percentage and counter
 - Animated fill bar
 - Blue gradient styling
 
 **StatusSteps:**
+
 - Three-step progress tracker
 - Icons for each state (done/active/pending)
 - Shows results inline when available
@@ -226,12 +237,14 @@ interface ReanalyzeBatch {
 ### 1. Intelligent Polling
 
 **Auto-detection:**
+
 - Checks for active batches on mount
 - Starts polling only when batch exists
 - Stops polling when batch completes
 - Shows recently completed batches briefly
 
 **Efficient polling:**
+
 - 2-second interval (not too aggressive)
 - Uses `.maybeSingle()` for null safety
 - Fallback check for recent completions
@@ -240,11 +253,13 @@ interface ReanalyzeBatch {
 ### 2. Progress Calculation
 
 **Percentage:**
+
 ```typescript
 const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
 ```
 
 **Estimated Time:**
+
 ```typescript
 const remaining = batch.progress_total - batch.progress_current;
 const secondsPerItem = 2;
@@ -254,11 +269,13 @@ const totalSeconds = remaining * secondsPerItem;
 ### 3. Status Step Logic
 
 **Determines step state:**
+
 - `done`: Status is past this step
 - `active`: Status matches this step
 - `pending`: Status hasn't reached this step yet
 
 **Shows results:**
+
 - Transfer detection: "2 pairs found"
 - KB matching: "20 matched"
 - AI categorization: "12 matched"
@@ -266,6 +283,7 @@ const totalSeconds = remaining * secondsPerItem;
 ### 4. Action Handlers
 
 **Cancel:**
+
 - Confirms with user
 - Updates status to 'cancelled'
 - Sets completed_at timestamp
@@ -273,11 +291,13 @@ const totalSeconds = remaining * secondsPerItem;
 - Shows toast notification
 
 **Dismiss:**
+
 - Hides component
 - Calls onComplete callback
 - Refreshes transaction list
 
 **Retry:**
+
 - Resets status to 'pending'
 - Clears error message
 - Restarts polling
@@ -337,6 +357,7 @@ const totalSeconds = remaining * secondsPerItem;
 ## Progress Message Examples
 
 The `progress_message` field can show:
+
 - "Analyzing transaction patterns..."
 - "Matching against 1,234 knowledge base entries..."
 - "Processing AI categorization (batch 1 of 3)..."
@@ -346,27 +367,30 @@ The `progress_message` field can show:
 
 ## Color Scheme
 
-| State     | Background | Border  | Icon | Text    |
-| --------- | ---------- | ------- | ---- | ------- |
-| Active    | Blue-50    | Blue-200| 🔄   | Blue-600|
-| Completed | Green-50   | Green-200| ✅  | Green-600|
-| Failed    | Red-50     | Red-200  | ❌  | Red-600 |
+| State     | Background | Border    | Icon | Text      |
+| --------- | ---------- | --------- | ---- | --------- |
+| Active    | Blue-50    | Blue-200  | 🔄   | Blue-600  |
+| Completed | Green-50   | Green-200 | ✅   | Green-600 |
+| Failed    | Red-50     | Red-200   | ❌   | Red-600   |
 
 ---
 
 ## Animations
 
 **Progress Bar:**
+
 - Transition: `all 300ms`
 - Smooth width changes
 - Blue gradient fill
 
 **Spinner Icon:**
+
 - `animate-spin` class
 - Continuous rotation
 - Appears on active steps
 
 **Pulse Icon:**
+
 - `animate-pulse` class
 - Pulsing 🔄 emoji
 - Header indicator
@@ -376,16 +400,19 @@ The `progress_message` field can show:
 ## Error Handling
 
 **Network Errors:**
+
 - Logs to console
 - Doesn't crash component
 - Continues polling
 
 **Missing Data:**
+
 - Handles null batches gracefully
 - Uses `.maybeSingle()` for safety
 - Defaults to empty state
 
 **Cancellation:**
+
 - Confirms with user first
 - Handles rejection gracefully
 - Shows appropriate feedback
@@ -439,6 +466,7 @@ The `progress_message` field can show:
 ### Transactions Page Changes
 
 **Before:**
+
 ```tsx
 <div>
   <h1>Transactions</h1>
@@ -451,6 +479,7 @@ The `progress_message` field can show:
 ```
 
 **After:**
+
 ```tsx
 <div>
   <h1>Transactions</h1>
@@ -490,6 +519,7 @@ The `progress_message` field can show:
 **Table: `reanalyze_batches`**
 
 Must exist with proper columns and indexes. Backend process should:
+
 1. Create batch record on queue request
 2. Update `status` as processing progresses
 3. Update `progress_current` after each transaction
@@ -501,6 +531,7 @@ Must exist with proper columns and indexes. Backend process should:
 ## Backend Integration
 
 The component expects a backend process to:
+
 - Create batch records
 - Update progress fields
 - Handle transfer detection
@@ -514,6 +545,7 @@ The component expects a backend process to:
 ## Navigation Flow
 
 **From Progress Indicator:**
+
 1. **View Transfer Matches** → `/transfers/review`
 2. **Refresh Transactions** → Reloads current page data
 3. **Dismiss** → Hides indicator
@@ -551,6 +583,7 @@ The component expects a backend process to:
 ## Changelog
 
 ### v1.0.0 (January 6, 2026)
+
 - ✨ Initial implementation
 - ✨ Real-time polling (2-second interval)
 - ✨ Progress bar with percentage and counter
@@ -573,6 +606,7 @@ The component expects a backend process to:
 ## Support
 
 For questions or issues:
+
 - Check component in Transactions page
 - Review console logs for errors
 - Verify `reanalyze_batches` table exists
