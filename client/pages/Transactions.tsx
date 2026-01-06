@@ -841,6 +841,25 @@ export default function Transactions() {
 
                           <div className="border-t border-gray-200 my-2" />
 
+                          <button
+                            onClick={handleBulkLock}
+                            disabled={selectedTransactions.length === 0}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                          >
+                            <Lock className="h-4 w-4" />
+                            Lock Selected
+                          </button>
+                          <button
+                            onClick={handleBulkUnlock}
+                            disabled={selectedTransactions.length === 0}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                          >
+                            <LockOpen className="h-4 w-4" />
+                            Unlock Selected
+                          </button>
+
+                          <div className="border-t border-gray-200 my-2" />
+
                           <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
                             All Filtered ({transactions.length})
                           </div>
