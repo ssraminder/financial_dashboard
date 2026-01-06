@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Loader2, AlertTriangle, CheckCircle } from "lucide-react";
+import { FileText, Loader2, AlertTriangle, CheckCircle, Mail } from "lucide-react";
 
 interface Invitation {
   id: string;
@@ -30,8 +30,10 @@ export default function AcceptInvite() {
   const [success, setSuccess] = useState(false);
   const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [validating, setValidating] = useState(true);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
-  // Validate invitation on mount
+  // Validate invitation and check session on mount
   useEffect(() => {
     const validateInvitation = async () => {
       if (!token) {
@@ -64,6 +66,10 @@ export default function AcceptInvite() {
 
         setInvitation(data);
         setFullName(data.full_name || "");
+
+        // Now check for session
+        await checkAndSetSession();
+        
         setValidating(false);
       } catch (err) {
         console.error("Error validating invitation:", err);
@@ -75,9 +81,59 @@ export default function AcceptInvite() {
     validateInvitation();
   }, [token]);
 
+  const checkAndSetSession = async () => {
+    try {
+      // First, check if we already have a session
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      
+      if (existingSession) {
+        setSessionReady(true);
+        return;
+      }
+
+      // No existing session, check for hash tokens from Supabase magic link
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        // Set the session with tokens from the magic link
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          setNeedsEmailConfirmation(true);
+          return;
+        }
+
+        if (data.session) {
+          setSessionReady(true);
+          // Clean up the hash from URL for better UX
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+          return;
+        }
+      }
+
+      // No session and no hash tokens - user needs to check email
+      setNeedsEmailConfirmation(true);
+    } catch (err) {
+      console.error("Error checking session:", err);
+      setNeedsEmailConfirmation(true);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Validate we have a session
+    if (!sessionReady) {
+      setError("You must confirm your email before setting a password. Please check your inbox for the confirmation link.");
+      return;
+    }
 
     // Validate passwords
     if (password.length < 8) {
@@ -98,19 +154,15 @@ export default function AcceptInvite() {
     setLoading(true);
 
     try {
-      // Get the access token from URL hash
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
-
-      if (accessToken && refreshToken) {
-        // Set the session with the tokens from the invite link
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (sessionError) throw sessionError;
+      // Verify we still have a valid session
+      const { data: { user: currentUser }, error: getUserError } = await supabase.auth.getUser();
+      
+      if (getUserError || !currentUser) {
+        setError("Session expired. Please click the confirmation link in your email again.");
+        setLoading(false);
+        setSessionReady(false);
+        setNeedsEmailConfirmation(true);
+        return;
       }
 
       // Update password and user metadata
@@ -123,40 +175,33 @@ export default function AcceptInvite() {
 
       if (updateError) throw updateError;
 
-      // Get the current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
+        .from("user_profiles")
+        .select("id")
+        .eq("id", currentUser.id)
+        .single();
 
-      if (user) {
-        // Check if profile exists
-        const { data: existingProfile } = await supabase
+      if (existingProfile) {
+        // Update existing profile
+        await supabase
           .from("user_profiles")
-          .select("id")
-          .eq("id", user.id)
-          .single();
-
-        if (existingProfile) {
-          // Update existing profile
-          await supabase
-            .from("user_profiles")
-            .update({
-              full_name: fullName || invitation.email.split("@")[0],
-              is_active: true,
-              last_login_at: new Date().toISOString(),
-            })
-            .eq("id", user.id);
-        } else {
-          // Create new profile
-          await supabase.from("user_profiles").insert({
-            id: user.id,
-            email: invitation.email,
+          .update({
             full_name: fullName || invitation.email.split("@")[0],
-            role: invitation.role,
             is_active: true,
             last_login_at: new Date().toISOString(),
-          });
-        }
+          })
+          .eq("id", currentUser.id);
+      } else {
+        // Create new profile
+        await supabase.from("user_profiles").insert({
+          id: currentUser.id,
+          email: invitation.email,
+          full_name: fullName || invitation.email.split("@")[0],
+          role: invitation.role,
+          is_active: true,
+          last_login_at: new Date().toISOString(),
+        });
       }
 
       // Mark invitation as accepted
@@ -239,7 +284,78 @@ export default function AcceptInvite() {
     );
   }
 
-  // Registration form
+  // Email confirmation needed state
+  if (needsEmailConfirmation && invitation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-gray-100 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                <Mail className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <CardTitle className="text-center">
+              <h1 className="text-2xl font-bold text-gray-900">
+                Check Your Email
+              </h1>
+              <p className="text-sm text-gray-500 mt-2 font-normal">
+                One more step to complete your registration
+              </p>
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            {/* Email Confirmation Message */}
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+              <div className="space-y-3">
+                <p className="text-sm text-blue-900">
+                  We've sent a confirmation email to:
+                </p>
+                <p className="text-base font-semibold text-blue-900">
+                  {invitation.email}
+                </p>
+                <div className="pt-2 space-y-2 text-sm text-blue-800">
+                  <p className="font-medium">Next steps:</p>
+                  <ol className="list-decimal list-inside space-y-1 pl-2">
+                    <li>Check your email inbox (and spam folder)</li>
+                    <li>Click the confirmation link in the email</li>
+                    <li>You'll be redirected back here to set your password</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            {/* Help Text */}
+            <div className="text-center space-y-4">
+              <p className="text-sm text-gray-600">
+                Didn't receive the email? Check your spam folder or contact your administrator.
+              </p>
+              
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="w-full"
+              >
+                I've Clicked the Email Link
+              </Button>
+
+              <div className="pt-2">
+                <a
+                  href="/login"
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Back to Login
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Registration form (only shown when session is ready)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-gray-100 py-12 px-4">
       <Card className="w-full max-w-md">
@@ -276,6 +392,14 @@ export default function AcceptInvite() {
             </div>
           )}
 
+          {/* Session Ready Indicator */}
+          {sessionReady && (
+            <div className="bg-green-50 border border-green-200 p-3 rounded-lg mb-4 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <p className="text-sm text-green-800">Email confirmed! You can now set your password.</p>
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name */}
@@ -287,6 +411,7 @@ export default function AcceptInvite() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="John Doe"
+                disabled={!sessionReady}
               />
             </div>
 
@@ -303,6 +428,7 @@ export default function AcceptInvite() {
                 placeholder="At least 8 characters"
                 required
                 minLength={8}
+                disabled={!sessionReady}
               />
             </div>
 
@@ -318,6 +444,7 @@ export default function AcceptInvite() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
                 required
+                disabled={!sessionReady}
               />
             </div>
 
@@ -331,7 +458,7 @@ export default function AcceptInvite() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || !sessionReady}
               className="w-full"
               size="lg"
             >
