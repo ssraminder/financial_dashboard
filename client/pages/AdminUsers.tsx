@@ -220,11 +220,21 @@ export default function AdminUsers() {
 
   const handleResendInvitation = async (invitation: Invitation) => {
     try {
+      // Step 1: Cancel old invitation
+      await supabase
+        .from("user_invitations")
+        .update({ status: "cancelled" })
+        .eq("id", invitation.id);
+
+      // Step 2: Wait a moment for the update to complete
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Step 3: Send new invitation
       const { data, error } = await supabase.functions.invoke("invite-user", {
         body: {
           email: invitation.email,
           role: invitation.role,
-          full_name: invitation.full_name,
+          full_name: invitation.full_name || "",
         },
       });
 
