@@ -1,6 +1,7 @@
 # Transaction Lock UI - Implementation Complete
 
 ## Version 1.0.0
+
 **Date:** January 6, 2026
 
 ---
@@ -55,7 +56,7 @@ Successfully implemented the ability for users to manually lock individual trans
 
 **Added to Re-Analyze dropdown menu:**
 
-- **Lock Selected** 
+- **Lock Selected**
   - Icon: Lock (🔒)
   - Locks all selected transactions
   - Disabled when no transactions selected
@@ -64,7 +65,7 @@ Successfully implemented the ability for users to manually lock individual trans
 
 - **Unlock Selected**
   - Icon: LockOpen (🔓)
-  - Unlocks all selected transactions  
+  - Unlocks all selected transactions
   - Disabled when no transactions selected
   - Toast: "{count} transaction(s) unlocked"
   - Clears selection after success
@@ -79,10 +80,10 @@ Successfully implemented the ability for users to manually lock individual trans
 
 ## File Changes
 
-| File                                      | Changes                                                  |
-| ----------------------------------------- | -------------------------------------------------------- |
-| `client/components/TransactionEditModal.tsx` | Added lock checkbox, state, and save logic               |
-| `client/pages/Transactions.tsx`            | Added lock column, indicators, bulk actions, handlers    |
+| File                                         | Changes                                               |
+| -------------------------------------------- | ----------------------------------------------------- |
+| `client/components/TransactionEditModal.tsx` | Added lock checkbox, state, and save logic            |
+| `client/pages/Transactions.tsx`              | Added lock column, indicators, bulk actions, handlers |
 
 ---
 
@@ -93,16 +94,17 @@ Successfully implemented the ability for users to manually lock individual trans
 ```typescript
 interface Transaction {
   // ... existing fields
-  manually_locked?: boolean;           // User locked this transaction
-  manually_locked_at?: string;         // When it was locked
-  manually_locked_by?: string;         // Who locked it (future use)
-  is_locked?: boolean;                 // Statement-level lock (existing)
+  manually_locked?: boolean; // User locked this transaction
+  manually_locked_at?: string; // When it was locked
+  manually_locked_by?: string; // Who locked it (future use)
+  is_locked?: boolean; // Statement-level lock (existing)
 }
 ```
 
 ### Database Updates
 
 **When Locking:**
+
 ```typescript
 {
   manually_locked: true,
@@ -111,6 +113,7 @@ interface Transaction {
 ```
 
 **When Unlocking:**
+
 ```typescript
 {
   manually_locked: false,
@@ -143,8 +146,8 @@ interface Transaction {
         Lock this transaction
       </Label>
       <p className="text-xs text-gray-500 mt-0.5">
-        Prevent re-analysis from changing this transaction. 
-        You can still edit it manually.
+        Prevent re-analysis from changing this transaction. You can still edit
+        it manually.
       </p>
     </div>
   </label>
@@ -242,18 +245,21 @@ interface Transaction {
 ### Lock Types
 
 **Manual Lock (`manually_locked`):**
+
 - Set by user via checkbox
 - Per-transaction granularity
 - Can be toggled on/off
 - User has full control
 
 **Statement Lock (`is_locked`):**
+
 - Set automatically when statement confirmed
 - Applies to all transactions in statement
 - Indicates statement-level approval
 - Separate from manual locks
 
 **Both Types:**
+
 - Prevent re-analysis changes
 - Show lock icon in transaction list
 - Allow manual editing
@@ -262,6 +268,7 @@ interface Transaction {
 ### Protection Behavior
 
 **When Locked:**
+
 - Re-analysis skips the transaction
 - KB matching won't change category
 - AI processing won't modify fields
@@ -269,6 +276,7 @@ interface Transaction {
 - Lock persists across sessions
 
 **When Unlocked:**
+
 - Re-analysis can modify transaction
 - KB and AI matching enabled
 - Normal processing rules apply
@@ -303,12 +311,14 @@ interface Transaction {
 ## Error Handling
 
 **Bulk Lock Errors:**
+
 - Shows error toast if Supabase update fails
 - Logs error to console for debugging
 - Doesn't clear selection on error
 - User can retry operation
 
 **Validation:**
+
 - Checks for empty selection
 - Shows "No Selection" toast
 - Disables buttons when no transactions selected
@@ -346,6 +356,7 @@ interface Transaction {
 ### TransactionEditModal Changes
 
 **Before:**
+
 ```tsx
 // Only basic fields
 <div>
@@ -363,6 +374,7 @@ interface Transaction {
 ```
 
 **After:**
+
 ```tsx
 // Basic fields + lock section
 <div>
@@ -387,12 +399,14 @@ interface Transaction {
 ### Transactions Page Changes
 
 **Table Structure:**
+
 - Added "Lock" column header
 - Added lock indicator cell
 - Maintains responsive layout
 - Consistent with existing columns
 
 **Dropdown Menu:**
+
 - Added divider before lock actions
 - Lock/Unlock after re-analyze options
 - Icons for visual distinction
@@ -403,12 +417,14 @@ interface Transaction {
 ## Backend Compatibility
 
 **Requirements:**
+
 - `manually_locked` BOOLEAN column exists
 - `manually_locked_at` TIMESTAMPTZ column exists
 - `manually_locked_by` UUID column exists (optional)
 - `is_locked` BOOLEAN column exists (existing)
 
 **Re-Analysis Integration:**
+
 - Backend should check both lock flags
 - Skip locked transactions during re-analysis
 - Log skipped transactions for transparency
@@ -503,13 +519,14 @@ interface Transaction {
 ✅ Automatic selection clearing  
 ✅ Transaction refresh after updates  
 ✅ Separate lock types (manual vs statement)  
-✅ Non-destructive operations (can unlock)  
+✅ Non-destructive operations (can unlock)
 
 ---
 
 ## Changelog
 
 ### v1.0.0 (January 6, 2026)
+
 - ✨ Added lock checkbox to Transaction Edit Modal
 - ✨ Added lock indicators to transaction list
 - ✨ Added bulk lock/unlock actions
@@ -526,6 +543,7 @@ interface Transaction {
 ## Support
 
 For questions or issues:
+
 - Check Transaction Edit Modal for lock checkbox
 - Review transaction list for lock icons
 - Use Re-Analyze dropdown for bulk actions
