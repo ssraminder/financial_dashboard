@@ -11,6 +11,7 @@ import {
   FileText,
   ArrowLeftRight,
   CheckCircle,
+  Calendar,
 } from "lucide-react";
 
 interface Notification {
@@ -22,6 +23,7 @@ interface Notification {
     | "receipt_matched"
     | "receipt_needs_review"
     | "statement_processed"
+    | "statement_reminder"
     | "transfer_matched"
     | "batch_complete"
     | "system";
@@ -208,6 +210,8 @@ export function NotificationBell({
         return <AlertCircle className="w-5 h-5 text-orange-500" />;
       case "statement_processed":
         return <FileText className="w-5 h-5 text-purple-500" />;
+      case "statement_reminder":
+        return <Calendar className="w-5 h-5 text-red-500" />;
       case "transfer_matched":
         return <ArrowLeftRight className="w-5 h-5 text-green-500" />;
       case "batch_complete":
