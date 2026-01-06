@@ -57,6 +57,12 @@ const navigation = [
     ],
   },
   { name: "Transfers", href: "/transfers", icon: ArrowLeftRight },
+  {
+    name: "Transfer Matches",
+    href: "/transfers/review",
+    icon: GitMerge,
+    showBadge: true,
+  },
   { name: "Categories", href: "/categories", icon: Tag },
   { name: "Accounts", href: "/accounts", icon: Building2 },
   { name: "Clients", href: "/clients", icon: Users },
@@ -66,7 +72,8 @@ const navigation = [
 
 export function Sidebar() {
   const location = useLocation();
-  const { signOut, profile } = useAuth();
+  const { signOut, profile, user } = useAuth();
+  const [pendingCount, setPendingCount] = useState<number>(0);
 
   const handleSignOut = async () => {
     await signOut();
