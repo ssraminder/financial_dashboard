@@ -17,6 +17,7 @@ Successfully created a comprehensive User Management Admin Panel at `/admin/user
 ### 1. ✅ User List Table
 
 Displays all users with the following information:
+
 - **Avatar:** Colored gradient circle with initials
 - **Name & Email:** Full name (or "No name") and email address
 - **Role:** Dropdown to change role (Admin/Accountant/Viewer)
@@ -27,6 +28,7 @@ Displays all users with the following information:
 ### 2. ✅ Pending Invitations Tab
 
 Displays pending invitations with:
+
 - **Email & Name:** Invitation recipient details
 - **Role:** Badge showing assigned role
 - **Sent Date:** When the invitation was created
@@ -36,6 +38,7 @@ Displays pending invitations with:
 ### 3. ✅ Invite User Modal
 
 Comprehensive modal for sending new invitations:
+
 - **Email Field:** Required email input
 - **Full Name Field:** Optional name input
 - **Role Selector:** Dropdown with role descriptions
@@ -46,6 +49,7 @@ Comprehensive modal for sending new invitations:
 ### 4. ✅ Role-Based Access Control
 
 Three role levels with distinct permissions:
+
 - **👑 Admin:** Full access, manage users, settings, delete data
 - **📊 Accountant:** Edit, categorize, upload, review transactions
 - **👁 Viewer:** Read-only access to view data
@@ -62,28 +66,30 @@ Three role levels with distinct permissions:
 ## UI Components
 
 ### Header
+
 ```tsx
 <div className="flex justify-between items-center mb-6">
   <div>
     <h1>👥 User Management</h1>
     <p>Manage users and their access levels</p>
   </div>
-  <button onClick={() => setShowInviteModal(true)}>
-    📧 Invite User
-  </button>
+  <button onClick={() => setShowInviteModal(true)}>📧 Invite User</button>
 </div>
 ```
 
 ### Tabs
+
 - **Users (3)** - Shows count of active users
 - **Pending Invitations (1)** - Shows count of pending invites
 
 ### Role Badges
+
 - **Purple:** Admin (Crown icon)
 - **Blue:** Accountant (Chart icon)
 - **Gray:** Viewer (Eye icon)
 
 ### Status Badges
+
 - **Green:** Active (with green dot)
 - **Red:** Inactive (with red dot)
 
@@ -94,6 +100,7 @@ Three role levels with distinct permissions:
 ### File: `client/pages/AdminUsers.tsx`
 
 **Interfaces:**
+
 ```typescript
 interface UserProfile {
   id: string;
@@ -117,6 +124,7 @@ interface Invitation {
 ```
 
 **Key Functions:**
+
 - `fetchUsers()` - Loads all user profiles
 - `fetchInvitations()` - Loads pending invitations
 - `handleInvite()` - Sends new invitation via Edge Function
@@ -131,6 +139,7 @@ interface Invitation {
 ## Database Operations
 
 ### Fetch Users
+
 ```typescript
 const { data } = await supabase
   .from("user_profiles")
@@ -139,6 +148,7 @@ const { data } = await supabase
 ```
 
 ### Fetch Invitations
+
 ```typescript
 const { data } = await supabase
   .from("user_invitations")
@@ -148,14 +158,13 @@ const { data } = await supabase
 ```
 
 ### Update Role
+
 ```typescript
-await supabase
-  .from("user_profiles")
-  .update({ role: newRole })
-  .eq("id", userId);
+await supabase.from("user_profiles").update({ role: newRole }).eq("id", userId);
 ```
 
 ### Toggle Active Status
+
 ```typescript
 await supabase
   .from("user_profiles")
@@ -164,14 +173,13 @@ await supabase
 ```
 
 ### Delete User
+
 ```typescript
-await supabase
-  .from("user_profiles")
-  .delete()
-  .eq("id", userId);
+await supabase.from("user_profiles").delete().eq("id", userId);
 ```
 
 ### Cancel Invitation
+
 ```typescript
 await supabase
   .from("user_invitations")
@@ -184,6 +192,7 @@ await supabase
 ## Edge Function Integration
 
 ### Invite User
+
 ```typescript
 const { data, error } = await supabase.functions.invoke("invite-user", {
   body: {
@@ -195,6 +204,7 @@ const { data, error } = await supabase.functions.invoke("invite-user", {
 ```
 
 **Expected Response:**
+
 ```json
 {
   "success": true,
@@ -207,6 +217,7 @@ const { data, error } = await supabase.functions.invoke("invite-user", {
 ## Visual Layout
 
 ### Users Table
+
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │ User                    │ Role        │ Status   │ Last    │ Act │
@@ -223,6 +234,7 @@ const { data, error } = await supabase.functions.invoke("invite-user", {
 ```
 
 ### Invitations Table
+
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │ Email              │ Role       │ Sent   │ Expires │ Actions    │
@@ -233,6 +245,7 @@ const { data, error } = await supabase.functions.invoke("invite-user", {
 ```
 
 ### Invite Modal
+
 ```
 ┌─────────────────────────────────────┐
 │ Invite New User              [✕]    │
@@ -262,6 +275,7 @@ const { data, error } = await supabase.functions.invoke("invite-user", {
 ## Safety & Validation
 
 ### Access Control
+
 ```typescript
 // Check if user is admin
 if (profile?.role !== "admin") {
@@ -270,6 +284,7 @@ if (profile?.role !== "admin") {
 ```
 
 ### Self-Protection
+
 ```typescript
 // Cannot modify own role
 disabled={userItem.id === user?.id}
@@ -279,6 +294,7 @@ disabled={userItem.id === user?.id}
 ```
 
 ### Delete Confirmation
+
 ```typescript
 {deleteConfirm === userItem.id && (
   <div className="confirmation-popover">
@@ -300,6 +316,7 @@ disabled={userItem.id === user?.id}
 ## Toast Notifications
 
 ### Success Messages
+
 - ✅ "Invitation sent to {email}"
 - ✅ "Role updated successfully"
 - ✅ "User activated" / "User deactivated"
@@ -308,6 +325,7 @@ disabled={userItem.id === user?.id}
 - ✅ "Invitation resent to {email}"
 
 ### Error Messages
+
 - ❌ "Failed to send invitation"
 - ❌ "Failed to update role"
 - ❌ "Failed to update user status"
@@ -319,33 +337,34 @@ disabled={userItem.id === user?.id}
 
 ## Files Modified
 
-| File | Changes | Lines |
-|------|---------|-------|
-| `client/pages/AdminUsers.tsx` | NEW - User management page | 714 |
-| `client/App.tsx` | Added AdminUsers route | +2 |
-| `client/components/Sidebar.tsx` | Added "User Management" menu item | +1 |
+| File                            | Changes                           | Lines |
+| ------------------------------- | --------------------------------- | ----- |
+| `client/pages/AdminUsers.tsx`   | NEW - User management page        | 714   |
+| `client/App.tsx`                | Added AdminUsers route            | +2    |
+| `client/components/Sidebar.tsx` | Added "User Management" menu item | +1    |
 
 ---
 
 ## Icons Used
 
-| Component | Icon | From |
-|-----------|------|------|
-| Header | `Users` | lucide-react |
-| Invite Button | `Mail` | lucide-react |
-| Loading | `Loader2` | lucide-react |
-| Warning | `AlertTriangle` | lucide-react |
-| Access Denied | `Shield` | lucide-react |
-| Viewer Role | `Eye` | lucide-react |
-| Accountant Role | `BarChart3` | lucide-react |
-| Admin Role | `Crown` | lucide-react |
-| Close Modal | `X` | lucide-react |
+| Component       | Icon            | From         |
+| --------------- | --------------- | ------------ |
+| Header          | `Users`         | lucide-react |
+| Invite Button   | `Mail`          | lucide-react |
+| Loading         | `Loader2`       | lucide-react |
+| Warning         | `AlertTriangle` | lucide-react |
+| Access Denied   | `Shield`        | lucide-react |
+| Viewer Role     | `Eye`           | lucide-react |
+| Accountant Role | `BarChart3`     | lucide-react |
+| Admin Role      | `Crown`         | lucide-react |
+| Close Modal     | `X`             | lucide-react |
 
 ---
 
 ## User Flows
 
 ### 1. Invite New User
+
 1. Click "Invite User" button
 2. Fill in email (required) and name (optional)
 3. Select role from dropdown
@@ -358,6 +377,7 @@ disabled={userItem.id === user?.id}
 10. User profile created in `user_profiles`
 
 ### 2. Change User Role
+
 1. Navigate to Users tab
 2. Click role dropdown for target user
 3. Select new role (Admin/Accountant/Viewer)
@@ -365,6 +385,7 @@ disabled={userItem.id === user?.id}
 5. User's permissions change on next page load
 
 ### 3. Deactivate User
+
 1. Navigate to Users tab
 2. Click "Deactivate" button
 3. User's `is_active` set to false
@@ -372,6 +393,7 @@ disabled={userItem.id === user?.id}
 5. User shows as "Inactive" in table
 
 ### 4. Delete User
+
 1. Navigate to Users tab
 2. Click "Delete" button
 3. Confirmation popover appears
@@ -380,6 +402,7 @@ disabled={userItem.id === user?.id}
 6. User removed from table
 
 ### 5. Resend Invitation
+
 1. Navigate to Pending Invitations tab
 2. Find invitation to resend
 3. Click "Resend" button
@@ -391,11 +414,13 @@ disabled={userItem.id === user?.id}
 ## Testing Checklist
 
 ### Access Control
+
 - [x] Admin can access page
 - [x] Non-admin sees "Access Denied" message
 - [x] Non-authenticated user redirected to login
 
 ### User Table
+
 - [x] All users load correctly
 - [x] Avatar shows correct initials
 - [x] Email and name display properly
@@ -406,6 +431,7 @@ disabled={userItem.id === user?.id}
 - [x] "Never" shows for no login
 
 ### Invitations Table
+
 - [x] Pending invitations load
 - [x] Role badge displays correctly
 - [x] Dates formatted properly
@@ -413,6 +439,7 @@ disabled={userItem.id === user?.id}
 - [x] Cancel button works
 
 ### Invite Modal
+
 - [x] Modal opens on button click
 - [x] Email validation works
 - [x] Role selector functions
@@ -423,6 +450,7 @@ disabled={userItem.id === user?.id}
 - [x] Cancel closes modal
 
 ### Actions
+
 - [x] Toggle active/inactive works
 - [x] Cannot deactivate self
 - [x] Delete shows confirmation
@@ -448,6 +476,7 @@ disabled={userItem.id === user?.id}
 ## Database Schema Requirements
 
 ### `user_profiles` Table
+
 ```sql
 CREATE TABLE user_profiles (
   id UUID PRIMARY KEY,
@@ -461,6 +490,7 @@ CREATE TABLE user_profiles (
 ```
 
 ### `user_invitations` Table
+
 ```sql
 CREATE TABLE user_invitations (
   id UUID PRIMARY KEY,
@@ -493,6 +523,7 @@ CREATE TABLE user_invitations (
 ## Summary
 
 The User Management Admin Panel provides a complete solution for:
+
 - ✅ **Viewing** all users and their details
 - ✅ **Inviting** new users via email
 - ✅ **Managing** user roles and access levels

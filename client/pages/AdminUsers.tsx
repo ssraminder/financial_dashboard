@@ -42,7 +42,11 @@ const RoleBadge = ({ role }: { role: string }) => {
     viewer: { bg: "bg-gray-100", text: "text-gray-800", icon: Eye },
   };
 
-  const { bg, text, icon: Icon } = config[role as keyof typeof config] || config.viewer;
+  const {
+    bg,
+    text,
+    icon: Icon,
+  } = config[role as keyof typeof config] || config.viewer;
 
   return (
     <span
@@ -65,7 +69,9 @@ export default function AdminUsers() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
-  const [inviteRole, setInviteRole] = useState<"admin" | "accountant" | "viewer">("accountant");
+  const [inviteRole, setInviteRole] = useState<
+    "admin" | "accountant" | "viewer"
+  >("accountant");
   const [inviteLoading, setInviteLoading] = useState(false);
 
   // Confirmation state
@@ -169,9 +175,7 @@ export default function AdminUsers() {
 
       if (error) throw error;
 
-      toast.success(
-        currentStatus ? "User deactivated" : "User activated"
-      );
+      toast.success(currentStatus ? "User deactivated" : "User activated");
       fetchUsers();
     } catch (error: any) {
       console.error("Error toggling user status:", error);
@@ -395,10 +399,7 @@ export default function AdminUsers() {
                           <select
                             value={userItem.role}
                             onChange={(e) =>
-                              handleUpdateRole(
-                                userItem.id,
-                                e.target.value
-                              )
+                              handleUpdateRole(userItem.id, e.target.value)
                             }
                             disabled={userItem.id === user?.id}
                             className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -441,7 +442,7 @@ export default function AdminUsers() {
                               onClick={() =>
                                 handleToggleActive(
                                   userItem.id,
-                                  userItem.is_active
+                                  userItem.is_active,
                                 )
                               }
                               disabled={userItem.id === user?.id}
@@ -451,14 +452,10 @@ export default function AdminUsers() {
                                   : "bg-green-100 text-green-700 hover:bg-green-200"
                               }`}
                             >
-                              {userItem.is_active
-                                ? "Deactivate"
-                                : "Activate"}
+                              {userItem.is_active ? "Deactivate" : "Activate"}
                             </button>
                             <button
-                              onClick={() =>
-                                setDeleteConfirm(userItem.id)
-                              }
+                              onClick={() => setDeleteConfirm(userItem.id)}
                               disabled={userItem.id === user?.id}
                               className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -535,9 +532,7 @@ export default function AdminUsers() {
                     <tr>
                       <td colSpan={5} className="px-6 py-12 text-center">
                         <Mail className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500">
-                          No pending invitations
-                        </p>
+                        <p className="text-gray-500">No pending invitations</p>
                       </td>
                     </tr>
                   ) : (
@@ -643,7 +638,7 @@ export default function AdminUsers() {
                   value={inviteRole}
                   onChange={(e) =>
                     setInviteRole(
-                      e.target.value as "admin" | "accountant" | "viewer"
+                      e.target.value as "admin" | "accountant" | "viewer",
                     )
                   }
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
