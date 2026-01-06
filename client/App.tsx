@@ -25,6 +25,7 @@ import Vendors from "./pages/Vendors";
 import KBAdmin from "./pages/KBAdmin";
 import KBPendingQueue from "./pages/KBPendingQueue";
 import Notifications from "./pages/Notifications";
+import StatementStatus from "./pages/StatementStatus";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
