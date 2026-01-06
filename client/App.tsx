@@ -28,6 +28,7 @@ import KBPendingQueue from "./pages/KBPendingQueue";
 import Notifications from "./pages/Notifications";
 import StatementStatus from "./pages/StatementStatus";
 import AdminUsers from "./pages/AdminUsers";
+import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
