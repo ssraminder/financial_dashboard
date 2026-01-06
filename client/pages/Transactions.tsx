@@ -594,6 +594,85 @@ export default function Transactions() {
     showUnconfirmed,
   ].filter(Boolean).length;
 
+  // Bulk lock selected transactions
+  const handleBulkLock = async () => {
+    if (selectedTransactions.length === 0) {
+      toast({
+        title: "No Selection",
+        description: "Please select transactions to lock",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("transactions")
+        .update({
+          manually_locked: true,
+          manually_locked_at: new Date().toISOString(),
+        })
+        .in("id", selectedTransactions);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `${selectedTransactions.length} transaction${selectedTransactions.length > 1 ? "s" : ""} locked`,
+      });
+
+      fetchTransactions();
+      setSelectedTransactions([]);
+    } catch (error) {
+      console.error("Bulk lock error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to lock transactions",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Bulk unlock selected transactions
+  const handleBulkUnlock = async () => {
+    if (selectedTransactions.length === 0) {
+      toast({
+        title: "No Selection",
+        description: "Please select transactions to unlock",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("transactions")
+        .update({
+          manually_locked: false,
+          manually_locked_at: null,
+          manually_locked_by: null,
+        })
+        .in("id", selectedTransactions);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `${selectedTransactions.length} transaction${selectedTransactions.length > 1 ? "s" : ""} unlocked`,
+      });
+
+      fetchTransactions();
+      setSelectedTransactions([]);
+    } catch (error) {
+      console.error("Bulk unlock error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to unlock transactions",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Export CSV
   const exportCSV = () => {
     const headers = [
