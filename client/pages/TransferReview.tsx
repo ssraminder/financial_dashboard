@@ -204,7 +204,13 @@ export default function TransferReview() {
 
       return true;
     });
-  }, [candidates, statusFilter, confidenceFilter, crossCompanyFilter, skippedIds]);
+  }, [
+    candidates,
+    statusFilter,
+    confidenceFilter,
+    crossCompanyFilter,
+    skippedIds,
+  ]);
 
   // Action handlers
   const handleConfirm = async (candidate: TransferCandidate) => {
@@ -271,7 +277,10 @@ export default function TransferReview() {
     }
   };
 
-  const handleReject = async (candidate: TransferCandidate, reason?: string) => {
+  const handleReject = async (
+    candidate: TransferCandidate,
+    reason?: string,
+  ) => {
     setProcessing(candidate.id);
 
     try {
@@ -655,8 +664,7 @@ export default function TransferReview() {
                                 </span>
                                 <span className="text-sm text-gray-500">
                                   (••••
-                                  {candidate.from_account.account_number_last4}
-                                  )
+                                  {candidate.from_account.account_number_last4})
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">

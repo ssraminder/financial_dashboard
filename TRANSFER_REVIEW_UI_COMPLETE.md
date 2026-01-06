@@ -1,6 +1,7 @@
 # Transfer Review UI - Implementation Complete
 
 ## Version 1.0.0
+
 **Date:** January 6, 2026
 
 ---
@@ -68,6 +69,7 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 ### 2. Sidebar Integration
 
 **Added "Transfer Matches" menu item:**
+
 - Icon: GitMerge (branching/merge icon)
 - Location: After "Transfers", before "Categories"
 - **Dynamic Badge**: Shows count of pending transfers
@@ -77,6 +79,7 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 ### 3. Routing
 
 **Added route in App.tsx:**
+
 - Path: `/transfers/review`
 - Component: `TransferReview`
 - Positioned after `/transfers` route
@@ -84,6 +87,7 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 ### 4. Data Integration
 
 **Fetches from `transfer_candidates` table:**
+
 ```typescript
 - Joins with transactions (from and to)
 - Joins with bank_accounts (from and to)
@@ -92,6 +96,7 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 ```
 
 **State Management:**
+
 - Real-time filtering without page reload
 - Processing state for action buttons
 - Skip functionality (local UI state)
@@ -100,6 +105,7 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 ### 5. Action Workflows
 
 **Confirm Match:**
+
 1. Update `transfer_candidates.status` to "confirmed"
 2. Fetch `bank_transfer` category ID
 3. Link FROM transaction:
@@ -117,12 +123,14 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 5. Refresh data and show success toast
 
 **Reject Match:**
+
 1. Update `transfer_candidates.status` to "rejected"
 2. Set `rejection_reason` (default: "Not a transfer")
 3. Set `reviewed_at` timestamp
 4. Refresh data and show info toast
 
 **Skip Match:**
+
 - Add to local `skippedIds` Set
 - Hides from current view
 - No database changes
@@ -132,11 +140,11 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 
 ## File Changes
 
-| File | Changes |
-|------|---------|
+| File                              | Changes                                                  |
+| --------------------------------- | -------------------------------------------------------- |
 | `client/pages/TransferReview.tsx` | **NEW** - Complete transfer review interface (853 lines) |
-| `client/App.tsx` | Added import and route for TransferReview |
-| `client/components/Sidebar.tsx` | Added Transfer Matches menu item with pending badge |
+| `client/App.tsx`                  | Added import and route for TransferReview                |
+| `client/components/Sidebar.tsx`   | Added Transfer Matches menu item with pending badge      |
 
 ---
 
@@ -145,6 +153,7 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 ### Confidence Score Visualization
 
 **Color-coded badges:**
+
 - 🟢 **High (≥90%)** - Green badge
 - 🟡 **Medium (70-89%)** - Yellow badge
 - 🔴 **Low (<70%)** - Red badge
@@ -152,6 +161,7 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 ### Cross-Company Warning
 
 **Yellow alert banner displays when:**
+
 - `is_cross_company = true`
 - Shows warning icon and message
 - Prompts for manual review
@@ -159,6 +169,7 @@ Successfully implemented a comprehensive Transfer Review UI page at `/transfers/
 ### Date Formatting
 
 **Timezone-safe date formatting:**
+
 ```typescript
 formatDateSafe("2024-12-15") → "Dec 15, 2024"
 ```
@@ -166,6 +177,7 @@ formatDateSafe("2024-12-15") → "Dec 15, 2024"
 ### Amount Formatting
 
 **Currency-aware formatting:**
+
 ```typescript
 formatAmount(-5000, "CAD", "from") → "-$5,000.00 CAD"
 formatAmount(3650, "USD", "to") → "+$3,650.00 USD"
@@ -174,6 +186,7 @@ formatAmount(3650, "USD", "to") → "+$3,650.00 USD"
 ### Exchange Rate Display
 
 **Shows when currencies differ:**
+
 ```
 Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 ```
@@ -181,6 +194,7 @@ Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 ### Date Difference Display
 
 **Smart formatting:**
+
 - Same day: "Same day"
 - 1 day: "1 day"
 - Multiple days: "3 days"
@@ -199,18 +213,21 @@ Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 ## Empty State Scenarios
 
 ### 1. All Caught Up (No Pending)
+
 - Green checkmark icon
 - "All caught up!" heading
 - "No pending transfer matches to review"
 - Button: "Go to Transactions"
 
 ### 2. No Data at All
+
 - Filter icon
 - "No transfer matches" heading
 - "Run transfer detection on your transactions..."
 - Button: "Go to Transactions"
 
 ### 3. Filtered Results Empty
+
 - Filter icon
 - "No matches found" heading
 - "Try adjusting your filters..."
@@ -256,6 +273,7 @@ Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 ### transfer_candidates Table
 
 **Required columns:**
+
 - `id`, `from_transaction_id`, `to_transaction_id`
 - `amount_from`, `amount_to`, `currency_from`, `currency_to`
 - `exchange_rate_used`, `exchange_rate_source`
@@ -266,6 +284,7 @@ Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 - `status`, `reviewed_by`, `reviewed_at`, `rejection_reason`
 
 **Status values:**
+
 - `pending` - Awaiting review
 - `confirmed` - User confirmed match
 - `rejected` - User rejected match
@@ -274,6 +293,7 @@ Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 ### transactions Table Updates
 
 **When confirming transfer:**
+
 - `linked_to` - ID of paired transaction
 - `link_type` - "transfer_out" or "transfer_in"
 - `category_id` - bank_transfer category
@@ -322,17 +342,20 @@ Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 ## Error Handling
 
 **Try-catch blocks for:**
+
 - Data fetching
 - Confirm action
 - Reject action
 - Pending count fetch
 
 **User feedback via toasts:**
+
 - Success: "Transfer confirmed and linked"
 - Info: "Match rejected" / "Skipped for now"
 - Error: "Failed to confirm transfer" / "Failed to reject transfer"
 
 **Console logging:**
+
 - All errors logged to console for debugging
 - Includes context about which operation failed
 
@@ -438,6 +461,7 @@ Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 ## Changelog
 
 ### v1.0.0 (January 6, 2026)
+
 - ✨ Initial implementation
 - ✨ Transfer candidate review cards
 - ✨ Confirm/Reject/Skip actions
@@ -460,6 +484,7 @@ Exchange Rate: 1 CAD = 0.7300 USD (BOC)
 ## Support
 
 For questions or issues:
+
 - Check `/transfers/review` page for live functionality
 - Review code comments in `TransferReview.tsx`
 - Test with real transfer candidate data
