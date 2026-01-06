@@ -49,6 +49,7 @@ const App = () => (
           <Route path="/receipts/queue" element={<ReceiptQueue />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/statements" element={<ViewStatements />} />
+          <Route path="/statements/status" element={<StatementStatus />} />
           <Route path="/transfers" element={<Transfers />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/accounts" element={<Accounts />} />
