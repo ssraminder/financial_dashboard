@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
@@ -13,9 +13,14 @@ import {
   Building2,
   Upload,
   Eye,
+  EyeOff,
   RefreshCw,
   Loader2,
+  Filter,
+  ChevronDown,
+  X,
 } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 
 interface StatementStatus {
   bank_account_id: string;
@@ -74,6 +79,11 @@ export default function StatementStatus() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"status" | "gaps">("status");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
+  const [exclusions, setExclusions] = useState<{bank_account_id: string; period_year: number; period_month: number}[]>([]);
+  const [exclusionSet, setExclusionSet] = useState<Set<string>>(new Set());
 
   // Redirect if not authenticated
   useEffect(() => {
