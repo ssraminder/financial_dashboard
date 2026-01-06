@@ -571,7 +571,9 @@ export function TransactionEditModal({
             <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-center gap-2 mb-2">
                 <Lock className="h-4 w-4 text-gray-600" />
-                <span className="font-medium text-gray-700">Lock & Protect</span>
+                <span className="font-medium text-gray-700">
+                  Lock & Protect
+                </span>
               </div>
               <label className="flex items-start gap-2 cursor-pointer">
                 <Checkbox
@@ -583,11 +585,15 @@ export function TransactionEditModal({
                   className="mt-1"
                 />
                 <div>
-                  <Label htmlFor="manually-locked" className="cursor-pointer text-sm text-gray-700">
+                  <Label
+                    htmlFor="manually-locked"
+                    className="cursor-pointer text-sm text-gray-700"
+                  >
                     Lock this transaction
                   </Label>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Prevent re-analysis from changing this transaction. You can still edit it manually.
+                    Prevent re-analysis from changing this transaction. You can
+                    still edit it manually.
                   </p>
                 </div>
               </label>

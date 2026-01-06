@@ -1247,7 +1247,8 @@ export default function Transactions() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {(transaction.is_locked || transaction.manually_locked) && (
+                            {(transaction.is_locked ||
+                              transaction.manually_locked) && (
                               <Lock
                                 className="h-4 w-4 text-gray-600"
                                 title={
