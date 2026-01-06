@@ -75,6 +75,32 @@ export function Sidebar() {
   const { signOut, profile, user } = useAuth();
   const [pendingCount, setPendingCount] = useState<number>(0);
 
+  // Fetch pending transfer candidates count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      if (!user) return;
+
+      try {
+        const { count, error } = await supabase
+          .from("transfer_candidates")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "pending");
+
+        if (error) throw error;
+        setPendingCount(count || 0);
+      } catch (err) {
+        console.error("Error fetching pending transfer count:", err);
+      }
+    };
+
+    fetchPendingCount();
+
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   const handleSignOut = async () => {
     await signOut();
   };
