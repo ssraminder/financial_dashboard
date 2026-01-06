@@ -15,33 +15,39 @@ Successfully reorganized the sidebar navigation into collapsible accordion secti
 ## New Sidebar Structure
 
 ### Standalone Items
+
 - **Dashboard** (top) - Always visible, direct access
 - **Notifications** (bottom) - Always visible, dropdown with unread count
 
 ### Accordion Sections
 
 #### 📥 Import & Upload
+
 - Upload Statements
 - Upload Receipts
 - Statement Queue
 - Receipt Queue
 
 #### 📊 Financial Data
+
 - Transactions
 - Statements
 - Statement Status
 - Receipts
 
 #### 🔍 Review & Matching
+
 - HITL Review Queue (with badge)
 - Transfer Matches (with badge)
 
 #### ⚙️ Settings
+
 - Accounts
 - Categories
 - Knowledge Base
 
 #### 👥 Contacts
+
 - Clients
 - Vendors
 
@@ -50,6 +56,7 @@ Successfully reorganized the sidebar navigation into collapsible accordion secti
 ## Key Features Implemented
 
 ### 1. ✅ Accordion State Management
+
 ```typescript
 const [expandedSections, setExpandedSections] = useState<string[]>(() => {
   const saved = localStorage.getItem("sidebar-expanded");
@@ -61,6 +68,7 @@ const [expandedSections, setExpandedSections] = useState<string[]>(() => {
 ```
 
 **Features:**
+
 - Sections can be expanded/collapsed by clicking the header
 - Default expanded: Financial Data and Review & Matching
 - State persists across page refreshes via localStorage
@@ -68,15 +76,17 @@ const [expandedSections, setExpandedSections] = useState<string[]>(() => {
 ---
 
 ### 2. ✅ Auto-Expand Active Section
+
 ```typescript
 useEffect(() => {
   const currentPath = location.pathname;
   const activeSection = sidebarSections.find((section) =>
-    section.items.some((item) => 
-      currentPath === item.href || currentPath.startsWith(item.href + "/")
-    )
+    section.items.some(
+      (item) =>
+        currentPath === item.href || currentPath.startsWith(item.href + "/"),
+    ),
   );
-  
+
   if (activeSection && !expandedSections.includes(activeSection.id)) {
     setExpandedSections((prev) => [...prev, activeSection.id]);
   }
@@ -84,6 +94,7 @@ useEffect(() => {
 ```
 
 **Behavior:**
+
 - When navigating to a page, its parent section automatically expands
 - Ensures users can always see the active navigation item
 - Smooth transition animation
@@ -91,6 +102,7 @@ useEffect(() => {
 ---
 
 ### 3. ✅ Dynamic Badge Counts
+
 ```typescript
 const [badgeCounts, setBadgeCounts] = useState({
   hitl: 0,
@@ -123,6 +135,7 @@ useEffect(() => {
 ```
 
 **Badge Display:**
+
 - **HITL Review Queue:** Shows count of transactions needing review
 - **Transfer Matches:** Shows count of pending transfer candidates
 - Updates automatically every 30 seconds
@@ -131,6 +144,7 @@ useEffect(() => {
 ---
 
 ### 4. ✅ Smooth Animations
+
 ```typescript
 <ChevronRight
   className={cn(
@@ -141,6 +155,7 @@ useEffect(() => {
 ```
 
 **Animation Effects:**
+
 - Chevron icon rotates 90° when section expands
 - 200ms transition duration for smooth effect
 - Expand/collapse transitions are instant (can be enhanced with CSS if needed)
@@ -148,6 +163,7 @@ useEffect(() => {
 ---
 
 ### 5. ✅ LocalStorage Persistence
+
 ```typescript
 // Save to localStorage whenever expanded state changes
 useEffect(() => {
@@ -156,6 +172,7 @@ useEffect(() => {
 ```
 
 **User Experience:**
+
 - Accordion state survives page refreshes
 - User preferences are remembered across sessions
 - No backend storage required
@@ -165,6 +182,7 @@ useEffect(() => {
 ## Visual Design
 
 ### Collapsed Section
+
 ```
 ┌────────────────────────────┐
 │ 📊 Financial Data        › │
@@ -172,6 +190,7 @@ useEffect(() => {
 ```
 
 ### Expanded Section (Active Item)
+
 ```
 ┌────────────────────────────┐
 │ 📊 Financial Data        ⌄ │
@@ -184,6 +203,7 @@ useEffect(() => {
 ```
 
 ### Section with Badges
+
 ```
 ┌────────────────────────────┐
 │ 🔍 Review & Matching     ⌄ │
@@ -198,6 +218,7 @@ useEffect(() => {
 ## Code Structure
 
 ### SidebarSection Interface
+
 ```typescript
 interface SidebarItem {
   label: string;
@@ -214,6 +235,7 @@ interface SidebarSection {
 ```
 
 ### Section Configuration
+
 ```typescript
 const sidebarSections: SidebarSection[] = [
   {
@@ -235,26 +257,28 @@ const sidebarSections: SidebarSection[] = [
 
 ## Icons Used
 
-| Section | Icon | Lucide Component |
-|---------|------|------------------|
-| Import & Upload | 📥 | `Inbox` |
-| Financial Data | 📊 | `BarChart3` |
-| Review & Matching | 🔍 | `SearchCheck` |
-| Settings | ⚙️ | `Settings` |
-| Contacts | 👥 | `UserCircle` |
-| Dashboard | 🏠 | `LayoutDashboard` |
+| Section           | Icon | Lucide Component  |
+| ----------------- | ---- | ----------------- |
+| Import & Upload   | 📥   | `Inbox`           |
+| Financial Data    | 📊   | `BarChart3`       |
+| Review & Matching | 🔍   | `SearchCheck`     |
+| Settings          | ⚙️   | `Settings`        |
+| Contacts          | 👥   | `UserCircle`      |
+| Dashboard         | 🏠   | `LayoutDashboard` |
 
 ---
 
 ## Behavior Details
 
 ### Active State Logic
+
 ```typescript
 const isActive = (href: string) =>
   location.pathname === href || location.pathname.startsWith(href + "/");
 ```
 
 **Matching Rules:**
+
 - Exact match: `/transactions` matches `/transactions`
 - Prefix match: `/statements` matches `/statements/status`
 - Only highlights items in expanded sections
@@ -262,17 +286,20 @@ const isActive = (href: string) =>
 ---
 
 ### Toggle Function
+
 ```typescript
 const toggleSection = (sectionId: string) => {
-  setExpandedSections((prev) =>
-    prev.includes(sectionId)
-      ? prev.filter((id) => id !== sectionId) // Collapse
-      : [...prev, sectionId] // Expand
+  setExpandedSections(
+    (prev) =>
+      prev.includes(sectionId)
+        ? prev.filter((id) => id !== sectionId) // Collapse
+        : [...prev, sectionId], // Expand
   );
 };
 ```
 
 **User Interaction:**
+
 - Click section header to toggle
 - Multiple sections can be open simultaneously
 - No limit on number of expanded sections
@@ -282,6 +309,7 @@ const toggleSection = (sectionId: string) => {
 ## Styling Classes
 
 ### Section Header
+
 ```typescript
 className={cn(
   "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -292,6 +320,7 @@ className={cn(
 ```
 
 ### Section Items
+
 ```typescript
 className={cn(
   "flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors",
@@ -302,6 +331,7 @@ className={cn(
 ```
 
 ### Badge
+
 ```typescript
 <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-blue-600 rounded-full">
   {badgeCount}
@@ -313,6 +343,7 @@ className={cn(
 ## Benefits
 
 ### Before (Flat List) ❌
+
 - 15+ items in a single long list
 - Hard to find specific sections
 - No visual grouping
@@ -320,6 +351,7 @@ className={cn(
 - Difficult to scan
 
 ### After (Accordion) ✅
+
 - 5 organized sections + 2 standalone items
 - Logical grouping by function
 - Collapsible sections reduce clutter
@@ -332,12 +364,14 @@ className={cn(
 ## Performance Considerations
 
 ### Badge Count Fetching
+
 - **Interval:** 30 seconds (configurable)
 - **Impact:** Minimal - head-only queries
 - **Optimization:** Single query per badge type
 - **Cleanup:** Interval cleared on unmount
 
 ### LocalStorage
+
 - **Reads:** Once on mount
 - **Writes:** On every expand/collapse
 - **Size:** Negligible (~50 bytes)
@@ -361,27 +395,32 @@ className={cn(
 ## Testing Recommendations
 
 ### 1. Navigation
+
 - ✅ Click each item to verify routing works
 - ✅ Verify active state highlights correctly
 - ✅ Test nested routes (e.g., `/statements/status`)
 
 ### 2. Accordion Behavior
+
 - ✅ Expand/collapse sections
 - ✅ Multiple sections can be open
 - ✅ Auto-expand works when navigating
 - ✅ Chevron rotates smoothly
 
 ### 3. Badges
+
 - ✅ Badge counts display correctly
 - ✅ Counts update every 30 seconds
 - ✅ Zero counts hide badges
 
 ### 4. Persistence
+
 - ✅ Refresh page - state persists
 - ✅ Navigate away and back - state persists
 - ✅ Clear localStorage - defaults to Financial + Review expanded
 
 ### 5. Responsive
+
 - ✅ Sidebar scrolls if content overflows
 - ✅ All sections accessible on small screens
 
@@ -390,16 +429,21 @@ className={cn(
 ## Migration Notes
 
 ### Removed Routes
+
 None - all existing routes maintained
 
 ### New Routes
+
 None - reorganization only
 
 ### Breaking Changes
+
 None - all existing functionality preserved
 
 ### Backwards Compatibility
+
 ✅ Full backwards compatibility
+
 - All existing links work
 - All routes unchanged
 - No database changes required
@@ -408,11 +452,12 @@ None - all existing functionality preserved
 
 ## Files Modified
 
-| File | Changes |
-|------|---------|
+| File                            | Changes                                   |
+| ------------------------------- | ----------------------------------------- |
 | `client/components/Sidebar.tsx` | Complete rewrite with accordion structure |
 
 **Lines Changed:**
+
 - Before: 224 lines
 - After: 323 lines
 - Net: +99 lines

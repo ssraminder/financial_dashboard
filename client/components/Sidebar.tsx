@@ -71,7 +71,11 @@ const sidebarSections: SidebarSection[] = [
     label: "Review & Matching",
     items: [
       { label: "HITL Review Queue", href: "/review-queue", badge: "hitl" },
-      { label: "Transfer Matches", href: "/transfers/review", badge: "transfers" },
+      {
+        label: "Transfer Matches",
+        href: "/transfers/review",
+        badge: "transfers",
+      },
     ],
   },
   {
@@ -98,7 +102,7 @@ const sidebarSections: SidebarSection[] = [
 export function Sidebar() {
   const location = useLocation();
   const { signOut, profile, user } = useAuth();
-  
+
   // Badge counts
   const [badgeCounts, setBadgeCounts] = useState({
     hitl: 0,
@@ -123,11 +127,12 @@ export function Sidebar() {
   useEffect(() => {
     const currentPath = location.pathname;
     const activeSection = sidebarSections.find((section) =>
-      section.items.some((item) => 
-        currentPath === item.href || currentPath.startsWith(item.href + "/")
-      )
+      section.items.some(
+        (item) =>
+          currentPath === item.href || currentPath.startsWith(item.href + "/"),
+      ),
     );
-    
+
     if (activeSection && !expandedSections.includes(activeSection.id)) {
       setExpandedSections((prev) => [...prev, activeSection.id]);
     }
@@ -176,7 +181,7 @@ export function Sidebar() {
     setExpandedSections((prev) =>
       prev.includes(sectionId)
         ? prev.filter((id) => id !== sectionId)
-        : [...prev, sectionId]
+        : [...prev, sectionId],
     );
   };
 
@@ -218,7 +223,7 @@ export function Sidebar() {
             "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
             isActive("/dashboard")
               ? "bg-sidebar-accent text-sidebar-accent-foreground"
-              : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+              : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
           )}
         >
           <LayoutDashboard className="h-5 w-5" />
@@ -228,7 +233,9 @@ export function Sidebar() {
         {/* Accordion Sections */}
         {sidebarSections.map((section) => {
           const isExpanded = expandedSections.includes(section.id);
-          const hasActiveItem = section.items.some((item) => isActive(item.href));
+          const hasActiveItem = section.items.some((item) =>
+            isActive(item.href),
+          );
 
           return (
             <div key={section.id} className="mt-1">
@@ -239,7 +246,7 @@ export function Sidebar() {
                   "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   hasActiveItem
                     ? "text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                 )}
               >
                 <span className="flex items-center gap-3">
@@ -249,7 +256,7 @@ export function Sidebar() {
                 <ChevronRight
                   className={cn(
                     "h-4 w-4 transition-transform duration-200",
-                    isExpanded ? "rotate-90" : ""
+                    isExpanded ? "rotate-90" : "",
                   )}
                 />
               </button>
@@ -269,7 +276,7 @@ export function Sidebar() {
                           "flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors",
                           itemIsActive
                             ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                         )}
                       >
                         <span className="flex items-center gap-2">
