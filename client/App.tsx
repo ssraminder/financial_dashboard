@@ -43,6 +43,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/auth/accept-invite" element={<AcceptInvite />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/review-queue" element={<ReviewQueue />} />
           <Route path="/upload" element={<Upload />} />
