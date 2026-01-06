@@ -653,6 +653,14 @@ export default function Transactions() {
             </p>
           </div>
 
+          {/* Re-Analyze Progress Indicator */}
+          <ReanalyzeProgressIndicator
+            onComplete={() => {
+              // Refresh transactions when re-analysis completes
+              fetchTransactions();
+            }}
+          />
+
           {/* Filters Card */}
           <Card>
             <CardHeader>
