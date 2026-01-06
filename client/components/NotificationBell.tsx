@@ -256,12 +256,12 @@ export function NotificationBell({
       {/* Dropdown */}
       {isOpen && (
         <div
-          className={`absolute right-0 w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50 ${
+          className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50 ${
             dropdownPosition === "top" ? "bottom-full mb-2" : "top-full mt-2"
           }`}
         >
           {/* Header */}
-          <div className="px-4 py-3 border-b flex items-center justify-between">
+          <div className="px-4 py-3 border-b flex items-center justify-between sticky top-0 bg-white z-10">
             <h3 className="font-medium text-gray-900">Notifications</h3>
             {notifications.some((n) => !n.is_read) && (
               <button
@@ -274,7 +274,7 @@ export function NotificationBell({
           </div>
 
           {/* Notification list */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto overflow-x-hidden">
             {isLoading ? (
               <div className="p-4 text-center text-gray-500">
                 <p className="text-sm">Loading...</p>
@@ -302,7 +302,7 @@ export function NotificationBell({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p
-                        className={`text-sm ${!notification.is_read ? "font-medium" : ""}`}
+                        className={`text-sm truncate ${!notification.is_read ? "font-medium" : ""}`}
                       >
                         {notification.title}
                       </p>
@@ -310,7 +310,7 @@ export function NotificationBell({
                         <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" />
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-gray-500 line-clamp-2 break-words">
                       {notification.message}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
