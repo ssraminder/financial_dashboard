@@ -15,22 +15,27 @@ Successfully fixed the notification panel text overflow issues where text was ex
 ## Issues Fixed
 
 ### 1. ✅ Container Width Overflow
+
 - **Problem:** Panel could extend beyond viewport on small screens
 - **Solution:** Added `max-w-[calc(100vw-10rem)]` to prevent panel from exceeding available space
 
 ### 2. ✅ Horizontal Scroll
+
 - **Problem:** Long text could cause horizontal scrolling
 - **Solution:** Added `overflow-x-hidden` to notification list container
 
 ### 3. ✅ Title Overflow
+
 - **Problem:** Long notification titles extended beyond container
 - **Solution:** Added `truncate` class to show ellipsis (...) for long titles
 
 ### 4. ✅ Message Overflow
+
 - **Problem:** Long messages were showing only one line
 - **Solution:** Changed from `truncate` to `line-clamp-2 break-words` to show up to 2 lines with proper word wrapping
 
 ### 5. ✅ Header Visibility
+
 - **Problem:** Header could scroll away when viewing many notifications
 - **Solution:** Added `sticky top-0 bg-white z-10` to keep header visible while scrolling
 
@@ -41,6 +46,7 @@ Successfully fixed the notification panel text overflow issues where text was ex
 ### File: `client/components/NotificationBell.tsx`
 
 #### 1. Dropdown Container (Line 259)
+
 ```tsx
 // Before:
 className={`absolute right-0 w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50 ...`}
@@ -50,11 +56,13 @@ className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg 
 ```
 
 **Changes:**
+
 - Added `max-w-[calc(100vw-10rem)]` - Prevents panel from exceeding viewport width (accounting for 10rem for sidebar)
 
 ---
 
 #### 2. Header Section (Line 264)
+
 ```tsx
 // Before:
 <div className="px-4 py-3 border-b flex items-center justify-between">
@@ -64,6 +72,7 @@ className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg 
 ```
 
 **Changes:**
+
 - Added `sticky top-0` - Keeps header visible while scrolling
 - Added `bg-white` - Ensures background covers content underneath
 - Added `z-10` - Ensures header stays above scrolling content
@@ -71,6 +80,7 @@ className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg 
 ---
 
 #### 3. Notification List Container (Line 277)
+
 ```tsx
 // Before:
 <div className="max-h-96 overflow-y-auto">
@@ -80,11 +90,13 @@ className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg 
 ```
 
 **Changes:**
+
 - Added `overflow-x-hidden` - Prevents horizontal scrolling from long content
 
 ---
 
 #### 4. Notification Title (Line 305)
+
 ```tsx
 // Before:
 <p className={`text-sm ${!notification.is_read ? "font-medium" : ""}`}>
@@ -94,11 +106,13 @@ className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg 
 ```
 
 **Changes:**
+
 - Added `truncate` - Shows ellipsis (...) for titles that exceed container width
 
 ---
 
 #### 5. Notification Message (Line 313)
+
 ```tsx
 // Before:
 <p className="text-xs text-gray-500 truncate">
@@ -108,6 +122,7 @@ className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg 
 ```
 
 **Changes:**
+
 - Replaced `truncate` with `line-clamp-2` - Shows up to 2 lines instead of 1
 - Added `break-words` - Breaks long words to prevent overflow
 
@@ -116,12 +131,14 @@ className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg 
 ## Visual Improvements
 
 ### Before ❌
+
 - Text overflowing on the left side
 - Single-line messages cutting off important information
 - Panel extending beyond viewport on small screens
 - Horizontal scroll appearing for long text
 
 ### After ✅
+
 - All text properly contained within panel boundaries
 - Messages show up to 2 lines with ellipsis
 - Titles truncate with ellipsis for long text
@@ -134,30 +151,40 @@ className={`absolute right-0 w-80 max-w-[calc(100vw-10rem)] bg-white rounded-lg 
 ## Testing Recommendations
 
 ### 1. Test Long Titles
+
 Create a notification with a very long title (50+ characters) and verify:
+
 - ✅ Title shows ellipsis (...)
 - ✅ Text doesn't overflow container
 
 ### 2. Test Long Messages
+
 Create a notification with a long message (200+ characters) and verify:
+
 - ✅ Message shows 2 lines maximum
 - ✅ Ellipsis appears on second line if text exceeds
 - ✅ No horizontal scroll
 
 ### 3. Test Responsive Behavior
+
 Resize browser window to various widths and verify:
+
 - ✅ Panel adjusts to available space
 - ✅ Minimum readable width maintained
 - ✅ Content remains within bounds
 
 ### 4. Test Scrolling
+
 Add 10+ notifications and verify:
+
 - ✅ Header stays visible while scrolling
 - ✅ Vertical scroll works smoothly
 - ✅ No horizontal scroll appears
 
 ### 5. Test Unread Indicators
+
 Verify unread indicators still work properly:
+
 - ✅ Blue dot visible for unread notifications
 - ✅ Blue background on unread items
 - ✅ Badge count updates correctly
@@ -168,21 +195,22 @@ Verify unread indicators still work properly:
 
 ### Tailwind Classes Used
 
-| Class | Purpose |
-|-------|---------|
+| Class                       | Purpose                                           |
+| --------------------------- | ------------------------------------------------- |
 | `max-w-[calc(100vw-10rem)]` | Limit panel width to viewport minus sidebar space |
-| `overflow-x-hidden` | Prevent horizontal scrolling |
-| `sticky top-0` | Keep header visible while scrolling |
-| `truncate` | Single-line truncation with ellipsis |
-| `line-clamp-2` | Multi-line truncation (2 lines max) |
-| `break-words` | Break long words to prevent overflow |
-| `z-10` | Stack sticky header above scrolling content |
+| `overflow-x-hidden`         | Prevent horizontal scrolling                      |
+| `sticky top-0`              | Keep header visible while scrolling               |
+| `truncate`                  | Single-line truncation with ellipsis              |
+| `line-clamp-2`              | Multi-line truncation (2 lines max)               |
+| `break-words`               | Break long words to prevent overflow              |
+| `z-10`                      | Stack sticky header above scrolling content       |
 
 ---
 
 ## Browser Compatibility
 
 These Tailwind classes are well-supported across modern browsers:
+
 - ✅ Chrome/Edge (Chromium)
 - ✅ Firefox
 - ✅ Safari
@@ -212,6 +240,7 @@ These Tailwind classes are well-supported across modern browsers:
 ## Summary
 
 The notification panel overflow issue has been completely resolved with:
+
 - ✅ Proper width constraints for responsive behavior
 - ✅ Text truncation for titles (single line with ellipsis)
 - ✅ Text clamping for messages (2 lines with ellipsis)
