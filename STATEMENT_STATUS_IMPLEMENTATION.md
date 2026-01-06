@@ -1,12 +1,15 @@
 # Statement Status Dashboard - Implementation Complete ✅
 
 ## Overview
+
 Implemented a comprehensive Statement Status Dashboard at `/statements/status` that tracks uploaded, pending, and missing statements across all bank accounts with monthly progress visualization and date gap detection.
 
 ## Files Created/Modified
 
 ### 1. **`client/pages/StatementStatus.tsx`** ✅ CREATED
+
 Full-featured dashboard page with:
+
 - **Monthly Status View**: Lists all expected statements grouped by month
 - **Date Gaps View**: Shows periods not covered by uploaded statements
 - **Year Navigator**: Browse statements by year with prev/next controls
@@ -17,16 +20,19 @@ Full-featured dashboard page with:
 - **Real-time Data**: Fetches from Supabase views
 
 ### 2. **`client/App.tsx`** ✅ UPDATED
+
 - Added import: `import StatementStatus from "./pages/StatementStatus";`
 - Added route: `<Route path="/statements/status" element={<StatementStatus />} />`
 
 ### 3. **`client/components/Sidebar.tsx`** ✅ UPDATED
+
 - Added Calendar icon import
 - Converted "View Statements" to expandable section with sub-items:
   - View Statements (`/statements`)
   - Statement Status (`/statements/status`) ⭐ NEW
 
 ### 4. **`client/components/NotificationBell.tsx`** ✅ UPDATED
+
 - Added Calendar icon import
 - Added `statement_reminder` to notification types
 - Added red Calendar icon for statement reminder notifications
@@ -34,6 +40,7 @@ Full-featured dashboard page with:
 ## Features Implemented
 
 ### 📊 **Dashboard Layout**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ Statement Status                    [🔄] [Upload]   │
@@ -51,12 +58,14 @@ Full-featured dashboard page with:
 ### 🎯 **Key Components**
 
 #### Summary Cards (Clickable Filters)
+
 - **Total Expected**: Shows all statements across all accounts
 - **Confirmed**: Green - Statements verified and confirmed
 - **Pending Review**: Yellow - Uploaded but needs verification
 - **Missing**: Red - Expected but not yet uploaded
 
 #### Monthly Status Tab
+
 - Groups statements by month (e.g., "January 2026")
 - Shows bank account details with last 4 digits
 - Displays date range for each statement
@@ -65,12 +74,14 @@ Full-featured dashboard page with:
 - Summary counts per month (confirmed/pending/missing)
 
 #### Date Gaps Tab
+
 - Lists periods with no statement coverage
 - Shows gap duration in days
 - Distinguishes between gaps and overlaps
 - Direct upload button for each gap
 
 #### Monthly Progress Grid
+
 - 12-month calendar view
 - Completion percentage per month
 - Color coding:
@@ -99,6 +110,7 @@ Sidebar → Statements → Statement Status
 ### 📋 **Data Dependencies**
 
 The page requires these Supabase database views:
+
 1. **`statement_status_by_month`** - Monthly statement tracking
 2. **`missing_statements_summary`** - Aggregated statistics
 3. **`statement_date_gaps`** - Date coverage analysis
@@ -117,6 +129,7 @@ The page requires these Supabase database views:
 ### 🔔 **Notification Support**
 
 Added `statement_reminder` notification type:
+
 - **Icon**: Red Calendar icon
 - **Purpose**: Alert users about missing statements
 - **Integration**: Works with existing notification system
@@ -130,6 +143,7 @@ Before using this page, ensure these views exist in Supabase:
 ```
 
 ### Views:
+
 1. **statement_status_by_month**
    - Columns: bank_account_id, bank_name, period_year, period_month, status, etc.
    - Purpose: List all expected statements with current status
@@ -145,43 +159,49 @@ Before using this page, ensure these views exist in Supabase:
 ## Usage
 
 ### Access the Page
+
 1. Navigate to sidebar
-2. Click "Statements" 
+2. Click "Statements"
 3. Click "Statement Status"
 4. Or directly visit: `/statements/status`
 
 ### View Statement Status
+
 1. Use year navigator to browse different years
 2. Click summary cards to filter by status
 3. Click month in progress grid to filter by month
 4. View detailed listings grouped by month
 
 ### Check Date Gaps
+
 1. Click "Date Gaps" tab
 2. Review periods without coverage
 3. Click "Upload" to add missing statement
 
 ### Upload Missing Statement
+
 1. Click "Upload" button next to missing statement
 2. Or use "Upload Statement" button in header
 3. Upload redirects to `/upload?account={account_id}`
 
 ### View Statement Details
+
 1. Click "👁" (eye) icon next to confirmed/uploaded statement
 2. Navigates to `/statements?statement={import_id}`
 
 ## Status Types
 
-| Status | Badge Color | Icon | Meaning |
-|--------|-------------|------|---------|
-| `confirmed` | Green | ✓ | Statement verified and confirmed |
-| `pending_review` | Yellow | ⚠ | Uploaded, needs review |
-| `uploaded` | Blue | ✓ | Recently uploaded |
-| `missing` | Red | ✗ | Expected but not uploaded |
+| Status           | Badge Color | Icon | Meaning                          |
+| ---------------- | ----------- | ---- | -------------------------------- |
+| `confirmed`      | Green       | ✓    | Statement verified and confirmed |
+| `pending_review` | Yellow      | ⚠   | Uploaded, needs review           |
+| `uploaded`       | Blue        | ✓    | Recently uploaded                |
+| `missing`        | Red         | ✗    | Expected but not uploaded        |
 
 ## Future Enhancements
 
 ### Potential Additions:
+
 - **Email Reminders**: Auto-send emails for missing statements
 - **CSV Export**: Download statement status report
 - **Bulk Upload**: Upload multiple statements at once
@@ -192,6 +212,7 @@ Before using this page, ensure these views exist in Supabase:
 - **Notes/Comments**: Add notes to statements
 
 ### Integration Points:
+
 - Statement upload flow (pre-select account)
 - Notification system (reminder alerts)
 - Email system (automated reminders)
@@ -237,6 +258,7 @@ Before using this page, ensure these views exist in Supabase:
 ✅ **Statement Status Dashboard is fully implemented and ready to use!**
 
 Once the database views are created (via SQL migration), users can:
+
 - Track all expected statements across accounts
 - Identify missing statements at a glance
 - Monitor monthly completion progress

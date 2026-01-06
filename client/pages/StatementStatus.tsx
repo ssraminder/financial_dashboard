@@ -394,8 +394,9 @@ export default function StatementStatus() {
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <span className="text-green-600">
                         {
-                          group.statements.filter((s) => s.status === "confirmed")
-                            .length
+                          group.statements.filter(
+                            (s) => s.status === "confirmed",
+                          ).length
                         }{" "}
                         confirmed
                       </span>
