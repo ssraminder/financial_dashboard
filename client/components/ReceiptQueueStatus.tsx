@@ -16,6 +16,8 @@ import {
   X,
   RotateCw,
   Eye,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,6 +65,8 @@ export function ReceiptQueueStatus({
   const [isLoading, setIsLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [bulkConfirm, setBulkConfirm] = useState<string | null>(null);
 
   const fetchQueueStatus = async () => {
     try {
@@ -204,7 +208,7 @@ export function ReceiptQueueStatus({
     }
   };
 
-  const handleCancel = async (itemId: string) => {
+  const handleDelete = async (itemId: string) => {
     try {
       const { error } = await supabase
         .from("receipt_upload_queue")
@@ -213,11 +217,12 @@ export function ReceiptQueueStatus({
 
       if (error) throw error;
 
-      toast.success("Item cancelled");
+      toast.success("Item deleted");
+      setDeleteConfirm(null);
       fetchQueueStatus();
     } catch (error) {
-      console.error("Error cancelling item:", error);
-      toast.error("Failed to cancel item");
+      console.error("Error deleting item:", error);
+      toast.error("Failed to delete item");
     }
   };
 
@@ -240,6 +245,53 @@ export function ReceiptQueueStatus({
     } catch (error) {
       console.error("Error retrying item:", error);
       toast.error("Failed to retry item");
+    }
+  };
+
+  const handleBulkAction = async (action: string) => {
+    try {
+      switch (action) {
+        case "clear_completed":
+          const { error: completedError } = await supabase
+            .from("receipt_upload_queue")
+            .delete()
+            .eq("status", "completed");
+
+          if (completedError) throw completedError;
+          toast.success("Completed items cleared");
+          break;
+
+        case "retry_all_failed":
+          const { error: retryError } = await supabase
+            .from("receipt_upload_queue")
+            .update({
+              status: "queued",
+              error_message: null,
+              processing_started_at: null,
+              completed_at: null,
+            })
+            .eq("status", "failed");
+
+          if (retryError) throw retryError;
+          toast.success("Failed items queued for retry");
+          break;
+
+        case "clear_all":
+          const { error: clearError } = await supabase
+            .from("receipt_upload_queue")
+            .delete()
+            .neq("status", "processing"); // Don't delete items being processed
+
+          if (clearError) throw clearError;
+          toast.success("Queue cleared");
+          break;
+      }
+
+      setBulkConfirm(null);
+      fetchQueueStatus();
+    } catch (error) {
+      console.error("Error performing bulk action:", error);
+      toast.error("Failed to perform bulk action");
     }
   };
 
@@ -510,6 +562,49 @@ export function ReceiptQueueStatus({
         )}
       </div>
 
+      {/* Bulk Actions */}
+      {displayItems.length > 0 && (
+        <div className="flex items-center justify-between py-3 px-4 bg-gray-50 border-b">
+          <span className="text-sm font-medium text-gray-700">
+            {statusFilter === "all"
+              ? `All Items (${displayItems.length})`
+              : `${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} (${displayItems.length})`}
+          </span>
+
+          <div className="flex gap-2">
+            {/* Clear Completed */}
+            {stats && stats.completed > 0 && (
+              <button
+                onClick={() => setBulkConfirm("clear_completed")}
+                className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 flex items-center gap-1"
+              >
+                Clear Completed ({stats.completed})
+              </button>
+            )}
+
+            {/* Retry All Failed */}
+            {stats && stats.failed > 0 && (
+              <button
+                onClick={() => handleBulkAction("retry_all_failed")}
+                className="px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200 flex items-center gap-1"
+              >
+                <RotateCw className="w-3 h-3" />
+                Retry Failed ({stats.failed})
+              </button>
+            )}
+
+            {/* Clear All */}
+            <button
+              onClick={() => setBulkConfirm("clear_all")}
+              className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 flex items-center gap-1"
+            >
+              <Trash2 className="w-3 h-3" />
+              Clear All
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Queue Items List */}
       <Card>
         <div className="px-4 py-3 border-b">
@@ -597,7 +692,7 @@ export function ReceiptQueueStatus({
                       </span>
 
                       {/* Action buttons */}
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 relative">
                         {item.status === "queued" && (
                           <>
                             <button
@@ -607,14 +702,6 @@ export function ReceiptQueueStatus({
                             >
                               <Play className="w-3 h-3" />
                               Process
-                            </button>
-                            <button
-                              onClick={() => handleCancel(item.id)}
-                              className="px-3 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center gap-1"
-                              title="Cancel"
-                            >
-                              <X className="w-3 h-3" />
-                              Cancel
                             </button>
                           </>
                         )}
@@ -642,6 +729,41 @@ export function ReceiptQueueStatus({
                             View
                           </button>
                         )}
+
+                        {/* Delete button - available for all items except processing */}
+                        {item.status !== "processing" && (
+                          <button
+                            onClick={() => setDeleteConfirm(item.id)}
+                            className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        {/* Delete Confirmation Popover */}
+                        {deleteConfirm === item.id && (
+                          <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg p-3 z-20 w-48">
+                            <div className="flex items-start gap-2 mb-2">
+                              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                              <p className="text-sm text-gray-700">Delete this item?</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleDelete(item.id)}
+                                className="flex-1 px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                              >
+                                Delete
+                              </button>
+                              <button
+                                onClick={() => setDeleteConfirm(null)}
+                                className="flex-1 px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -651,6 +773,48 @@ export function ReceiptQueueStatus({
           </div>
         )}
       </Card>
+
+      {/* Bulk Action Confirmation Dialog */}
+      {bulkConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-start gap-3 mb-4">
+              <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {bulkConfirm === "clear_completed" && "Clear Completed Items?"}
+                  {bulkConfirm === "clear_all" && "Clear All Items?"}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {bulkConfirm === "clear_completed" &&
+                    `This will permanently delete ${stats?.completed || 0} completed items from the queue.`}
+                  {bulkConfirm === "clear_all" &&
+                    `This will permanently delete all ${displayItems.filter((i) => i.status !== "processing").length} items from the queue (excluding items currently being processed).`}
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setBulkConfirm(null)}
+                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleBulkAction(bulkConfirm)}
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                {bulkConfirm === "clear_completed" && "Clear Completed"}
+                {bulkConfirm === "clear_all" && "Clear All"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
