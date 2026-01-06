@@ -66,6 +66,10 @@ interface Transaction {
   link_type?: string;
   is_edited?: boolean;
   edited_at?: string;
+  manually_locked?: boolean;
+  manually_locked_at?: string;
+  manually_locked_by?: string;
+  is_locked?: boolean;
   category?: {
     id: string;
     code: string;
