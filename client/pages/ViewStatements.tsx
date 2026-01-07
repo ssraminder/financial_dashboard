@@ -152,6 +152,10 @@ export default function ViewStatements() {
   );
   const [editingAmountValue, setEditingAmountValue] = useState("");
 
+  // Download state
+  const [originalFilePath, setOriginalFilePath] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
   // Filter state
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
