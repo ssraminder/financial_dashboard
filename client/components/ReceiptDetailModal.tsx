@@ -94,6 +94,7 @@ export function ReceiptDetailModal({
   const [isEditing, setIsEditing] = useState(false);
   const [editedReceipt, setEditedReceipt] = useState<ReceiptData | null>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
+  const [editedLineItems, setEditedLineItems] = useState<LineItem[]>([]);
   const [matchCandidates, setMatchCandidates] = useState<MatchCandidate[]>([]);
   const [linkedTransaction, setLinkedTransaction] =
     useState<Transaction | null>(null);
@@ -125,6 +126,7 @@ export function ReceiptDetailModal({
         .order("line_number");
 
       setLineItems(items || []);
+      setEditedLineItems(items || []);
 
       // Fetch match candidates if needs review
       if (receipt.needs_review) {
