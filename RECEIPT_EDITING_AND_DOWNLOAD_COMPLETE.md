@@ -7,6 +7,7 @@
 ## Summary
 
 Successfully implemented two major features:
+
 1. **Receipt Editing Enhancement** - Edit line items, auto-calculate totals
 2. **Statement Download** - Download original PDFs from ViewStatements
 
@@ -15,33 +16,41 @@ Successfully implemented two major features:
 ## PART 1: Receipt Editing Enhancement ✅
 
 ### Files Modified
+
 - `client/components/ReceiptDetailModal.tsx`
 
 ### Changes Implemented
 
 #### 1. Added State for Edited Line Items
+
 ```typescript
 const [editedLineItems, setEditedLineItems] = useState<LineItem[]>([]);
 ```
 
 #### 2. Initialize Edited Line Items
+
 When line items are fetched, they're also copied to `editedLineItems` for editing.
 
 #### 3. Added Calculation Functions
+
 - `calculateSubtotalFromLineItems()` - Sums all line item totals
 - `calculateTotal()` - Adds subtotal + taxes + tip
 - `handleLineItemChange()` - Updates individual line item fields
 - `handleRecalculateFromLineItems()` - Recalculates subtotal and total from line items
 
 #### 4. Enhanced handleSaveChanges
+
 Now saves:
+
 - All receipt fields (vendor, date, time, amounts)
 - All tax fields (GST, PST, HST)
 - Tip amount
 - All line items (quantity, unit_price, total_price, description)
 
 #### 5. Editable Receipt Details Section
+
 Added editable fields for:
+
 - ✅ Receipt Date (date input)
 - ✅ Receipt Time (time input)
 - ✅ Subtotal (number input)
@@ -53,6 +62,7 @@ Added editable fields for:
 - ✅ "Recalculate from Line Items" button
 
 #### 6. Editable Line Items Section
+
 - In view mode: Shows quantity × description with total
 - In edit mode:
   - Editable quantity input (number)
@@ -72,12 +82,14 @@ Added editable fields for:
 ### Example Scenario: Exchange Receipt
 
 **Problem**: Receipt shows exchange with negative and positive amounts
+
 - Line Item 1: "EXCHANGE/RETURN" = -$164.99
 - Line Item 2: "NEW ITEM" = $184.99
 - Line Items Sum: $20.00
 - But Subtotal shows: $164.99 (WRONG)
 
 **Solution**:
+
 1. Edit line item 1 total to correct value
 2. Click "Recalculate from Line Items"
 3. Subtotal updates to $20.00
@@ -89,16 +101,19 @@ Added editable fields for:
 ## PART 2: Statement Download Feature ✅
 
 ### Files Modified
+
 - `client/pages/ViewStatements.tsx`
 
 ### Changes Implemented
 
 #### 1. Added Download Import
+
 ```typescript
 import { Download } from "lucide-react";
 ```
 
 #### 2. Added State Variables
+
 ```typescript
 const [originalFilePath, setOriginalFilePath] = useState<string | null>(null);
 const [isDownloading, setIsDownloading] = useState(false);
@@ -107,11 +122,13 @@ const [isDownloading, setIsDownloading] = useState(false);
 #### 3. Added Functions
 
 **fetchOriginalFilePath()**
+
 - Queries `parse_queue` table for `file_path`
 - Filters by `statement_import_id`
 - Sets `originalFilePath` state
 
 **handleDownloadOriginal()**
+
 - Downloads file from Supabase Storage bucket `statement-uploads`
 - Creates blob URL and triggers browser download
 - Uses original filename from statement
@@ -119,7 +136,9 @@ const [isDownloading, setIsDownloading] = useState(false);
 - Handles loading state
 
 #### 4. Added useEffect Hook
+
 Calls `fetchOriginalFilePath()` when statement changes:
+
 ```typescript
 useEffect(() => {
   if (selectedStatementId && statements.length > 0) {
@@ -132,24 +151,28 @@ useEffect(() => {
 ```
 
 #### 5. Added Download Button to Header
+
 Located before ExportDropdown:
+
 ```tsx
-{originalFilePath && (
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={handleDownloadOriginal}
-    disabled={isDownloading}
-    className="flex items-center gap-2 bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
-  >
-    {isDownloading ? (
-      <Loader2 className="h-4 w-4 animate-spin" />
-    ) : (
-      <Download className="h-4 w-4" />
-    )}
-    Download Original
-  </Button>
-)}
+{
+  originalFilePath && (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleDownloadOriginal}
+      disabled={isDownloading}
+      className="flex items-center gap-2 bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
+    >
+      {isDownloading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Download className="h-4 w-4" />
+      )}
+      Download Original
+    </Button>
+  );
+}
 ```
 
 ### User Workflow
@@ -163,10 +186,12 @@ Located before ExportDropdown:
 ### Database Schema
 
 **parse_queue table:**
+
 - `statement_import_id` - Links to statement_imports.id
 - `file_path` - Path in Supabase Storage (e.g., "statements/2024-01/abc123.pdf")
 
 **Storage bucket:**
+
 - Name: `statement-uploads`
 - Contains original uploaded PDFs
 
@@ -175,6 +200,7 @@ Located before ExportDropdown:
 ## Testing Checklist
 
 ### Receipt Editing ✅
+
 - [x] State added for editedLineItems
 - [x] Line items initialized on load
 - [x] Can edit line item quantities
@@ -191,6 +217,7 @@ Located before ExportDropdown:
 - [x] Save persists line item changes to receipt_line_items table
 
 ### Statement Download ✅
+
 - [x] Download import added
 - [x] State variables added
 - [x] fetchOriginalFilePath function created
@@ -202,6 +229,7 @@ Located before ExportDropdown:
 - [x] Toast notifications implemented
 
 ### Integration Testing (Manual)
+
 - [ ] Test receipt editing with real receipt
 - [ ] Test exchange/return receipt scenario
 - [ ] Verify line items sum calculation
@@ -215,38 +243,43 @@ Located before ExportDropdown:
 ## Code Quality
 
 ### Receipt Editing
+
 ✅ Proper TypeScript types  
 ✅ Error handling in save function  
 ✅ State management with React hooks  
 ✅ Clean separation of concerns  
 ✅ Reusable calculation functions  
-✅ User feedback (toast notifications)  
+✅ User feedback (toast notifications)
 
 ### Statement Download
+
 ✅ Proper error handling  
 ✅ Loading states  
 ✅ Conditional rendering  
 ✅ Memory cleanup (URL.revokeObjectURL)  
 ✅ Toast notifications  
-✅ Type safety  
+✅ Type safety
 
 ---
 
 ## Known Limitations & Future Enhancements
 
 ### Receipt Editing
+
 1. **Line item descriptions not editable** - Currently read-only
 2. **No line item delete** - Can only edit existing items
 3. **No add new line item** - Feature not implemented
 4. **No undo/redo** - Single save point
 
 ### Statement Download
+
 1. **No batch download** - One statement at a time
 2. **No preview** - Downloads immediately
 3. **No file size check** - Could download large files without warning
 4. **Storage path hardcoded** - Assumes `statement-uploads` bucket
 
 ### Potential Improvements
+
 1. Add line item CRUD operations (Create, Delete)
 2. Add undo/redo for receipt editing
 3. Add preview modal for downloaded PDFs
@@ -259,16 +292,20 @@ Located before ExportDropdown:
 ## Database Migrations Required
 
 ### For Receipt Editing
+
 No migrations required - existing schema supports all fields.
 
 Tables used:
+
 - `receipts` - All amount fields already exist
 - `receipt_line_items` - All fields already exist
 
 ### For Statement Download
+
 No migrations required - existing schema has file_path.
 
 Tables used:
+
 - `parse_queue` - `file_path` and `statement_import_id` fields exist
 - Supabase Storage bucket `statement-uploads` must exist
 
@@ -277,13 +314,15 @@ Tables used:
 ## API/Storage Requirements
 
 ### Supabase Storage
+
 - Bucket: `statement-uploads`
 - Public access: No (signed URLs used)
 - File retention: Permanent (or per policy)
 
 ### Database Access
+
 - SELECT on `parse_queue` table
-- SELECT on `receipt_line_items` table  
+- SELECT on `receipt_line_items` table
 - UPDATE on `receipts` table
 - UPDATE on `receipt_line_items` table
 
@@ -292,11 +331,13 @@ Tables used:
 ## Performance Considerations
 
 ### Receipt Editing
+
 - **Debounce calculations**: Not implemented, but could improve performance
 - **Bulk save**: Line items saved individually (could batch)
 - **State updates**: Efficient React re-renders
 
 ### Statement Download
+
 - **File size**: No size limits - could timeout on large files
 - **Network**: No retry logic - single download attempt
 - **Caching**: No caching - re-downloads each time
@@ -306,16 +347,18 @@ Tables used:
 ## Security Considerations
 
 ### Receipt Editing
+
 ✅ RLS policies apply to receipts and line_items tables  
 ✅ User must have access to receipt to edit  
-✅ Validation on client (should add server-side validation)  
+✅ Validation on client (should add server-side validation)
 
 ### Statement Download
+
 ✅ File path from database (not user input)  
 ✅ Signed URLs with expiration  
 ✅ Storage bucket not public  
 ⚠️ No file size limits (could be DoS vector)  
-⚠️ No rate limiting on downloads  
+⚠️ No rate limiting on downloads
 
 ---
 
@@ -336,11 +379,13 @@ Tables used:
 ## Success Metrics
 
 ### Receipt Editing
+
 - Users can correct OCR errors in line items
 - Time to fix receipt reduced by 50%
 - Fewer support requests for receipt corrections
 
 ### Statement Download
+
 - Users can access original PDFs when needed
 - Reduced confusion about statement discrepancies
 - Better audit trail for compliance
@@ -375,20 +420,20 @@ A: Original file may be corrupted. Try re-uploading the statement.
 
 ## Files Changed Summary
 
-| File | Lines Changed | Type |
-|------|---------------|------|
-| `client/components/ReceiptDetailModal.tsx` | ~200 | Modified |
-| `client/pages/ViewStatements.tsx` | ~75 | Modified |
-| **Total** | **~275** | **2 files** |
+| File                                       | Lines Changed | Type        |
+| ------------------------------------------ | ------------- | ----------- |
+| `client/components/ReceiptDetailModal.tsx` | ~200          | Modified    |
+| `client/pages/ViewStatements.tsx`          | ~75           | Modified    |
+| **Total**                                  | **~275**      | **2 files** |
 
 ---
 
 ## Completion Status
 
-| Feature | Status | Tests | Documentation |
-|---------|--------|-------|---------------|
-| Receipt Editing | ✅ Complete | ⏳ Manual | ✅ This doc |
-| Statement Download | ✅ Complete | ⏳ Manual | ✅ This doc |
+| Feature            | Status      | Tests     | Documentation |
+| ------------------ | ----------- | --------- | ------------- |
+| Receipt Editing    | ✅ Complete | ⏳ Manual | ✅ This doc   |
+| Statement Download | ✅ Complete | ⏳ Manual | ✅ This doc   |
 
 ---
 
@@ -399,4 +444,4 @@ A: Original file may be corrupted. Try re-uploading the statement.
 
 ---
 
-*End of Document*
+_End of Document_

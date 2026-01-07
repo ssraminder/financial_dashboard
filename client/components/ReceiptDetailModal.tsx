@@ -414,7 +414,10 @@ export function ReceiptDetailModal({
 
   // Calculate subtotal from line items
   const calculateSubtotalFromLineItems = (): number => {
-    return editedLineItems.reduce((sum, item) => sum + (item.total_price || 0), 0);
+    return editedLineItems.reduce(
+      (sum, item) => sum + (item.total_price || 0),
+      0,
+    );
   };
 
   // Calculate total from subtotal + taxes + tip
@@ -649,7 +652,9 @@ export function ReceiptDetailModal({
                     className="w-32 px-2 py-1 border rounded text-right text-sm"
                   />
                 ) : (
-                  <span className="text-sm">{formatAmount(receipt?.subtotal)}</span>
+                  <span className="text-sm">
+                    {formatAmount(receipt?.subtotal)}
+                  </span>
                 )}
               </div>
 
@@ -671,7 +676,9 @@ export function ReceiptDetailModal({
                   />
                 ) : (
                   receipt.gst_amount > 0 && (
-                    <span className="text-sm">{formatAmount(receipt?.gst_amount)}</span>
+                    <span className="text-sm">
+                      {formatAmount(receipt?.gst_amount)}
+                    </span>
                   )
                 )}
               </div>
@@ -694,7 +701,9 @@ export function ReceiptDetailModal({
                       className="w-32 px-2 py-1 border rounded text-right text-sm"
                     />
                   ) : (
-                    <span className="text-sm">{formatAmount(receipt?.pst_amount)}</span>
+                    <span className="text-sm">
+                      {formatAmount(receipt?.pst_amount)}
+                    </span>
                   )}
                 </div>
               )}
@@ -717,7 +726,9 @@ export function ReceiptDetailModal({
                       className="w-32 px-2 py-1 border rounded text-right text-sm"
                     />
                   ) : (
-                    <span className="text-sm">{formatAmount(receipt?.hst_amount)}</span>
+                    <span className="text-sm">
+                      {formatAmount(receipt?.hst_amount)}
+                    </span>
                   )}
                 </div>
               )}
@@ -740,7 +751,9 @@ export function ReceiptDetailModal({
                       className="w-32 px-2 py-1 border rounded text-right text-sm"
                     />
                   ) : (
-                    <span className="text-sm">{formatAmount(receipt?.tip_amount)}</span>
+                    <span className="text-sm">
+                      {formatAmount(receipt?.tip_amount)}
+                    </span>
                   )}
                 </div>
               )}
@@ -915,54 +928,63 @@ export function ReceiptDetailModal({
               <h3 className="font-medium text-gray-900 mb-3">Line Items</h3>
 
               <div className="space-y-2">
-                {(isEditing ? editedLineItems : lineItems).map((item, index) => (
-                  <div key={item.id} className="flex justify-between items-center text-sm">
-                    {isEditing ? (
-                      <>
-                        <div className="flex items-center gap-2 flex-1">
+                {(isEditing ? editedLineItems : lineItems).map(
+                  (item, index) => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-center text-sm"
+                    >
+                      {isEditing ? (
+                        <>
+                          <div className="flex items-center gap-2 flex-1">
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  "quantity",
+                                  parseInt(e.target.value) || 1,
+                                )
+                              }
+                              className="w-12 px-2 py-1 border rounded text-center"
+                            />
+                            <span className="text-gray-500">×</span>
+                            <span className="flex-1 truncate">
+                              {item.description}
+                            </span>
+                          </div>
                           <input
                             type="number"
-                            min="1"
-                            value={item.quantity}
+                            step="0.01"
+                            value={item.total_price}
                             onChange={(e) =>
                               handleLineItemChange(
                                 index,
-                                "quantity",
-                                parseInt(e.target.value) || 1,
+                                "total_price",
+                                parseFloat(e.target.value) || 0,
                               )
                             }
-                            className="w-12 px-2 py-1 border rounded text-center"
+                            className="w-28 px-2 py-1 border rounded text-right"
                           />
-                          <span className="text-gray-500">×</span>
-                          <span className="flex-1 truncate">{item.description}</span>
-                        </div>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={item.total_price}
-                          onChange={(e) =>
-                            handleLineItemChange(
-                              index,
-                              "total_price",
-                              parseFloat(e.target.value) || 0,
-                            )
-                          }
-                          className="w-28 px-2 py-1 border rounded text-right"
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500">{item.quantity}x</span>
-                          <span>{item.description}</span>
-                        </div>
-                        <span className="font-medium">
-                          {formatAmount(item.total_price)}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                ))}
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-500">
+                              {item.quantity}x
+                            </span>
+                            <span>{item.description}</span>
+                          </div>
+                          <span className="font-medium">
+                            {formatAmount(item.total_price)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  ),
+                )}
               </div>
 
               {/* Line Items Total in edit mode */}
