@@ -35,7 +35,7 @@ interface BankAccount {
 }
 
 export default function ManualTransferEntry() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -49,12 +49,15 @@ export default function ManualTransferEntry() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for auth to load before checking
+    if (authLoading) return;
+
     if (!user) {
       navigate("/login");
       return;
     }
     fetchBankAccounts();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchBankAccounts = async () => {
     try {
@@ -139,6 +142,15 @@ export default function ManualTransferEntry() {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   if (!user) {
     return null;
