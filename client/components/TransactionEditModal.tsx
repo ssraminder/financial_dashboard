@@ -371,6 +371,31 @@ export function TransactionEditModal({
         manually_locked: manuallyLocked,
       };
 
+      // Handle transfer linking
+      if (isTransfer) {
+        updates.link_type = 'transfer';
+        updates.transfer_status = linkedTransactionId ? 'matched' : 'pending';
+
+        if (linkedTransactionId) {
+          updates.linked_to = linkedTransactionId;
+
+          // Also update the linked transaction to point back
+          await supabase
+            .from("transactions")
+            .update({
+              linked_to: transaction.id,
+              link_type: 'transfer',
+              transfer_status: 'matched',
+            })
+            .eq("id", linkedTransactionId);
+        }
+      } else {
+        // Clear transfer fields if not a transfer
+        updates.linked_to = null;
+        updates.link_type = null;
+        updates.transfer_status = null;
+      }
+
       // Only set lock timestamp if locking (not unlocking)
       if (manuallyLocked && !transaction.manually_locked) {
         updates.manually_locked_at = new Date().toISOString();
