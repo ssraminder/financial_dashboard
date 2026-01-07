@@ -32,7 +32,7 @@ import { supabase } from "@/lib/supabase";
 interface SidebarItem {
   label: string;
   href: string;
-  badge?: "hitl" | "transfers";
+  badge?: "hitl" | "transfers" | "pending_transfers";
 }
 
 interface SidebarSection {
@@ -111,6 +111,7 @@ export function Sidebar() {
   const [badgeCounts, setBadgeCounts] = useState({
     hitl: 0,
     transfers: 0,
+    pending_transfers: 0,
   });
 
   // Accordion state - default expand Financial Data and Review sections
@@ -165,9 +166,16 @@ export function Sidebar() {
           .select("*", { count: "exact", head: true })
           .eq("status", "pending");
 
+        // Pending transfers count (pending or partial)
+        const { count: pendingTransfersCount } = await supabase
+          .from("pending_transfers")
+          .select("*", { count: "exact", head: true })
+          .in("status", ["pending", "partial"]);
+
         setBadgeCounts({
           hitl: hitlCount || 0,
           transfers: transferCount || 0,
+          pending_transfers: pendingTransfersCount || 0,
         });
       } catch (err) {
         console.error("Error fetching badge counts:", err);
