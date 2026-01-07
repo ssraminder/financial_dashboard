@@ -359,34 +359,26 @@ export function TransactionEditModal({
         JSON.stringify(requestPayload, null, 2),
       );
 
-      const response = await fetch(
-        "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/apply-recommendations",
+      const { data, error: invokeError } = await supabase.functions.invoke(
+        "apply-recommendations",
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestPayload),
+          body: requestPayload,
         },
       );
 
-      console.log("📥 Apply recommendations response status:", response.status);
-      console.log("📥 Apply recommendations response headers:", {
-        contentType: response.headers.get("content-type"),
-      });
+      console.log("📥 Apply recommendations response:", data);
 
-      const result = await response.json();
-
-      console.log("📥 Apply recommendations response body:", result);
-
-      if (!response.ok) {
-        console.error("❌ Error response details:", {
-          status: response.status,
-          statusText: response.statusText,
-          error: result.error || result.message,
-          details: result,
-        });
+      if (invokeError) {
+        console.error("❌ Error invoking function:", invokeError);
         throw new Error(
-          result.error || result.message || "Failed to apply recommendations",
+          invokeError.message || "Failed to apply recommendations",
         );
+      }
+
+      const result = data;
+
+      if (!result) {
+        throw new Error("No response from edge function");
       }
 
       if (result.success) {
