@@ -317,20 +317,46 @@ export function ReceiptDetailModal({
 
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      // Update receipt with all editable amounts
+      const { error: receiptError } = await supabase
         .from("receipts")
         .update({
           vendor_name: editedReceipt.vendor_name,
           vendor_gst_number: editedReceipt.vendor_gst_number,
+          vendor_address: editedReceipt.vendor_address,
+          receipt_date: editedReceipt.receipt_date,
+          receipt_time: editedReceipt.receipt_time,
           total_amount: editedReceipt.total_amount,
           subtotal: editedReceipt.subtotal,
+          gst_amount: editedReceipt.gst_amount,
+          pst_amount: editedReceipt.pst_amount,
+          hst_amount: editedReceipt.hst_amount,
+          tip_amount: editedReceipt.tip_amount,
         })
         .eq("id", editedReceipt.id);
 
-      if (error) throw error;
+      if (receiptError) throw receiptError;
+
+      // Update line items if changed
+      for (const item of editedLineItems) {
+        const { error: lineItemError } = await supabase
+          .from("receipt_line_items")
+          .update({
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_price: item.total_price,
+            description: item.description,
+          })
+          .eq("id", item.id);
+
+        if (lineItemError) {
+          console.error("Error updating line item:", lineItemError);
+        }
+      }
 
       toast.success("Receipt updated");
       setIsEditing(false);
+      setLineItems(editedLineItems);
       onUpdate(editedReceipt);
     } catch (error) {
       console.error("Error saving changes:", error);
