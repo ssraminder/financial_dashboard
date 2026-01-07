@@ -17,7 +17,12 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { ArrowLeftRight, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 
 interface BankAccount {
   id: string;
@@ -55,7 +60,9 @@ export default function ManualTransferEntry() {
     try {
       const { data, error } = await supabase
         .from("bank_accounts")
-        .select("id, name, nickname, bank_name, account_number_last4, account_type, currency")
+        .select(
+          "id, name, nickname, bank_name, account_number_last4, account_type, currency",
+        )
         .eq("is_active", true)
         .order("bank_name", { ascending: true })
         .order("name", { ascending: true });
@@ -109,8 +116,10 @@ export default function ManualTransferEntry() {
 
       if (error) throw error;
 
-      toast.success("Transfer recorded! It will be matched when statements are imported.");
-      
+      toast.success(
+        "Transfer recorded! It will be matched when statements are imported.",
+      );
+
       // Reset form
       setFromAccountId("");
       setToAccountId("");
@@ -118,7 +127,7 @@ export default function ManualTransferEntry() {
       setTransferDate("");
       setDescription("");
       setNotes("");
-      
+
       // Navigate to pending transfers page
       setTimeout(() => {
         navigate("/pending-transfers");
@@ -150,8 +159,8 @@ export default function ManualTransferEntry() {
                 </h1>
               </div>
               <p className="text-gray-600">
-                Record a transfer between your accounts. It will automatically be
-                matched when you import bank statements.
+                Record a transfer between your accounts. It will automatically
+                be matched when you import bank statements.
               </p>
             </div>
 
@@ -165,7 +174,8 @@ export default function ManualTransferEntry() {
                   {/* From Account */}
                   <div className="space-y-2">
                     <Label htmlFor="from-account">
-                      From Account (Money Out) <span className="text-red-500">*</span>
+                      From Account (Money Out){" "}
+                      <span className="text-red-500">*</span>
                     </Label>
                     <Select
                       value={fromAccountId}
@@ -180,9 +190,8 @@ export default function ManualTransferEntry() {
                           .filter((acc) => acc.id !== toAccountId)
                           .map((acc) => (
                             <SelectItem key={acc.id} value={acc.id}>
-                              {acc.bank_name} - {acc.nickname || acc.name}{" "}
-                              (••••{acc.account_number_last4}) -{" "}
-                              {acc.currency}
+                              {acc.bank_name} - {acc.nickname || acc.name} (••••
+                              {acc.account_number_last4}) - {acc.currency}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -192,7 +201,8 @@ export default function ManualTransferEntry() {
                   {/* To Account */}
                   <div className="space-y-2">
                     <Label htmlFor="to-account">
-                      To Account (Money In) <span className="text-red-500">*</span>
+                      To Account (Money In){" "}
+                      <span className="text-red-500">*</span>
                     </Label>
                     <Select
                       value={toAccountId}
@@ -207,9 +217,8 @@ export default function ManualTransferEntry() {
                           .filter((acc) => acc.id !== fromAccountId)
                           .map((acc) => (
                             <SelectItem key={acc.id} value={acc.id}>
-                              {acc.bank_name} - {acc.nickname || acc.name}{" "}
-                              (••••{acc.account_number_last4}) -{" "}
-                              {acc.currency}
+                              {acc.bank_name} - {acc.nickname || acc.name} (••••
+                              {acc.account_number_last4}) - {acc.currency}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -283,9 +292,9 @@ export default function ManualTransferEntry() {
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      This creates a pending transfer record. When you import bank
-                      statements containing this transfer, it will automatically be
-                      matched and linked to prevent duplicates.
+                      This creates a pending transfer record. When you import
+                      bank statements containing this transfer, it will
+                      automatically be matched and linked to prevent duplicates.
                     </AlertDescription>
                   </Alert>
 
@@ -330,7 +339,9 @@ export default function ManualTransferEntry() {
 
             {/* Help Text */}
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h3 className="font-semibold text-blue-900 mb-2">How it works:</h3>
+              <h3 className="font-semibold text-blue-900 mb-2">
+                How it works:
+              </h3>
               <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
                 <li>Record the transfer with the date and amount</li>
                 <li>
