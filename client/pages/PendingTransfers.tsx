@@ -73,7 +73,7 @@ interface PendingTransfer {
 }
 
 export default function PendingTransfers() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [transfers, setTransfers] = useState<PendingTransfer[]>([]);
@@ -84,12 +84,15 @@ export default function PendingTransfers() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
+    // Wait for auth to load before checking
+    if (authLoading) return;
+
     if (!user) {
       navigate("/login");
       return;
     }
     fetchPendingTransfers();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchPendingTransfers = async () => {
     setIsLoading(true);
@@ -205,6 +208,15 @@ export default function PendingTransfers() {
     (t) => t.status === "pending" || t.status === "partial",
   ).length;
   const matchedCount = transfers.filter((t) => t.status === "matched").length;
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   if (!user) {
     return null;
