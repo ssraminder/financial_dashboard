@@ -884,6 +884,8 @@ export default function ViewStatements() {
       .single();
 
     if (!error && data?.file_path) {
+      // Backend now updates file_path to processed/ folder after moving
+      // So we can use it directly without fallback logic
       setOriginalFilePath(data.file_path);
     } else {
       setOriginalFilePath(null);
@@ -896,6 +898,7 @@ export default function ViewStatements() {
 
     setIsDownloading(true);
     try {
+      // Download directly from the file_path (backend keeps it updated)
       const { data, error } = await supabase.storage
         .from("statement-uploads")
         .download(originalFilePath);
