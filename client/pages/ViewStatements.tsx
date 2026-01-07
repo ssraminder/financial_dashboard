@@ -633,11 +633,13 @@ export default function ViewStatements() {
   ]);
 
   // Check if final balance matches statement closing
+  // When no transactions, calculated closing = opening balance (no change)
+  const openingBalance = selectedStatement?.opening_balance || 0;
   const calculatedClosing =
     calculateRunningBalances.length > 0
       ? calculateRunningBalances[calculateRunningBalances.length - 1]
-          .calculated_balance || 0
-      : 0;
+          .calculated_balance || openingBalance
+      : openingBalance;
   const expectedClosing = selectedStatement?.closing_balance || 0;
   const isBalanced = Math.abs(calculatedClosing - expectedClosing) < 0.02;
 
@@ -1156,6 +1158,9 @@ export default function ViewStatements() {
                     <p>
                       Calculated from Transactions:{" "}
                       {formatCurrency(calculatedClosing)}
+                      {(transactions?.length === 0 || !transactions) && (
+                        <span className="text-gray-500 ml-1">(= Opening Balance, no transactions)</span>
+                      )}
                     </p>
                     <p className="font-semibold">
                       Difference:{" "}
@@ -1165,6 +1170,19 @@ export default function ViewStatements() {
                   <p className="mt-2 text-sm text-red-600">
                     This may indicate a missing transaction, incorrect amount,
                     or wrong transaction type (debit/credit).
+                  </p>
+                </div>
+              )}
+
+              {/* Zero Transaction Info */}
+              {isBalanced && (transactions?.length === 0 || !transactions) && (
+                <div className="mx-6 mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-medium text-blue-800 flex items-center">
+                    <AlertCircle className="w-5 h-5 mr-2" />
+                    No Transactions This Period
+                  </h3>
+                  <p className="mt-1 text-sm text-blue-700">
+                    This statement has no transactions. The balance was carried forward from the previous period.
                   </p>
                 </div>
               )}
