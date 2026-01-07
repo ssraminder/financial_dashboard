@@ -9,6 +9,7 @@
 ## Overview
 
 Successfully implemented a transfer linking feature in the Edit Transaction Modal that allows users to:
+
 1. Automatically detect when "Internal Transfer" category is selected
 2. Select the counterpart account for transfers
 3. Link to a specific existing transaction OR mark as unmatched/pending transfer
@@ -18,13 +19,15 @@ Successfully implemented a transfer linking feature in the Edit Transaction Moda
 
 ## Problem Solved
 
-**Before**: 
+**Before**:
+
 - No way to link transfer transactions between accounts
 - Transfers appeared as separate unrelated transactions
 - Manual tracking required to match transfers
 - No visibility into transfer status
 
 **After**:
+
 - Automatic detection of transfer categories
 - Smart search for matching transactions
 - Bi-directional linking (both transactions point to each other)
@@ -37,6 +40,7 @@ Successfully implemented a transfer linking feature in the Edit Transaction Moda
 ### Database Fields Used
 
 The `transactions` table already had these fields:
+
 - `linked_to` (UUID) - Reference to counterpart transaction
 - `link_type` (text) - Type of link: 'transfer', 'reimbursement', 'split'
 - `transfer_status` (text) - Status: 'pending', 'matched'
@@ -75,6 +79,7 @@ const [loadingMatches, setLoadingMatches] = useState(false);
 ```
 
 **Purpose**:
+
 - `isTransfer` - Tracks if current category is a transfer type
 - `transferAccountId` - Selected counterpart account
 - `linkedTransactionId` - Selected matching transaction to link
@@ -87,6 +92,7 @@ const [loadingMatches, setLoadingMatches] = useState(false);
 #### CHANGE 3: Added Three useEffect Hooks
 
 **Hook 1: Fetch Bank Accounts**
+
 ```typescript
 useEffect(() => {
   // Fetches all active bank accounts for dropdown
@@ -95,6 +101,7 @@ useEffect(() => {
 ```
 
 **Hook 2: Detect Transfer Category**
+
 ```typescript
 useEffect(() => {
   // Automatically detects if selected category is a transfer
@@ -103,6 +110,7 @@ useEffect(() => {
 ```
 
 **Hook 3: Search for Matches**
+
 ```typescript
 useEffect(() => {
   // When transfer account selected, automatically searches
@@ -117,6 +125,7 @@ useEffect(() => {
 **Function**: `searchPotentialMatches(accountId: string)`
 
 **Matching Criteria**:
+
 1. ✅ Same account as selected (opposite account)
 2. ✅ Within ±7 days of original transaction date
 3. ✅ Similar amount (within $0.50 tolerance)
@@ -124,6 +133,7 @@ useEffect(() => {
 5. ✅ Not the same transaction
 
 **Example**:
+
 ```
 Original Transaction:
 - Account: Checking
@@ -146,16 +156,16 @@ When saving a transfer link, updates **BOTH** transactions:
 if (isTransfer && linkedTransactionId) {
   // Update current transaction
   updates.linked_to = linkedTransactionId;
-  updates.link_type = 'transfer';
-  updates.transfer_status = 'matched';
-  
+  updates.link_type = "transfer";
+  updates.transfer_status = "matched";
+
   // Update linked transaction to point back
   await supabase
     .from("transactions")
     .update({
       linked_to: transaction.id,
-      link_type: 'transfer',
-      transfer_status: 'matched',
+      link_type: "transfer",
+      transfer_status: "matched",
     })
     .eq("id", linkedTransactionId);
 }
@@ -170,6 +180,7 @@ if (isTransfer && linkedTransactionId) {
 New UI section appears when transfer category is selected:
 
 **Components**:
+
 1. **Transfer Account Dropdown**
    - Lists all active bank accounts
    - Excludes current transaction's account
@@ -229,18 +240,21 @@ New UI section appears when transfer category is selected:
 
 ### Smart Search Algorithm
 
-**Performance**: 
+**Performance**:
+
 - Uses database indexes on `transaction_date` and `bank_account_id`
 - Filters at database level (not client-side)
 - Returns only unlinked transactions
 
 **Tolerance**:
+
 - Date: ±7 days (accounts for processing delays)
 - Amount: ±$0.50 (accounts for fees/rounding)
 
 ### Data Consistency
 
 **Bidirectional Links**:
+
 ```
 Transaction A (Checking):
   linked_to = Transaction B
@@ -254,6 +268,7 @@ Transaction B (Savings):
 ```
 
 **Orphan Prevention**:
+
 - If Transaction A is deleted, Transaction B's link remains
 - Can be cleaned up with periodic maintenance task
 - Or updated to show "Orphaned Transfer"
@@ -290,12 +305,13 @@ Transaction B (Savings):
 The system detects transfer categories by checking:
 
 1. **Category Type**: `category_type === 'transfer'`
-2. **Category Code**: 
+2. **Category Code**:
    - `code === 'bank_transfer'`
    - `code === 'bank_intercompany'`
 3. **Already Linked**: `!!transaction.linked_to`
 
 **Example Categories**:
+
 - "Internal Transfer"
 - "Bank Transfer"
 - "Intercompany Transfer"
@@ -306,32 +322,42 @@ The system detects transfer categories by checking:
 ## Edge Cases Handled
 
 ### ✅ No Matching Transactions
+
 Shows helpful message:
+
 ```
 "No matching transactions found in this account (±7 days, similar amount).
 The counterpart may not be imported yet."
 ```
 
 ### ✅ Loading State
+
 Shows spinner while searching:
+
 ```
 🔄 Searching for matches...
 ```
 
 ### ✅ Account Filtering
+
 Excludes current transaction's account from dropdown:
+
 ```typescript
 .filter(acc => acc.id !== transaction?.bank_account?.id)
 ```
 
 ### ✅ Already Linked Transactions
+
 Excludes transactions already linked:
+
 ```sql
 .is("linked_to", null)
 ```
 
 ### ✅ Self-Linking Prevention
+
 Excludes current transaction from matches:
+
 ```sql
 .neq("id", transaction.id)
 ```
@@ -341,12 +367,14 @@ Excludes current transaction from matches:
 ## Testing Checklist
 
 ### Basic Functionality
+
 - [x] Transfer section appears when transfer category selected
 - [x] Transfer section hidden for non-transfer categories
 - [x] Bank accounts dropdown populated correctly
 - [x] Current account excluded from dropdown
 
 ### Matching Algorithm
+
 - [x] Search triggered when account selected
 - [x] Loading spinner shows during search
 - [x] Matches display with correct format
@@ -355,6 +383,7 @@ Excludes current transaction from matches:
 - [x] Date range works (±7 days)
 
 ### Linking Functionality
+
 - [x] Selecting match updates linkedTransactionId
 - [x] Save updates both transactions
 - [x] Bi-directional link created
@@ -362,6 +391,7 @@ Excludes current transaction from matches:
 - [x] Link cleared when category changed
 
 ### UI/UX
+
 - [x] Blue box styling consistent
 - [x] Dropdown shows bank name, nickname, last 4 digits
 - [x] Match shows date, amount, description
@@ -369,6 +399,7 @@ Excludes current transaction from matches:
 - [x] Icons display correctly (Link2, Loader2)
 
 ### Data Integrity
+
 - [x] Updates work with AI processing flow
 - [x] Locked transactions respect link changes
 - [x] Form resets properly when modal closes
@@ -381,6 +412,7 @@ Excludes current transaction from matches:
 ### Queries Added
 
 **1. Fetch Bank Accounts**:
+
 ```sql
 SELECT id, name, nickname, bank_name, account_number_last4
 FROM bank_accounts
@@ -389,8 +421,9 @@ ORDER BY bank_name
 ```
 
 **2. Search Potential Matches**:
+
 ```sql
-SELECT id, transaction_date, description, amount, total_amount, 
+SELECT id, transaction_date, description, amount, total_amount,
        transaction_type, linked_to, bank_account
 FROM transactions
 WHERE bank_account_id = $accountId
@@ -402,6 +435,7 @@ ORDER BY transaction_date DESC
 ```
 
 **3. Update Linked Transaction**:
+
 ```sql
 UPDATE transactions
 SET linked_to = $transactionId,
@@ -459,6 +493,7 @@ WHERE id = $linkedTransactionId
 ## Related Features
 
 This feature integrates with:
+
 - ✅ Category Management
 - ✅ Transaction Locking
 - ✅ AI Processing
@@ -469,9 +504,9 @@ This feature integrates with:
 
 ## Files Modified
 
-| File | Lines Changed | Changes |
-|------|---------------|---------|
-| `client/components/TransactionEditModal.tsx` | ~150 | Added transfer linking feature |
+| File                                         | Lines Changed | Changes                        |
+| -------------------------------------------- | ------------- | ------------------------------ |
+| `client/components/TransactionEditModal.tsx` | ~150          | Added transfer linking feature |
 
 **Total**: 1 file modified
 
@@ -480,6 +515,7 @@ This feature integrates with:
 ## API/Database Schema
 
 **No schema changes required** - Uses existing fields:
+
 - `transactions.linked_to` (UUID)
 - `transactions.link_type` (text)
 - `transactions.transfer_status` (text)

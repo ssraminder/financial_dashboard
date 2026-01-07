@@ -127,20 +127,24 @@ export function TransactionEditModal({
   const [isTransfer, setIsTransfer] = useState(false);
   const [transferAccountId, setTransferAccountId] = useState<string>("");
   const [linkedTransactionId, setLinkedTransactionId] = useState<string>("");
-  const [bankAccounts, setBankAccounts] = useState<Array<{
-    id: string;
-    name: string;
-    nickname: string;
-    bank_name: string;
-    account_number_last4: string;
-  }>>([]);
-  const [potentialMatches, setPotentialMatches] = useState<Array<{
-    id: string;
-    transaction_date: string;
-    description: string;
-    amount: number;
-    bank_account: { name: string; bank_name: string };
-  }>>([]);
+  const [bankAccounts, setBankAccounts] = useState<
+    Array<{
+      id: string;
+      name: string;
+      nickname: string;
+      bank_name: string;
+      account_number_last4: string;
+    }>
+  >([]);
+  const [potentialMatches, setPotentialMatches] = useState<
+    Array<{
+      id: string;
+      transaction_date: string;
+      description: string;
+      amount: number;
+      bank_account: { name: string; bank_name: string };
+    }>
+  >([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
 
   // AI processing state
@@ -181,15 +185,15 @@ export function TransactionEditModal({
 
       // Initialize transfer state
       setLinkedTransactionId(transaction.linked_to || "");
-      setTransferAccountId("");  // Will be set when user selects
+      setTransferAccountId(""); // Will be set when user selects
 
       // Check if this is already a transfer
-      const category = categories.find(c => c.id === transaction.category_id);
+      const category = categories.find((c) => c.id === transaction.category_id);
       setIsTransfer(
-        category?.category_type === 'transfer' ||
-        category?.code === 'bank_transfer' ||
-        category?.code === 'bank_intercompany' ||
-        !!transaction.linked_to
+        category?.category_type === "transfer" ||
+          category?.code === "bank_transfer" ||
+          category?.code === "bank_intercompany" ||
+          !!transaction.linked_to,
       );
     }
   }, [transaction, isOpen, categories]);
@@ -214,10 +218,13 @@ export function TransactionEditModal({
   // Check if category is a transfer type
   useEffect(() => {
     if (selectedCategoryId && categories.length > 0) {
-      const selectedCategory = categories.find(c => c.id === selectedCategoryId);
-      const isTransferCategory = selectedCategory?.category_type === 'transfer' ||
-        selectedCategory?.code === 'bank_transfer' ||
-        selectedCategory?.code === 'bank_intercompany';
+      const selectedCategory = categories.find(
+        (c) => c.id === selectedCategoryId,
+      );
+      const isTransferCategory =
+        selectedCategory?.category_type === "transfer" ||
+        selectedCategory?.code === "bank_transfer" ||
+        selectedCategory?.code === "bank_intercompany";
       setIsTransfer(isTransferCategory);
     }
   }, [selectedCategoryId, categories]);
@@ -238,7 +245,8 @@ export function TransactionEditModal({
 
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           id,
           transaction_date,
           description,
@@ -247,18 +255,20 @@ export function TransactionEditModal({
           transaction_type,
           linked_to,
           bank_account:bank_accounts(name, bank_name)
-        `)
+        `,
+        )
         .eq("bank_account_id", accountId)
-        .gte("transaction_date", startDate.toISOString().split('T')[0])
-        .lte("transaction_date", endDate.toISOString().split('T')[0])
-        .is("linked_to", null)  // Not already linked
-        .neq("id", transaction.id)  // Not the same transaction
+        .gte("transaction_date", startDate.toISOString().split("T")[0])
+        .lte("transaction_date", endDate.toISOString().split("T")[0])
+        .is("linked_to", null) // Not already linked
+        .neq("id", transaction.id) // Not the same transaction
         .order("transaction_date", { ascending: false });
 
       if (!error && data) {
         // Filter for matching amounts (within $0.50 tolerance)
-        const matches = data.filter(t =>
-          Math.abs(Math.abs(t.amount || t.total_amount) - targetAmount) < 0.50
+        const matches = data.filter(
+          (t) =>
+            Math.abs(Math.abs(t.amount || t.total_amount) - targetAmount) < 0.5,
         );
         setPotentialMatches(matches);
       }
@@ -295,8 +305,8 @@ export function TransactionEditModal({
 
       // Handle transfer linking
       if (isTransfer) {
-        updates.link_type = 'transfer';
-        updates.transfer_status = linkedTransactionId ? 'matched' : 'pending';
+        updates.link_type = "transfer";
+        updates.transfer_status = linkedTransactionId ? "matched" : "pending";
 
         if (linkedTransactionId) {
           updates.linked_to = linkedTransactionId;
@@ -306,8 +316,8 @@ export function TransactionEditModal({
             .from("transactions")
             .update({
               linked_to: transaction.id,
-              link_type: 'transfer',
-              transfer_status: 'matched',
+              link_type: "transfer",
+              transfer_status: "matched",
             })
             .eq("id", linkedTransactionId);
         }
@@ -373,8 +383,8 @@ export function TransactionEditModal({
 
       // Handle transfer linking
       if (isTransfer) {
-        updates.link_type = 'transfer';
-        updates.transfer_status = linkedTransactionId ? 'matched' : 'pending';
+        updates.link_type = "transfer";
+        updates.transfer_status = linkedTransactionId ? "matched" : "pending";
 
         if (linkedTransactionId) {
           updates.linked_to = linkedTransactionId;
@@ -384,8 +394,8 @@ export function TransactionEditModal({
             .from("transactions")
             .update({
               linked_to: transaction.id,
-              link_type: 'transfer',
-              transfer_status: 'matched',
+              link_type: "transfer",
+              transfer_status: "matched",
             })
             .eq("id", linkedTransactionId);
         }
@@ -755,10 +765,13 @@ export function TransactionEditModal({
                         </SelectTrigger>
                         <SelectContent>
                           {bankAccounts
-                            .filter(acc => acc.id !== transaction?.bank_account?.id)
+                            .filter(
+                              (acc) => acc.id !== transaction?.bank_account?.id,
+                            )
                             .map((acc) => (
                               <SelectItem key={acc.id} value={acc.id}>
-                                {acc.bank_name} - {acc.nickname || acc.name} (••••{acc.account_number_last4})
+                                {acc.bank_name} - {acc.nickname || acc.name}{" "}
+                                (••••{acc.account_number_last4})
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -787,13 +800,18 @@ export function TransactionEditModal({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="">
-                                <span className="text-gray-500">No link - mark as pending transfer</span>
+                                <span className="text-gray-500">
+                                  No link - mark as pending transfer
+                                </span>
                               </SelectItem>
                               {potentialMatches.map((match) => (
                                 <SelectItem key={match.id} value={match.id}>
                                   <div className="flex flex-col">
                                     <span>
-                                      {new Date(match.transaction_date).toLocaleDateString('en-CA')} - ${Math.abs(match.amount).toFixed(2)}
+                                      {new Date(
+                                        match.transaction_date,
+                                      ).toLocaleDateString("en-CA")}{" "}
+                                      - ${Math.abs(match.amount).toFixed(2)}
                                     </span>
                                     <span className="text-xs text-gray-500 truncate max-w-[300px]">
                                       {match.description}
@@ -805,16 +823,16 @@ export function TransactionEditModal({
                           </Select>
                         ) : (
                           <div className="text-sm text-gray-500 py-2 px-3 bg-gray-100 rounded">
-                            No matching transactions found in this account (±7 days, similar amount).
-                            The counterpart may not be imported yet.
+                            No matching transactions found in this account (±7
+                            days, similar amount). The counterpart may not be
+                            imported yet.
                           </div>
                         )}
 
                         <p className="text-xs text-blue-600 mt-1">
                           {linkedTransactionId
                             ? "✓ Will link both transactions together"
-                            : "Will mark as pending transfer until counterpart is imported"
-                          }
+                            : "Will mark as pending transfer until counterpart is imported"}
                         </p>
                       </div>
                     )}
