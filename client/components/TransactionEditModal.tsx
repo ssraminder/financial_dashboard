@@ -265,25 +265,29 @@ export function TransactionEditModal({
 
       console.log("DEBUG: AI processing payload:", aiPayload);
 
-      const response = await fetch(
-        "https://llxlkawdmuwsothxaada.supabase.co/functions/v1/process-transaction-context",
+      const { data, error: invokeError } = await supabase.functions.invoke(
+        "process-transaction-context",
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(aiPayload),
+          body: aiPayload,
         },
       );
 
-      const result: AIResult = await response.json();
+      if (invokeError) {
+        console.error("Edge function error:", invokeError);
+        setError(invokeError.message || "AI processing failed");
+        return;
+      }
 
-      if (result.success) {
+      const result: AIResult = data;
+
+      if (result?.success) {
         setAiResults(result);
         setShowAiResults(true);
         // Pre-check all recommendations
         setCheckedRecs((result.recommendations || []).map(() => true));
         setCheckedKB((result.knowledgebase_updates || []).map(() => true));
       } else {
-        setError(result.error || "AI processing failed");
+        setError(result?.error || "AI processing failed");
       }
     } catch (err) {
       setError("Failed to process with AI");
