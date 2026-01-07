@@ -65,6 +65,9 @@ interface Transaction {
   manually_locked_at?: string;
   manually_locked_by?: string;
   is_locked?: boolean;
+  linked_to?: string;
+  link_type?: string;
+  transfer_status?: string;
 }
 
 interface AIRecommendation {
@@ -120,6 +123,26 @@ export function TransactionEditModal({
   const [contextText, setContextText] = useState("");
   const [manuallyLocked, setManuallyLocked] = useState(false);
 
+  // Transfer linking state
+  const [isTransfer, setIsTransfer] = useState(false);
+  const [transferAccountId, setTransferAccountId] = useState<string>("");
+  const [linkedTransactionId, setLinkedTransactionId] = useState<string>("");
+  const [bankAccounts, setBankAccounts] = useState<Array<{
+    id: string;
+    name: string;
+    nickname: string;
+    bank_name: string;
+    account_number_last4: string;
+  }>>([]);
+  const [potentialMatches, setPotentialMatches] = useState<Array<{
+    id: string;
+    transaction_date: string;
+    description: string;
+    amount: number;
+    bank_account: { name: string; bank_name: string };
+  }>>([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
+
   // AI processing state
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAiResults, setShowAiResults] = useState(false);
@@ -155,8 +178,105 @@ export function TransactionEditModal({
       setError(null);
       setShowAiResults(false);
       setAiResults(null);
+
+      // Initialize transfer state
+      setLinkedTransactionId(transaction.linked_to || "");
+      setTransferAccountId("");  // Will be set when user selects
+
+      // Check if this is already a transfer
+      const category = categories.find(c => c.id === transaction.category_id);
+      setIsTransfer(
+        category?.category_type === 'transfer' ||
+        category?.code === 'bank_transfer' ||
+        category?.code === 'bank_intercompany' ||
+        !!transaction.linked_to
+      );
     }
-  }, [transaction, isOpen]);
+  }, [transaction, isOpen, categories]);
+
+  // Fetch bank accounts for transfer dropdown
+  useEffect(() => {
+    const fetchBankAccounts = async () => {
+      const { data, error } = await supabase
+        .from("bank_accounts")
+        .select("id, name, nickname, bank_name, account_number_last4")
+        .eq("is_active", true)
+        .order("bank_name");
+
+      if (!error && data) {
+        setBankAccounts(data);
+      }
+    };
+
+    fetchBankAccounts();
+  }, []);
+
+  // Check if category is a transfer type
+  useEffect(() => {
+    if (selectedCategoryId && categories.length > 0) {
+      const selectedCategory = categories.find(c => c.id === selectedCategoryId);
+      const isTransferCategory = selectedCategory?.category_type === 'transfer' ||
+        selectedCategory?.code === 'bank_transfer' ||
+        selectedCategory?.code === 'bank_intercompany';
+      setIsTransfer(isTransferCategory);
+    }
+  }, [selectedCategoryId, categories]);
+
+  // Search for potential matching transactions in the selected account
+  const searchPotentialMatches = async (accountId: string) => {
+    if (!accountId || !transaction) return;
+
+    setLoadingMatches(true);
+    try {
+      // Look for transactions with similar amount (opposite sign) within ±7 days
+      const targetAmount = Math.abs(transaction.amount);
+      const txnDate = new Date(transaction.transaction_date);
+      const startDate = new Date(txnDate);
+      startDate.setDate(startDate.getDate() - 7);
+      const endDate = new Date(txnDate);
+      endDate.setDate(endDate.getDate() + 7);
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(`
+          id,
+          transaction_date,
+          description,
+          amount,
+          total_amount,
+          transaction_type,
+          linked_to,
+          bank_account:bank_accounts(name, bank_name)
+        `)
+        .eq("bank_account_id", accountId)
+        .gte("transaction_date", startDate.toISOString().split('T')[0])
+        .lte("transaction_date", endDate.toISOString().split('T')[0])
+        .is("linked_to", null)  // Not already linked
+        .neq("id", transaction.id)  // Not the same transaction
+        .order("transaction_date", { ascending: false });
+
+      if (!error && data) {
+        // Filter for matching amounts (within $0.50 tolerance)
+        const matches = data.filter(t =>
+          Math.abs(Math.abs(t.amount || t.total_amount) - targetAmount) < 0.50
+        );
+        setPotentialMatches(matches);
+      }
+    } catch (err) {
+      console.error("Error searching matches:", err);
+    } finally {
+      setLoadingMatches(false);
+    }
+  };
+
+  // When transfer account changes, search for matches
+  useEffect(() => {
+    if (transferAccountId && isTransfer) {
+      searchPotentialMatches(transferAccountId);
+    } else {
+      setPotentialMatches([]);
+    }
+  }, [transferAccountId, isTransfer]);
 
   const handleSaveChanges = async () => {
     if (!transaction) return;
@@ -172,6 +292,31 @@ export function TransactionEditModal({
         edited_at: new Date().toISOString(),
         manually_locked: manuallyLocked,
       };
+
+      // Handle transfer linking
+      if (isTransfer) {
+        updates.link_type = 'transfer';
+        updates.transfer_status = linkedTransactionId ? 'matched' : 'pending';
+
+        if (linkedTransactionId) {
+          updates.linked_to = linkedTransactionId;
+
+          // Also update the linked transaction to point back
+          await supabase
+            .from("transactions")
+            .update({
+              linked_to: transaction.id,
+              link_type: 'transfer',
+              transfer_status: 'matched',
+            })
+            .eq("id", linkedTransactionId);
+        }
+      } else {
+        // Clear transfer fields if not a transfer
+        updates.linked_to = null;
+        updates.link_type = null;
+        updates.transfer_status = null;
+      }
 
       // Only set lock timestamp if locking (not unlocking)
       if (manuallyLocked && !transaction.manually_locked) {
@@ -560,6 +705,96 @@ export function TransactionEditModal({
                     Mark for review
                   </Label>
                 </div>
+
+                {/* Transfer Linking Section */}
+                {isTransfer && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Link2 className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium text-blue-800">
+                        Transfer Details
+                      </span>
+                    </div>
+
+                    {/* Transfer Account Selection */}
+                    <div className="space-y-2 mb-3">
+                      <Label className="text-sm text-blue-700">
+                        Transfer To/From Account
+                      </Label>
+                      <Select
+                        value={transferAccountId}
+                        onValueChange={setTransferAccountId}
+                      >
+                        <SelectTrigger className="bg-white">
+                          <SelectValue placeholder="Select counterpart account" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {bankAccounts
+                            .filter(acc => acc.id !== transaction?.bank_account?.id)
+                            .map((acc) => (
+                              <SelectItem key={acc.id} value={acc.id}>
+                                {acc.bank_name} - {acc.nickname || acc.name} (••••{acc.account_number_last4})
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Potential Matches */}
+                    {transferAccountId && (
+                      <div className="space-y-2">
+                        <Label className="text-sm text-blue-700">
+                          Link to Transaction
+                        </Label>
+
+                        {loadingMatches ? (
+                          <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Searching for matches...
+                          </div>
+                        ) : potentialMatches.length > 0 ? (
+                          <Select
+                            value={linkedTransactionId}
+                            onValueChange={setLinkedTransactionId}
+                          >
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Select matching transaction (optional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">
+                                <span className="text-gray-500">No link - mark as pending transfer</span>
+                              </SelectItem>
+                              {potentialMatches.map((match) => (
+                                <SelectItem key={match.id} value={match.id}>
+                                  <div className="flex flex-col">
+                                    <span>
+                                      {new Date(match.transaction_date).toLocaleDateString('en-CA')} - ${Math.abs(match.amount).toFixed(2)}
+                                    </span>
+                                    <span className="text-xs text-gray-500 truncate max-w-[300px]">
+                                      {match.description}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="text-sm text-gray-500 py-2 px-3 bg-gray-100 rounded">
+                            No matching transactions found in this account (±7 days, similar amount).
+                            The counterpart may not be imported yet.
+                          </div>
+                        )}
+
+                        <p className="text-xs text-blue-600 mt-1">
+                          {linkedTransactionId
+                            ? "✓ Will link both transactions together"
+                            : "Will mark as pending transfer until counterpart is imported"
+                          }
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
