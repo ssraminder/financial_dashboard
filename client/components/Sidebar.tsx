@@ -77,7 +77,11 @@ const sidebarSections: SidebarSection[] = [
         badge: "transfers",
       },
       { label: "Manual Transfer", href: "/manual-transfer" },
-      { label: "Pending Transfers", href: "/pending-transfers", badge: "pending_transfers" },
+      {
+        label: "Pending Transfers",
+        href: "/pending-transfers",
+        badge: "pending_transfers",
+      },
     ],
   },
   {

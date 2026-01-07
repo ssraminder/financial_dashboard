@@ -26,11 +26,15 @@
 // =============================================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  createClient,
+  SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // =============================================================================
@@ -45,10 +49,10 @@ interface DetectTransfersRequest {
     date_from?: string;
     date_to?: string;
   };
-  auto_link_threshold?: number;  // Default 95
-  date_tolerance_days?: number;  // Default 3
-  batch_id?: string;             // Link to reanalyze batch
-  dry_run?: boolean;             // Don't save, just detect
+  auto_link_threshold?: number; // Default 95
+  date_tolerance_days?: number; // Default 3
+  batch_id?: string; // Link to reanalyze batch
+  dry_run?: boolean; // Don't save, just detect
 }
 
 interface Transaction {
@@ -56,7 +60,7 @@ interface Transaction {
   description: string;
   amount: number;
   total_amount: number;
-  transaction_type: 'debit' | 'credit';
+  transaction_type: "debit" | "credit";
   transaction_date: string;
   posting_date: string;
   bank_account_id: string;
@@ -77,7 +81,7 @@ interface TransferCandidate {
   confidence_score: number;
   confidence_factors: {
     amount_match: boolean;
-    amount_match_type: 'exact' | 'forex_1pct' | 'forex_2pct' | 'no_match';
+    amount_match_type: "exact" | "forex_1pct" | "forex_2pct" | "no_match";
     date_diff_days: number;
     same_company: boolean;
     has_transfer_keywords: boolean;
@@ -102,11 +106,25 @@ interface PendingTransfer {
 
 // Transfer-related keywords
 const TRANSFER_KEYWORDS = [
-  'TRANSFER', 'TFR', 'BR TO BR', 'ONLINE BANKING', 
-  'E-TRANSFER', 'ETRANSFER', 'INTERAC', 'PAYMENT',
-  'WIRE', 'FX', 'FOREX', 'CONVERSION',
-  'LOAN', 'LOC', 'WITHDRAWAL', 'DEPOSIT',
-  'LINE OF CREDIT', 'WWW TFR', 'VIN0'
+  "TRANSFER",
+  "TFR",
+  "BR TO BR",
+  "ONLINE BANKING",
+  "E-TRANSFER",
+  "ETRANSFER",
+  "INTERAC",
+  "PAYMENT",
+  "WIRE",
+  "FX",
+  "FOREX",
+  "CONVERSION",
+  "LOAN",
+  "LOC",
+  "WITHDRAWAL",
+  "DEPOSIT",
+  "LINE OF CREDIT",
+  "WWW TFR",
+  "VIN0",
 ];
 
 // =============================================================================
@@ -115,7 +133,7 @@ const TRANSFER_KEYWORDS = [
 
 function hasTransferKeywords(description: string): boolean {
   const upper = description.toUpperCase();
-  return TRANSFER_KEYWORDS.some(kw => upper.includes(kw));
+  return TRANSFER_KEYWORDS.some((kw) => upper.includes(kw));
 }
 
 function daysBetween(date1: string, date2: string): number {
@@ -130,34 +148,37 @@ async function getExchangeRate(
   supabaseUrl: string,
   date: string,
   fromCurrency: string,
-  toCurrency: string
+  toCurrency: string,
 ): Promise<{ rate: number; source: string } | null> {
   if (fromCurrency.toUpperCase() === toCurrency.toUpperCase()) {
-    return { rate: 1.0, source: 'same_currency' };
+    return { rate: 1.0, source: "same_currency" };
   }
 
   const { data: cached } = await supabase
-    .from('exchange_rates_cache')
-    .select('rate, source')
-    .eq('rate_date', date)
-    .eq('from_currency', fromCurrency.toUpperCase())
-    .eq('to_currency', toCurrency.toUpperCase())
+    .from("exchange_rates_cache")
+    .select("rate, source")
+    .eq("rate_date", date)
+    .eq("from_currency", fromCurrency.toUpperCase())
+    .eq("to_currency", toCurrency.toUpperCase())
     .single();
 
   if (cached) {
-    return { rate: cached.rate, source: cached.source + '_cached' };
+    return { rate: cached.rate, source: cached.source + "_cached" };
   }
 
   try {
-    const response = await fetch(`${supabaseUrl}/functions/v1/get-exchange-rate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        date,
-        from_currency: fromCurrency,
-        to_currency: toCurrency
-      })
-    });
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/get-exchange-rate`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date,
+          from_currency: fromCurrency,
+          to_currency: toCurrency,
+        }),
+      },
+    );
 
     if (response.ok) {
       const data = await response.json();
@@ -166,33 +187,49 @@ async function getExchangeRate(
       }
     }
   } catch (error) {
-    console.error('Exchange rate fetch error:', error);
+    console.error("Exchange rate fetch error:", error);
   }
 
   return null;
 }
 
 function calculateConfidenceScore(
-  amountMatchType: 'exact' | 'forex_1pct' | 'forex_2pct' | 'no_match',
+  amountMatchType: "exact" | "forex_1pct" | "forex_2pct" | "no_match",
   dateDiffDays: number,
   sameCompany: boolean,
-  hasKeywords: boolean
+  hasKeywords: boolean,
 ): number {
   let score = 0;
 
   switch (amountMatchType) {
-    case 'exact': score += 40; break;
-    case 'forex_1pct': score += 35; break;
-    case 'forex_2pct': score += 25; break;
-    default: score += 0;
+    case "exact":
+      score += 40;
+      break;
+    case "forex_1pct":
+      score += 35;
+      break;
+    case "forex_2pct":
+      score += 25;
+      break;
+    default:
+      score += 0;
   }
 
   switch (dateDiffDays) {
-    case 0: score += 30; break;
-    case 1: score += 20; break;
-    case 2: score += 10; break;
-    case 3: score += 5; break;
-    default: score += 0;
+    case 0:
+      score += 30;
+      break;
+    case 1:
+      score += 20;
+      break;
+    case 2:
+      score += 10;
+      break;
+    case 3:
+      score += 5;
+      break;
+    default:
+      score += 0;
   }
 
   if (sameCompany) score += 20;
@@ -207,18 +244,20 @@ function calculateConfidenceScore(
 
 async function matchPendingTransfers(
   supabase: SupabaseClient,
-  transactions: Transaction[]
+  transactions: Transaction[],
 ): Promise<{ matched: number; partial: number }> {
   let matchedCount = 0;
   let partialCount = 0;
 
-  console.log(`Checking ${transactions.length} transactions against pending transfers...`);
+  console.log(
+    `Checking ${transactions.length} transactions against pending transfers...`,
+  );
 
   // Get transfer category
   const { data: transferCategory } = await supabase
-    .from('categories')
-    .select('id')
-    .eq('code', 'bank_transfer')
+    .from("categories")
+    .select("id")
+    .eq("code", "bank_transfer")
     .single();
 
   const transferCategoryId = transferCategory?.id;
@@ -231,7 +270,9 @@ async function matchPendingTransfers(
     const { data: pendingMatches, error } = await supabase
       .from("pending_transfers")
       .select("*")
-      .or(`from_account_id.eq.${txn.bank_account_id},to_account_id.eq.${txn.bank_account_id}`)
+      .or(
+        `from_account_id.eq.${txn.bank_account_id},to_account_id.eq.${txn.bank_account_id}`,
+      )
       .in("status", ["pending", "partial"]);
 
     if (error || !pendingMatches?.length) {
@@ -241,7 +282,7 @@ async function matchPendingTransfers(
     for (const pending of pendingMatches as PendingTransfer[]) {
       const pendingDate = new Date(pending.transfer_date);
       const toleranceDays = pending.match_tolerance_days || 5;
-      const toleranceAmount = pending.match_tolerance_amount || 0.50;
+      const toleranceAmount = pending.match_tolerance_amount || 0.5;
 
       // Check date tolerance
       const startDate = new Date(pendingDate);
@@ -264,7 +305,7 @@ async function matchPendingTransfers(
       const isToSide = pending.to_account_id === txn.bank_account_id;
 
       // Verify transaction type matches expected direction
-      const expectedType = isFromSide ? 'debit' : 'credit';
+      const expectedType = isFromSide ? "debit" : "credit";
       if (txn.transaction_type !== expectedType) {
         continue;
       }
@@ -273,7 +314,9 @@ async function matchPendingTransfers(
       if (isFromSide && pending.from_transaction_id) continue;
       if (isToSide && pending.to_transaction_id) continue;
 
-      console.log(`Match found! Pending transfer ${pending.id} with transaction ${txn.id} (${isFromSide ? 'FROM' : 'TO'} side)`);
+      console.log(
+        `Match found! Pending transfer ${pending.id} with transaction ${txn.id} (${isFromSide ? "FROM" : "TO"} side)`,
+      );
 
       // Update pending transfer
       const updateData: any = {
@@ -286,11 +329,13 @@ async function matchPendingTransfers(
       const toMatched = isToSide ? true : !!pending.to_transaction_id;
 
       if (fromMatched && toMatched) {
-        updateData.status = 'matched';
+        updateData.status = "matched";
         updateData.matched_at = new Date().toISOString();
 
         // Link the two transactions together
-        const otherTxnId = isFromSide ? pending.to_transaction_id : pending.from_transaction_id;
+        const otherTxnId = isFromSide
+          ? pending.to_transaction_id
+          : pending.from_transaction_id;
 
         if (otherTxnId) {
           // Update both transactions to link to each other
@@ -298,8 +343,8 @@ async function matchPendingTransfers(
             .from("transactions")
             .update({
               linked_to: otherTxnId,
-              link_type: 'transfer',
-              transfer_status: 'matched',
+              link_type: "transfer",
+              transfer_status: "matched",
               category_id: transferCategoryId,
               needs_review: false,
             })
@@ -309,20 +354,24 @@ async function matchPendingTransfers(
             .from("transactions")
             .update({
               linked_to: txn.id,
-              link_type: 'transfer',
-              transfer_status: 'matched',
+              link_type: "transfer",
+              transfer_status: "matched",
               category_id: transferCategoryId,
               needs_review: false,
             })
             .eq("id", otherTxnId);
 
           matchedCount++;
-          console.log(`✓ Both sides matched! Linked ${txn.id} ↔ ${otherTxnId}`);
+          console.log(
+            `✓ Both sides matched! Linked ${txn.id} ↔ ${otherTxnId}`,
+          );
         }
       } else {
-        updateData.status = 'partial';
+        updateData.status = "partial";
         partialCount++;
-        console.log(`↻ Partial match (${isFromSide ? 'FROM' : 'TO'} side only)`);
+        console.log(
+          `↻ Partial match (${isFromSide ? "FROM" : "TO"} side only)`,
+        );
 
         // Update the current transaction category to transfer
         await supabase
@@ -345,7 +394,9 @@ async function matchPendingTransfers(
     }
   }
 
-  console.log(`Pending transfer matching complete: ${matchedCount} matched, ${partialCount} partial`);
+  console.log(
+    `Pending transfer matching complete: ${matchedCount} matched, ${partialCount} partial`,
+  );
   return { matched: matchedCount, partial: partialCount };
 }
 
@@ -372,15 +423,15 @@ serve(async (req) => {
       auto_link_threshold = 95,
       date_tolerance_days = 3,
       batch_id,
-      dry_run = false
+      dry_run = false,
     } = body;
 
-    console.log("Request:", { 
-      transaction_ids_count: transaction_ids?.length, 
-      filter, 
+    console.log("Request:", {
+      transaction_ids_count: transaction_ids?.length,
+      filter,
       auto_link_threshold,
       date_tolerance_days,
-      dry_run
+      dry_run,
     });
 
     // ===========================================
@@ -389,12 +440,14 @@ serve(async (req) => {
 
     let query = supabase
       .from("transactions")
-      .select(`
+      .select(
+        `
         id, description, amount, total_amount, transaction_type,
         transaction_date, posting_date, bank_account_id, company_id, currency,
         bank_account:bank_accounts(id, bank_name, nickname, currency, company_id)
-      `)
-      .in('transaction_type', ['debit', 'credit']);
+      `,
+      )
+      .in("transaction_type", ["debit", "credit"]);
 
     if (transaction_ids && transaction_ids.length > 0) {
       query = query.in("id", transaction_ids);
@@ -413,8 +466,14 @@ serve(async (req) => {
       }
     } else {
       return new Response(
-        JSON.stringify({ success: false, error: "Must provide transaction_ids or filter" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: false,
+          error: "Must provide transaction_ids or filter",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -426,12 +485,22 @@ serve(async (req) => {
 
     if (!transactions || transactions.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          success: true, 
+        JSON.stringify({
+          success: true,
           message: "No transactions found",
-          summary: { analyzed: 0, candidates: 0, auto_linked: 0, pending_hitl: 0, pending_transfers_matched: 0, pending_transfers_partial: 0 }
+          summary: {
+            analyzed: 0,
+            candidates: 0,
+            auto_linked: 0,
+            pending_hitl: 0,
+            pending_transfers_matched: 0,
+            pending_transfers_partial: 0,
+          },
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -443,15 +512,18 @@ serve(async (req) => {
 
     let pendingTransfersResult = { matched: 0, partial: 0 };
     if (!dry_run) {
-      pendingTransfersResult = await matchPendingTransfers(supabase, transactions as Transaction[]);
+      pendingTransfersResult = await matchPendingTransfers(
+        supabase,
+        transactions as Transaction[],
+      );
     }
 
     // ===========================================
     // STEP 2: Separate debits and credits
     // ===========================================
 
-    const debits = transactions.filter(t => t.transaction_type === 'debit');
-    const credits = transactions.filter(t => t.transaction_type === 'credit');
+    const debits = transactions.filter((t) => t.transaction_type === "debit");
+    const credits = transactions.filter((t) => t.transaction_type === "credit");
 
     console.log(`Debits: ${debits.length}, Credits: ${credits.length}`);
 
@@ -468,7 +540,8 @@ serve(async (req) => {
 
       const debitAmount = Math.abs(debit.total_amount || debit.amount);
       const debitDate = debit.posting_date || debit.transaction_date;
-      const debitCurrency = debit.currency || debit.bank_account?.currency || 'CAD';
+      const debitCurrency =
+        debit.currency || debit.bank_account?.currency || "CAD";
       const debitCompanyId = debit.company_id || debit.bank_account?.company_id;
 
       for (const credit of credits) {
@@ -477,13 +550,19 @@ serve(async (req) => {
 
         const creditAmount = Math.abs(credit.total_amount || credit.amount);
         const creditDate = credit.posting_date || credit.transaction_date;
-        const creditCurrency = credit.currency || credit.bank_account?.currency || 'CAD';
-        const creditCompanyId = credit.company_id || credit.bank_account?.company_id;
+        const creditCurrency =
+          credit.currency || credit.bank_account?.currency || "CAD";
+        const creditCompanyId =
+          credit.company_id || credit.bank_account?.company_id;
 
         const dateDiff = daysBetween(debitDate, creditDate);
         if (dateDiff > date_tolerance_days) continue;
 
-        let amountMatchType: 'exact' | 'forex_1pct' | 'forex_2pct' | 'no_match' = 'no_match';
+        let amountMatchType:
+          | "exact"
+          | "forex_1pct"
+          | "forex_2pct"
+          | "no_match" = "no_match";
         let exchangeRateUsed: number | undefined;
         let exchangeRateSource: string | undefined;
 
@@ -491,7 +570,7 @@ serve(async (req) => {
           const diff = Math.abs(debitAmount - creditAmount);
           const tolerance = debitAmount * 0.001;
           if (diff <= tolerance) {
-            amountMatchType = 'exact';
+            amountMatchType = "exact";
           }
         } else {
           const rateResult = await getExchangeRate(
@@ -499,7 +578,7 @@ serve(async (req) => {
             supabaseUrl,
             debitDate,
             debitCurrency,
-            creditCurrency
+            creditCurrency,
           );
 
           if (rateResult) {
@@ -511,14 +590,14 @@ serve(async (req) => {
             exchangeRateSource = rateResult.source;
 
             if (diffPercent <= 1) {
-              amountMatchType = 'forex_1pct';
+              amountMatchType = "forex_1pct";
             } else if (diffPercent <= 2) {
-              amountMatchType = 'forex_2pct';
+              amountMatchType = "forex_2pct";
             }
           }
         }
 
-        if (amountMatchType === 'no_match') continue;
+        if (amountMatchType === "no_match") continue;
 
         const sameCompany = debitCompanyId === creditCompanyId;
         const hasKeywordsDebit = hasTransferKeywords(debit.description);
@@ -529,7 +608,7 @@ serve(async (req) => {
           amountMatchType,
           dateDiff,
           sameCompany,
-          hasKeywords
+          hasKeywords,
         );
 
         candidates.push({
@@ -541,11 +620,11 @@ serve(async (req) => {
             amount_match_type: amountMatchType,
             date_diff_days: dateDiff,
             same_company: sameCompany,
-            has_transfer_keywords: hasKeywords
+            has_transfer_keywords: hasKeywords,
           },
           exchange_rate_used: exchangeRateUsed,
           exchange_rate_source: exchangeRateSource,
-          is_cross_company: !sameCompany
+          is_cross_company: !sameCompany,
         });
 
         if (confidenceScore >= auto_link_threshold && sameCompany) {
@@ -566,45 +645,45 @@ serve(async (req) => {
     const pendingHitl: TransferCandidate[] = [];
 
     const { data: transferCategory } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('code', 'bank_transfer')
+      .from("categories")
+      .select("id")
+      .eq("code", "bank_transfer")
       .single();
 
     const transferCategoryId = transferCategory?.id;
 
     for (const candidate of candidates) {
-      const shouldAutoLink = 
-        candidate.confidence_score >= auto_link_threshold && 
+      const shouldAutoLink =
+        candidate.confidence_score >= auto_link_threshold &&
         !candidate.is_cross_company;
 
       if (shouldAutoLink && !dry_run) {
         const { error: linkError1 } = await supabase
-          .from('transactions')
+          .from("transactions")
           .update({
             linked_to: candidate.to_transaction.id,
-            link_type: 'transfer_out',
+            link_type: "transfer_out",
             category_id: transferCategoryId,
-            transfer_status: 'matched',
-            updated_at: new Date().toISOString()
+            transfer_status: "matched",
+            updated_at: new Date().toISOString(),
           })
-          .eq('id', candidate.from_transaction.id);
+          .eq("id", candidate.from_transaction.id);
 
         const { error: linkError2 } = await supabase
-          .from('transactions')
+          .from("transactions")
           .update({
             linked_to: candidate.from_transaction.id,
-            link_type: 'transfer_in',
+            link_type: "transfer_in",
             category_id: transferCategoryId,
-            transfer_status: 'matched',
-            updated_at: new Date().toISOString()
+            transfer_status: "matched",
+            updated_at: new Date().toISOString(),
           })
-          .eq('id', candidate.to_transaction.id);
+          .eq("id", candidate.to_transaction.id);
 
         if (!linkError1 && !linkError2) {
           autoLinked.push(candidate);
         } else {
-          console.error('Link error:', linkError1 || linkError2);
+          console.error("Link error:", linkError1 || linkError2);
           pendingHitl.push(candidate);
         }
       } else {
@@ -617,38 +696,55 @@ serve(async (req) => {
     // ===========================================
 
     if (!dry_run && pendingHitl.length > 0) {
-      const candidateRecords = pendingHitl.map(c => ({
+      const candidateRecords = pendingHitl.map((c) => ({
         batch_id: batch_id || null,
         from_transaction_id: c.from_transaction.id,
         to_transaction_id: c.to_transaction.id,
-        amount_from: Math.abs(c.from_transaction.total_amount || c.from_transaction.amount),
-        amount_to: Math.abs(c.to_transaction.total_amount || c.to_transaction.amount),
-        currency_from: c.from_transaction.currency || c.from_transaction.bank_account?.currency || 'CAD',
-        currency_to: c.to_transaction.currency || c.to_transaction.bank_account?.currency || 'CAD',
+        amount_from: Math.abs(
+          c.from_transaction.total_amount || c.from_transaction.amount,
+        ),
+        amount_to: Math.abs(
+          c.to_transaction.total_amount || c.to_transaction.amount,
+        ),
+        currency_from:
+          c.from_transaction.currency ||
+          c.from_transaction.bank_account?.currency ||
+          "CAD",
+        currency_to:
+          c.to_transaction.currency ||
+          c.to_transaction.bank_account?.currency ||
+          "CAD",
         exchange_rate_used: c.exchange_rate_used,
         exchange_rate_source: c.exchange_rate_source,
-        date_from: c.from_transaction.posting_date || c.from_transaction.transaction_date,
-        date_to: c.to_transaction.posting_date || c.to_transaction.transaction_date,
+        date_from:
+          c.from_transaction.posting_date ||
+          c.from_transaction.transaction_date,
+        date_to:
+          c.to_transaction.posting_date || c.to_transaction.transaction_date,
         date_diff_days: c.confidence_factors.date_diff_days,
         from_account_id: c.from_transaction.bank_account_id,
         to_account_id: c.to_transaction.bank_account_id,
-        from_company_id: c.from_transaction.company_id || c.from_transaction.bank_account?.company_id,
-        to_company_id: c.to_transaction.company_id || c.to_transaction.bank_account?.company_id,
+        from_company_id:
+          c.from_transaction.company_id ||
+          c.from_transaction.bank_account?.company_id,
+        to_company_id:
+          c.to_transaction.company_id ||
+          c.to_transaction.bank_account?.company_id,
         is_cross_company: c.is_cross_company,
         confidence_score: c.confidence_score,
         confidence_factors: c.confidence_factors,
-        status: 'pending'
+        status: "pending",
       }));
 
       const { error: insertError } = await supabase
-        .from('transfer_candidates')
+        .from("transfer_candidates")
         .upsert(candidateRecords, {
-          onConflict: 'from_transaction_id,to_transaction_id',
-          ignoreDuplicates: true
+          onConflict: "from_transaction_id,to_transaction_id",
+          ignoreDuplicates: true,
         });
 
       if (insertError) {
-        console.error('Insert candidates error:', insertError);
+        console.error("Insert candidates error:", insertError);
       }
     }
 
@@ -658,13 +754,13 @@ serve(async (req) => {
 
     if (batch_id && !dry_run) {
       await supabase
-        .from('reanalyze_batches')
+        .from("reanalyze_batches")
         .update({
           transfers_detected: candidates.length,
           transfers_auto_linked: autoLinked.length,
-          transfers_pending_hitl: pendingHitl.length
+          transfers_pending_hitl: pendingHitl.length,
         })
-        .eq('id', batch_id);
+        .eq("id", batch_id);
     }
 
     // ===========================================
@@ -678,9 +774,9 @@ serve(async (req) => {
       candidates: candidates.length,
       auto_linked: autoLinked.length,
       pending_hitl: pendingHitl.length,
-      cross_company: candidates.filter(c => c.is_cross_company).length,
+      cross_company: candidates.filter((c) => c.is_cross_company).length,
       pending_transfers_matched: pendingTransfersResult.matched,
-      pending_transfers_partial: pendingTransfersResult.partial
+      pending_transfers_partial: pendingTransfersResult.partial,
     };
 
     console.log("Transfer detection complete:", summary);
@@ -689,37 +785,51 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         summary,
-        auto_linked: autoLinked.map(c => ({
+        auto_linked: autoLinked.map((c) => ({
           from_id: c.from_transaction.id,
           to_id: c.to_transaction.id,
-          amount: Math.abs(c.from_transaction.total_amount || c.from_transaction.amount),
-          confidence: c.confidence_score
+          amount: Math.abs(
+            c.from_transaction.total_amount || c.from_transaction.amount,
+          ),
+          confidence: c.confidence_score,
         })),
-        pending_hitl: pendingHitl.map(c => ({
+        pending_hitl: pendingHitl.map((c) => ({
           from_id: c.from_transaction.id,
           from_description: c.from_transaction.description,
-          from_amount: Math.abs(c.from_transaction.total_amount || c.from_transaction.amount),
-          from_date: c.from_transaction.posting_date || c.from_transaction.transaction_date,
+          from_amount: Math.abs(
+            c.from_transaction.total_amount || c.from_transaction.amount,
+          ),
+          from_date:
+            c.from_transaction.posting_date ||
+            c.from_transaction.transaction_date,
           to_id: c.to_transaction.id,
           to_description: c.to_transaction.description,
-          to_amount: Math.abs(c.to_transaction.total_amount || c.to_transaction.amount),
-          to_date: c.to_transaction.posting_date || c.to_transaction.transaction_date,
+          to_amount: Math.abs(
+            c.to_transaction.total_amount || c.to_transaction.amount,
+          ),
+          to_date:
+            c.to_transaction.posting_date || c.to_transaction.transaction_date,
           confidence: c.confidence_score,
           is_cross_company: c.is_cross_company,
-          exchange_rate: c.exchange_rate_used
-        }))
+          exchange_rate: c.exchange_rate_used,
+        })),
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
-
   } catch (error) {
     console.error("Detect transfers error:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : "Unknown error" 
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

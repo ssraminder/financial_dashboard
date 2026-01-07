@@ -78,7 +78,8 @@ export default function PendingTransfers() {
 
   const [transfers, setTransfers] = useState<PendingTransfer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTransfer, setSelectedTransfer] = useState<PendingTransfer | null>(null);
+  const [selectedTransfer, setSelectedTransfer] =
+    useState<PendingTransfer | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -95,13 +96,15 @@ export default function PendingTransfers() {
     try {
       const { data, error } = await supabase
         .from("pending_transfers")
-        .select(`
+        .select(
+          `
           *,
           from_account:bank_accounts!from_account_id(name, nickname, bank_name, account_number_last4),
           to_account:bank_accounts!to_account_id(name, nickname, bank_name, account_number_last4),
           from_transaction:transactions!from_transaction_id(id, description, transaction_date),
           to_transaction:transactions!to_transaction_id(id, description, transaction_date)
-        `)
+        `,
+        )
         .order("transfer_date", { ascending: false });
 
       if (error) throw error;
@@ -198,7 +201,9 @@ export default function PendingTransfers() {
     }).format(amount);
   };
 
-  const pendingCount = transfers.filter((t) => t.status === "pending" || t.status === "partial").length;
+  const pendingCount = transfers.filter(
+    (t) => t.status === "pending" || t.status === "partial",
+  ).length;
   const matchedCount = transfers.filter((t) => t.status === "matched").length;
 
   if (!user) {
@@ -222,11 +227,15 @@ export default function PendingTransfers() {
               </p>
               <div className="flex gap-4 mt-3">
                 <div className="text-sm">
-                  <span className="font-semibold text-blue-600">{pendingCount}</span>{" "}
+                  <span className="font-semibold text-blue-600">
+                    {pendingCount}
+                  </span>{" "}
                   <span className="text-gray-600">pending/partial</span>
                 </div>
                 <div className="text-sm">
-                  <span className="font-semibold text-green-600">{matchedCount}</span>{" "}
+                  <span className="font-semibold text-green-600">
+                    {matchedCount}
+                  </span>{" "}
                   <span className="text-gray-600">matched</span>
                 </div>
               </div>
@@ -287,7 +296,8 @@ export default function PendingTransfers() {
                                 <div className="text-xs text-gray-500">
                                   {transfer.from_account.nickname ||
                                     transfer.from_account.name}{" "}
-                                  (••••{transfer.from_account.account_number_last4})
+                                  (••••
+                                  {transfer.from_account.account_number_last4})
                                 </div>
                               </div>
                               {transfer.from_transaction_id ? (
@@ -307,7 +317,8 @@ export default function PendingTransfers() {
                                 <div className="text-xs text-gray-500">
                                   {transfer.to_account.nickname ||
                                     transfer.to_account.name}{" "}
-                                  (••••{transfer.to_account.account_number_last4})
+                                  (••••
+                                  {transfer.to_account.account_number_last4})
                                 </div>
                               </div>
                               {transfer.to_transaction_id ? (
@@ -320,7 +331,9 @@ export default function PendingTransfers() {
                           <TableCell className="font-semibold">
                             {formatCurrency(transfer.amount)}
                           </TableCell>
-                          <TableCell>{getStatusBadge(transfer.status)}</TableCell>
+                          <TableCell>
+                            {getStatusBadge(transfer.status)}
+                          </TableCell>
                           <TableCell className="max-w-xs">
                             <div className="truncate text-sm">
                               {transfer.description}
@@ -333,16 +346,21 @@ export default function PendingTransfers() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              {transfer.status === "matched" && transfer.from_transaction_id && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => navigate(`/transactions?highlight=${transfer.from_transaction_id}`)}
-                                  title="View matched transaction"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              )}
+                              {transfer.status === "matched" &&
+                                transfer.from_transaction_id && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      navigate(
+                                        `/transactions?highlight=${transfer.from_transaction_id}`,
+                                      )
+                                    }
+                                    title="View matched transaction"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                )}
                               {transfer.status !== "matched" && (
                                 <Button
                                   variant="ghost"
@@ -376,20 +394,20 @@ export default function PendingTransfers() {
               </h3>
               <ul className="space-y-1 text-sm text-blue-800">
                 <li>
-                  <span className="font-semibold">Pending:</span> Waiting for both
-                  sides to be imported
+                  <span className="font-semibold">Pending:</span> Waiting for
+                  both sides to be imported
                 </li>
                 <li>
-                  <span className="font-semibold">Partial:</span> One side matched, waiting
-                  for the other
+                  <span className="font-semibold">Partial:</span> One side
+                  matched, waiting for the other
                 </li>
                 <li>
-                  <span className="font-semibold">Matched:</span> Both sides found and
-                  linked together
+                  <span className="font-semibold">Matched:</span> Both sides
+                  found and linked together
                 </li>
                 <li>
-                  <span className="font-semibold">Cancelled:</span> Transfer was cancelled
-                  by user
+                  <span className="font-semibold">Cancelled:</span> Transfer was
+                  cancelled by user
                 </li>
               </ul>
             </div>
@@ -417,8 +435,8 @@ export default function PendingTransfers() {
                 </>
               ) : (
                 <>
-                  This transfer has been partially matched. Cancelling will mark it as
-                  cancelled but preserve the record.
+                  This transfer has been partially matched. Cancelling will mark
+                  it as cancelled but preserve the record.
                   <div className="mt-4 p-3 bg-gray-50 rounded-md text-sm">
                     <div className="font-medium text-gray-900">
                       {formatCurrency(selectedTransfer?.amount || 0)}
