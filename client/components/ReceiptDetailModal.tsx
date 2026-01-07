@@ -386,6 +386,53 @@ export function ReceiptDetailModal({
     }).format(amount);
   };
 
+  // Calculate subtotal from line items
+  const calculateSubtotalFromLineItems = (): number => {
+    return editedLineItems.reduce((sum, item) => sum + (item.total_price || 0), 0);
+  };
+
+  // Calculate total from subtotal + taxes + tip
+  const calculateTotal = (subtotal: number): number => {
+    if (!editedReceipt) return subtotal;
+    const gst = editedReceipt.gst_amount || 0;
+    const pst = editedReceipt.pst_amount || 0;
+    const hst = editedReceipt.hst_amount || 0;
+    const tip = editedReceipt.tip_amount || 0;
+    return subtotal + gst + pst + hst + tip;
+  };
+
+  // Handle line item amount change
+  const handleLineItemChange = (
+    index: number,
+    field: "quantity" | "unit_price" | "total_price",
+    value: number,
+  ) => {
+    const updated = [...editedLineItems];
+    updated[index] = { ...updated[index], [field]: value };
+
+    // If quantity or unit_price changed, recalculate total_price
+    if (field === "quantity" || field === "unit_price") {
+      updated[index].total_price =
+        updated[index].quantity * updated[index].unit_price;
+    }
+
+    setEditedLineItems(updated);
+  };
+
+  // Recalculate all amounts from line items
+  const handleRecalculateFromLineItems = () => {
+    if (!editedReceipt) return;
+
+    const newSubtotal = calculateSubtotalFromLineItems();
+    const newTotal = calculateTotal(newSubtotal);
+
+    setEditedReceipt({
+      ...editedReceipt,
+      subtotal: newSubtotal,
+      total_amount: newTotal,
+    });
+  };
+
   if (!receipt) return null;
 
   return (
