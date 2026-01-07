@@ -266,48 +266,50 @@ export function AIChatWidget() {
                   <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
 
                   {/* Data table */}
-                  {msg.data && Array.isArray(msg.data) && msg.data.length > 0 && (
-                    <div className="mt-3 -mx-2 overflow-x-auto">
-                      <table className="w-full text-xs border-collapse">
-                        <thead>
-                          <tr className="bg-gray-100">
-                            {Object.keys(msg.data[0]).map((key) => (
-                              <th
-                                key={key}
-                                className="px-2 py-1.5 text-left font-medium text-gray-600 border-b"
-                              >
-                                {key.replace(/_/g, " ")}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {msg.data.slice(0, 10).map((row, i) => (
-                            <tr key={i} className="hover:bg-gray-50">
-                              {Object.entries(row).map(([key, val], j) => (
-                                <td
-                                  key={j}
-                                  className="px-2 py-1.5 border-b border-gray-100"
+                  {msg.data &&
+                    Array.isArray(msg.data) &&
+                    msg.data.length > 0 && (
+                      <div className="mt-3 -mx-2 overflow-x-auto">
+                        <table className="w-full text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              {Object.keys(msg.data[0]).map((key) => (
+                                <th
+                                  key={key}
+                                  className="px-2 py-1.5 text-left font-medium text-gray-600 border-b"
                                 >
-                                  {typeof val === "number" &&
-                                  (key.includes("amount") ||
-                                    key.includes("balance") ||
-                                    key.includes("total"))
-                                    ? formatCurrency(val)
-                                    : String(val ?? "-")}
-                                </td>
+                                  {key.replace(/_/g, " ")}
+                                </th>
                               ))}
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {msg.data.length > 10 && (
-                        <p className="text-xs text-gray-500 mt-2 text-center">
-                          Showing 10 of {msg.data.length} results
-                        </p>
-                      )}
-                    </div>
-                  )}
+                          </thead>
+                          <tbody>
+                            {msg.data.slice(0, 10).map((row, i) => (
+                              <tr key={i} className="hover:bg-gray-50">
+                                {Object.entries(row).map(([key, val], j) => (
+                                  <td
+                                    key={j}
+                                    className="px-2 py-1.5 border-b border-gray-100"
+                                  >
+                                    {typeof val === "number" &&
+                                    (key.includes("amount") ||
+                                      key.includes("balance") ||
+                                      key.includes("total"))
+                                      ? formatCurrency(val)
+                                      : String(val ?? "-")}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {msg.data.length > 10 && (
+                          <p className="text-xs text-gray-500 mt-2 text-center">
+                            Showing 10 of {msg.data.length} results
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                   {/* Show SQL toggle */}
                   {msg.sql_executed && (
