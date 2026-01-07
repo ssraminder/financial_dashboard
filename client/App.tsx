@@ -69,6 +69,7 @@ const App = () => (
             element={<KBPendingQueue />}
           />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/ai-prompts" element={<AIPromptsManagement />} />
           <Route path="/notifications" element={<Notifications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
