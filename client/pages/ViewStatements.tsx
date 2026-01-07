@@ -263,9 +263,11 @@ export default function ViewStatements() {
   useEffect(() => {
     if (selectedStatementId && statements.length > 0) {
       fetchTransactions();
+      fetchOriginalFilePath(selectedStatementId);
     } else if (!selectedStatementId) {
       setTransactions([]);
       setBalanceCheck(null);
+      setOriginalFilePath(null);
     }
   }, [selectedStatementId, statements]);
 
