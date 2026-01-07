@@ -873,6 +873,59 @@ export default function ViewStatements() {
     }
   };
 
+  // Fetch original file path from parse_queue
+  const fetchOriginalFilePath = async (statementId: string) => {
+    const { data, error } = await supabase
+      .from("parse_queue")
+      .select("file_path")
+      .eq("statement_import_id", statementId)
+      .single();
+
+    if (!error && data?.file_path) {
+      setOriginalFilePath(data.file_path);
+    } else {
+      setOriginalFilePath(null);
+    }
+  };
+
+  // Download original statement PDF
+  const handleDownloadOriginal = async () => {
+    if (!originalFilePath || !selectedStatement) return;
+
+    setIsDownloading(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from("statement-uploads")
+        .download(originalFilePath);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = selectedStatement.file_name || "statement.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download started",
+        description: selectedStatement.file_name,
+      });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast({
+        title: "Download failed",
+        description: "Could not download the original file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
