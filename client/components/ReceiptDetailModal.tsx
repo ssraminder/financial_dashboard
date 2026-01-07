@@ -910,23 +910,70 @@ export function ReceiptDetailModal({
           </div>
 
           {/* Line Items */}
-          {lineItems.length > 0 && (
+          {(lineItems.length > 0 || editedLineItems.length > 0) && (
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <h3 className="font-medium text-gray-900 mb-3">Line Items</h3>
 
               <div className="space-y-2">
-                {lineItems.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">{item.quantity}x</span>
-                      <span>{item.description}</span>
-                    </div>
-                    <span className="font-medium">
-                      {formatAmount(item.total_price)}
-                    </span>
+                {(isEditing ? editedLineItems : lineItems).map((item, index) => (
+                  <div key={item.id} className="flex justify-between items-center text-sm">
+                    {isEditing ? (
+                      <>
+                        <div className="flex items-center gap-2 flex-1">
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              handleLineItemChange(
+                                index,
+                                "quantity",
+                                parseInt(e.target.value) || 1,
+                              )
+                            }
+                            className="w-12 px-2 py-1 border rounded text-center"
+                          />
+                          <span className="text-gray-500">×</span>
+                          <span className="flex-1 truncate">{item.description}</span>
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={item.total_price}
+                          onChange={(e) =>
+                            handleLineItemChange(
+                              index,
+                              "total_price",
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          className="w-28 px-2 py-1 border rounded text-right"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">{item.quantity}x</span>
+                          <span>{item.description}</span>
+                        </div>
+                        <span className="font-medium">
+                          {formatAmount(item.total_price)}
+                        </span>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
+
+              {/* Line Items Total in edit mode */}
+              {isEditing && editedLineItems.length > 0 && (
+                <div className="mt-3 pt-3 border-t flex justify-between text-sm">
+                  <span className="text-gray-600">Line Items Sum:</span>
+                  <span className="font-medium text-blue-600">
+                    {formatAmount(calculateSubtotalFromLineItems())}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
