@@ -32,6 +32,7 @@ import {
   Trash2,
   Lock,
   Check,
+  Download,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
