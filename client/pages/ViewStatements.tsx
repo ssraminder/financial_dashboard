@@ -1029,6 +1029,24 @@ export default function ViewStatements() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {/* Download Original Button */}
+                    {originalFilePath && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDownloadOriginal}
+                        disabled={isDownloading}
+                        className="flex items-center gap-2 bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
+                      >
+                        {isDownloading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
+                        Download Original
+                      </Button>
+                    )}
+
                     <ExportDropdown
                       statement={selectedStatement}
                       transactions={
