@@ -1159,7 +1159,9 @@ export default function ViewStatements() {
                       Calculated from Transactions:{" "}
                       {formatCurrency(calculatedClosing)}
                       {(transactions?.length === 0 || !transactions) && (
-                        <span className="text-gray-500 ml-1">(= Opening Balance, no transactions)</span>
+                        <span className="text-gray-500 ml-1">
+                          (= Opening Balance, no transactions)
+                        </span>
                       )}
                     </p>
                     <p className="font-semibold">
@@ -1182,7 +1184,8 @@ export default function ViewStatements() {
                     No Transactions This Period
                   </h3>
                   <p className="mt-1 text-sm text-blue-700">
-                    This statement has no transactions. The balance was carried forward from the previous period.
+                    This statement has no transactions. The balance was carried
+                    forward from the previous period.
                   </p>
                 </div>
               )}
