@@ -18,7 +18,8 @@ This eliminates the need for the frontend to guess the file location and ensures
 
 **Before**: The `process-queue` Edge Function moved statement files from `pending/` to `processed/` in Supabase Storage, but didn't update the `parse_queue.file_path` column in the database.
 
-**Impact**: 
+**Impact**:
+
 - Frontend had to implement fallback logic to try both paths
 - Downloads could fail if the path wasn't correctly guessed
 - Inconsistent data between storage and database
@@ -39,7 +40,9 @@ Added database update after file move (lines ~685-690):
 ```typescript
 // Move file to processed folder
 const processedPath = job.file_path.replace("pending/", "processed/");
-await supabase.storage.from("statement-uploads").move(job.file_path, processedPath);
+await supabase.storage
+  .from("statement-uploads")
+  .move(job.file_path, processedPath);
 console.log(`File moved to: ${processedPath}`);
 
 // Update file_path in parse_queue to reflect new location (v1.4)
@@ -51,6 +54,7 @@ console.log(`Updated parse_queue.file_path to: ${processedPath}`);
 ```
 
 **Benefits**:
+
 - ✅ Database always reflects actual file location
 - ✅ No guessing required
 - ✅ Simpler frontend code
@@ -67,6 +71,7 @@ console.log(`Updated parse_queue.file_path to: ${processedPath}`);
 Removed fallback logic since backend now handles path updates:
 
 **Before** (complex fallback):
+
 ```typescript
 // Try to download from processed/ path first
 let { data, error } = await supabase.storage
@@ -85,6 +90,7 @@ if (error && originalFilePath.includes("processed/")) {
 ```
 
 **After** (simple direct download):
+
 ```typescript
 // Download directly from the file_path (backend keeps it updated)
 const { data, error } = await supabase.storage
@@ -93,6 +99,7 @@ const { data, error } = await supabase.storage
 ```
 
 **Benefits**:
+
 - ✅ Simpler code
 - ✅ Faster downloads (no retry logic needed)
 - ✅ More reliable
@@ -113,6 +120,7 @@ const { data, error } = await supabase.storage
 ### Verification
 
 The deployment was successful:
+
 ```json
 {
   "slug": "process-queue",
@@ -127,6 +135,7 @@ The deployment was successful:
 ## Testing Checklist
 
 ### Backend Tests
+
 - [ ] Upload a new statement through the UI
 - [ ] Verify job processes successfully
 - [ ] Check `parse_queue` table - `file_path` should point to `processed/` folder
@@ -134,6 +143,7 @@ The deployment was successful:
 - [ ] Confirm no file remains in `pending/` folder
 
 ### Frontend Tests
+
 - [ ] Select a processed statement in ViewStatements page
 - [ ] Download Original button should appear
 - [ ] Click download - file should download immediately
@@ -142,6 +152,7 @@ The deployment was successful:
 - [ ] Download works for previously uploaded statements
 
 ### Error Scenarios
+
 - [ ] Test download when file is missing (should show proper error)
 - [ ] Test download when parse_queue has no record
 - [ ] Test with large PDF files
@@ -177,21 +188,23 @@ The deployment was successful:
 
 ## Related Files
 
-| File | Type | Changes |
-|------|------|---------|
+| File                                        | Type          | Changes                       |
+| ------------------------------------------- | ------------- | ----------------------------- |
 | `supabase/functions/process-queue/index.ts` | Edge Function | Added file_path update (v1.4) |
-| `client/pages/ViewStatements.tsx` | React Page | Simplified download logic |
+| `client/pages/ViewStatements.tsx`           | React Page    | Simplified download logic     |
 
 ---
 
 ## Changelog
 
 ### v1.4 (January 7, 2026)
+
 - **ADDED**: Database update after file move in `process-queue`
 - **IMPROVED**: Frontend download logic simplified
 - **FIXED**: Data consistency between storage and database
 
 ### Previous Versions
+
 - v1.3 (Jan 6): Fixed call stack error for large PDFs
 - v1.2 (Jan 2): Stronger RBC prompt
 - v1.1 (Jan 2): Bank-specific instructions
@@ -243,4 +256,4 @@ No schema changes required. Using existing `parse_queue` table:
 
 ---
 
-*End of Document*
+_End of Document_
