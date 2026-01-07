@@ -586,75 +586,197 @@ export function ReceiptDetailModal({
           </div>
 
           {/* Receipt Details */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="mb-6">
             <h3 className="font-medium text-gray-900 mb-3">Receipt Details</h3>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-4 mb-3">
               <div>
-                <label className="text-xs text-gray-500">Date</label>
-                <p className="text-sm font-medium mt-1">
-                  {formatDate(receipt.receipt_date)}
-                </p>
+                <p className="text-sm text-gray-600">Date</p>
+                {isEditing ? (
+                  <input
+                    type="date"
+                    value={editedReceipt?.receipt_date || ""}
+                    onChange={(e) =>
+                      setEditedReceipt({
+                        ...editedReceipt!,
+                        receipt_date: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-1.5 border rounded-lg text-sm"
+                  />
+                ) : (
+                  <p className="font-medium">
+                    {formatDate(receipt?.receipt_date)}
+                  </p>
+                )}
               </div>
-
               <div>
-                <label className="text-xs text-gray-500">Time</label>
-                <p className="text-sm mt-1">{receipt.receipt_time || "-"}</p>
+                <p className="text-sm text-gray-600">Time</p>
+                {isEditing ? (
+                  <input
+                    type="time"
+                    value={editedReceipt?.receipt_time || ""}
+                    onChange={(e) =>
+                      setEditedReceipt({
+                        ...editedReceipt!,
+                        receipt_time: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-1.5 border rounded-lg text-sm"
+                  />
+                ) : (
+                  <p className="font-medium">{receipt?.receipt_time || "-"}</p>
+                )}
               </div>
             </div>
 
-            <hr className="my-4" />
-
+            {/* Amount Fields */}
             <div className="space-y-2">
-              <div className="flex justify-between">
+              {/* Subtotal */}
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Subtotal</span>
-                <span className="text-sm">
-                  {formatAmount(receipt.subtotal)}
-                </span>
+                {isEditing ? (
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editedReceipt?.subtotal || 0}
+                    onChange={(e) =>
+                      setEditedReceipt({
+                        ...editedReceipt!,
+                        subtotal: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-32 px-2 py-1 border rounded text-right text-sm"
+                  />
+                ) : (
+                  <span className="text-sm">{formatAmount(receipt?.subtotal)}</span>
+                )}
               </div>
 
-              {receipt.gst_amount > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">GST (5%)</span>
-                  <span className="text-sm">
-                    {formatAmount(receipt.gst_amount)}
-                  </span>
-                </div>
-              )}
+              {/* GST */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">GST (5%)</span>
+                {isEditing ? (
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editedReceipt?.gst_amount || 0}
+                    onChange={(e) =>
+                      setEditedReceipt({
+                        ...editedReceipt!,
+                        gst_amount: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-32 px-2 py-1 border rounded text-right text-sm"
+                  />
+                ) : (
+                  receipt.gst_amount > 0 && (
+                    <span className="text-sm">{formatAmount(receipt?.gst_amount)}</span>
+                  )
+                )}
+              </div>
 
-              {receipt.pst_amount > 0 && (
-                <div className="flex justify-between">
+              {/* PST */}
+              {(isEditing || receipt.pst_amount > 0) && (
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">PST</span>
-                  <span className="text-sm">
-                    {formatAmount(receipt.pst_amount)}
-                  </span>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editedReceipt?.pst_amount || 0}
+                      onChange={(e) =>
+                        setEditedReceipt({
+                          ...editedReceipt!,
+                          pst_amount: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-32 px-2 py-1 border rounded text-right text-sm"
+                    />
+                  ) : (
+                    <span className="text-sm">{formatAmount(receipt?.pst_amount)}</span>
+                  )}
                 </div>
               )}
 
-              {receipt.hst_amount > 0 && (
-                <div className="flex justify-between">
+              {/* HST */}
+              {(isEditing || receipt.hst_amount > 0) && (
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">HST</span>
-                  <span className="text-sm">
-                    {formatAmount(receipt.hst_amount)}
-                  </span>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editedReceipt?.hst_amount || 0}
+                      onChange={(e) =>
+                        setEditedReceipt({
+                          ...editedReceipt!,
+                          hst_amount: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-32 px-2 py-1 border rounded text-right text-sm"
+                    />
+                  ) : (
+                    <span className="text-sm">{formatAmount(receipt?.hst_amount)}</span>
+                  )}
                 </div>
               )}
 
-              {receipt.tip_amount > 0 && (
-                <div className="flex justify-between">
+              {/* Tip */}
+              {(isEditing || receipt.tip_amount > 0) && (
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Tip</span>
-                  <span className="text-sm">
-                    {formatAmount(receipt.tip_amount)}
-                  </span>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editedReceipt?.tip_amount || 0}
+                      onChange={(e) =>
+                        setEditedReceipt({
+                          ...editedReceipt!,
+                          tip_amount: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-32 px-2 py-1 border rounded text-right text-sm"
+                    />
+                  ) : (
+                    <span className="text-sm">{formatAmount(receipt?.tip_amount)}</span>
+                  )}
                 </div>
               )}
 
               <hr />
 
-              <div className="flex justify-between font-medium">
+              {/* Total */}
+              <div className="flex justify-between items-center font-medium">
                 <span>Total</span>
-                <span>{formatAmount(receipt.total_amount)}</span>
+                {isEditing ? (
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editedReceipt?.total_amount || 0}
+                    onChange={(e) =>
+                      setEditedReceipt({
+                        ...editedReceipt!,
+                        total_amount: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-32 px-2 py-1 border rounded text-right font-medium"
+                  />
+                ) : (
+                  <span>{formatAmount(receipt?.total_amount)}</span>
+                )}
               </div>
+
+              {/* Recalculate Button - only show in edit mode with line items */}
+              {isEditing && editedLineItems.length > 0 && (
+                <button
+                  onClick={handleRecalculateFromLineItems}
+                  className="w-full mt-3 px-3 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  ↻ Recalculate from Line Items
+                </button>
+              )}
             </div>
           </div>
 
