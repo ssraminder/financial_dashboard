@@ -20,6 +20,8 @@ import Transactions from "./pages/Transactions";
 import ViewStatements from "./pages/ViewStatements";
 import Transfers from "./pages/Transfers";
 import TransferReview from "./pages/TransferReview";
+import ManualTransferEntry from "./pages/ManualTransferEntry";
+import PendingTransfers from "./pages/PendingTransfers";
 import Categories from "./pages/Categories";
 import Accounts from "./pages/Accounts";
 import Clients from "./pages/Clients";
@@ -59,6 +61,8 @@ const App = () => (
           <Route path="/statements/status" element={<StatementStatus />} />
           <Route path="/transfers" element={<Transfers />} />
           <Route path="/transfers/review" element={<TransferReview />} />
+          <Route path="/manual-transfer" element={<ManualTransferEntry />} />
+          <Route path="/pending-transfers" element={<PendingTransfers />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/clients" element={<Clients />} />
