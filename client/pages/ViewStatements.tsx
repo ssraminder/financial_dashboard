@@ -902,19 +902,41 @@ export default function ViewStatements() {
 
   // Download original statement PDF
   const handleDownloadOriginal = async () => {
-    if (!originalFilePath || !selectedStatement) return;
+    if (!originalFilePath || !selectedStatement) {
+      toast({
+        title: "Error",
+        description: "File path not found",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsDownloading(true);
     try {
-      // Download directly from the file_path (backend keeps it updated)
-      const { data, error } = await supabase.storage
+      // Create a signed URL (valid for 60 seconds) for private bucket
+      const { data: signedData, error: signedError } = await supabase.storage
         .from("statement-uploads")
-        .download(originalFilePath);
+        .createSignedUrl(originalFilePath, 60);
 
-      if (error) throw error;
+      if (signedError) {
+        console.error("Signed URL error:", signedError);
+        throw new Error(signedError.message || "Failed to generate download link");
+      }
+
+      if (!signedData?.signedUrl) {
+        throw new Error("No signed URL returned");
+      }
+
+      // Fetch the file using the signed URL
+      const response = await fetch(signedData.signedUrl);
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
 
       // Create download link
-      const url = URL.createObjectURL(data);
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = selectedStatement.file_name || "statement.pdf";
@@ -927,11 +949,11 @@ export default function ViewStatements() {
         title: "Download started",
         description: selectedStatement.file_name,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Download error:", error);
       toast({
         title: "Download failed",
-        description: "Could not download the original file",
+        description: error?.message || "Could not download the original file",
         variant: "destructive",
       });
     } finally {
