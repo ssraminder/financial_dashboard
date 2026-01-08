@@ -148,11 +148,26 @@ export default function UploadQueue() {
 
       if (error) throw error;
 
+      // ✅ Optimistically update UI immediately
+      setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
+
+      // ✅ Update stats to reflect removal
+      setStats((prevStats) => ({
+        ...prevStats,
+        pending: Math.max(0, prevStats.pending - 1),
+        total_queue: Math.max(0, prevStats.total_queue - 1),
+      }));
+
       toast.success("Job cancelled");
-      fetchQueueStatus(); // Refresh the list
+
+      // ✅ Background refresh to ensure server consistency
+      fetchQueueStatus();
     } catch (error) {
       console.error("Cancel error:", error);
       toast.error("Failed to cancel job");
+
+      // ✅ On error, refresh to restore correct state
+      fetchQueueStatus();
     }
   };
 
