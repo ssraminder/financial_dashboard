@@ -1081,6 +1081,35 @@ export default function Transactions() {
             }}
           />
 
+          {/* Bulk Action Bar */}
+          {selectedTransactions.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="font-medium text-blue-900">
+                  {selectedTransactions.length} transaction
+                  {selectedTransactions.length > 1 ? "s" : ""} selected
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedTransactions([])}
+                >
+                  Clear Selection
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowBulkUpdate(true)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Bulk Update
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Filters Card */}
           <Card>
             <CardHeader>
