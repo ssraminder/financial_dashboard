@@ -187,8 +187,11 @@ export default function Transactions() {
   // Date calculation helper
   const getDateRange = (preset: string): { from: Date; to: Date } => {
     const today = new Date();
-    const startOfDay = (d: Date) =>
-      new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const startOfDay = (d: Date) => {
+      const date = new Date(d);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    };
 
     switch (preset) {
       case "today":
@@ -239,29 +242,34 @@ export default function Transactions() {
       }
 
       case "this_quarter": {
-        const quarter = Math.floor(today.getMonth() / 3);
-        return {
-          from: new Date(today.getFullYear(), quarter * 3, 1),
-          to: today,
-        };
+        const currentQuarter = Math.floor(today.getMonth() / 3);
+        const quarterStart = new Date(
+          today.getFullYear(),
+          currentQuarter * 3,
+          1,
+        );
+        return { from: quarterStart, to: today };
       }
 
       case "last_quarter": {
-        const quarter = Math.floor(today.getMonth() / 3);
-        const lastQuarterStart = new Date(
-          today.getFullYear(),
-          (quarter - 1) * 3,
-          1,
-        );
-        const lastQuarterEnd = new Date(today.getFullYear(), quarter * 3, 0);
+        const currentQuarter = Math.floor(today.getMonth() / 3);
+        let year = today.getFullYear();
+        let lastQuarter = currentQuarter - 1;
+
+        if (lastQuarter < 0) {
+          lastQuarter = 3;
+          year = year - 1;
+        }
+
+        const lastQuarterStart = new Date(year, lastQuarter * 3, 1);
+        const lastQuarterEnd = new Date(year, (lastQuarter + 1) * 3, 0);
         return { from: lastQuarterStart, to: lastQuarterEnd };
       }
 
-      case "ytd":
-        return {
-          from: new Date(today.getFullYear(), 0, 1),
-          to: today,
-        };
+      case "ytd": {
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        return { from: startOfYear, to: today };
+      }
 
       case "last_year":
         return {
