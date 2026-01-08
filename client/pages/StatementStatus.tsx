@@ -278,7 +278,7 @@ export default function StatementStatus() {
   };
 
   const handleViewStatement = (statementId: string) => {
-    navigate(`/statements?view=${statementId}&autoOpen=true`);
+    window.open(`/statements?view=${statementId}&autoOpen=true`, "_blank");
   };
 
   // Group by month for display
