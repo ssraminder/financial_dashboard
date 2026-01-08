@@ -221,11 +221,15 @@ export default function Transactions() {
       }
 
       case "this_month":
-      case "mtd":
-        return {
-          from: new Date(today.getFullYear(), today.getMonth(), 1),
-          to: today,
-        };
+      case "mtd": {
+        const firstOfMonth = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          1,
+        );
+        firstOfMonth.setHours(0, 0, 0, 0);
+        return { from: firstOfMonth, to: today };
+      }
 
       case "last_month": {
         const firstOfLastMonth = new Date(
