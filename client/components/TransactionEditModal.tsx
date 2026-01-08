@@ -232,7 +232,7 @@ export function TransactionEditModal({
     fetchBankAccounts();
   }, []);
 
-  // Check if category is a transfer type
+  // Check if category is a transfer type and apply defaults
   useEffect(() => {
     if (selectedCategoryId && categories.length > 0) {
       const selectedCategory = categories.find(
@@ -243,6 +243,38 @@ export function TransactionEditModal({
         selectedCategory?.code === "bank_transfer" ||
         selectedCategory?.code === "bank_intercompany";
       setIsTransfer(isTransferCategory);
+
+      // Apply category-based defaults (only on category change, not initial load)
+      if (selectedCategory && transaction) {
+        const categoryCode = selectedCategory.code;
+
+        if (categoryCode === "meals_entertainment") {
+          setHasGst(true);
+          setGstRate(0.05);
+          setHasTip(true);
+          // Don't set tip amount if no receipt
+          if (!(transaction as any).receipt_id) {
+            setTipAmount(0);
+          }
+        } else if (
+          [
+            "bank_fee",
+            "insurance",
+            "loan_payment",
+            "tax_cra",
+            "bank_transfer",
+          ].includes(categoryCode)
+        ) {
+          // These categories don't have GST or tips
+          setHasGst(false);
+          setHasTip(false);
+        } else {
+          // Default for most Canadian expenses
+          setHasGst(true);
+          setGstRate(0.05);
+          setHasTip(false);
+        }
+      }
     }
   }, [selectedCategoryId, categories]);
 
