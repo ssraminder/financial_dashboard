@@ -4,12 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -22,7 +16,6 @@ import {
   XCircle,
   ArrowDown,
   Building2,
-  Calendar as CalendarIcon,
   DollarSign,
   AlertTriangle,
   Loader2,
@@ -340,7 +333,7 @@ export default function TransferReview() {
   };
 
   // Date preset handler
-  const handleDatePreset = (presetLabel: string) => {
+  const handleDatePreset = (preset: string) => {
     const today = new Date();
     const startOfToday = new Date(
       today.getFullYear(),
@@ -348,61 +341,51 @@ export default function TransferReview() {
       today.getDate(),
     );
 
-    switch (presetLabel) {
-      case "Last 7 days":
+    switch (preset) {
+      case "last7":
         setDateFrom(new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000));
         setDateTo(startOfToday);
         break;
-      case "Last 30 days":
+      case "last30":
         setDateFrom(
           new Date(startOfToday.getTime() - 30 * 24 * 60 * 60 * 1000),
         );
         setDateTo(startOfToday);
         break;
-      case "Last 60 days":
-        setDateFrom(
-          new Date(startOfToday.getTime() - 60 * 24 * 60 * 60 * 1000),
-        );
-        setDateTo(startOfToday);
-        break;
-      case "Last 90 days":
+      case "last90":
         setDateFrom(
           new Date(startOfToday.getTime() - 90 * 24 * 60 * 60 * 1000),
         );
         setDateTo(startOfToday);
         break;
-      case "This Month": {
+      case "thisMonth":
         setDateFrom(new Date(today.getFullYear(), today.getMonth(), 1));
         setDateTo(startOfToday);
         break;
-      }
-      case "Last Month": {
+      case "lastMonth":
         setDateFrom(new Date(today.getFullYear(), today.getMonth() - 1, 1));
         setDateTo(new Date(today.getFullYear(), today.getMonth(), 0));
         break;
-      }
-      case "This Quarter": {
-        const quarterStart = Math.floor(today.getMonth() / 3) * 3;
-        setDateFrom(new Date(today.getFullYear(), quarterStart, 1));
+      case "thisQuarter": {
+        const qStart = Math.floor(today.getMonth() / 3) * 3;
+        setDateFrom(new Date(today.getFullYear(), qStart, 1));
         setDateTo(startOfToday);
         break;
       }
-      case "Last Quarter": {
-        const lastQuarterStart = Math.floor(today.getMonth() / 3) * 3 - 3;
-        const lastQuarterYear =
-          lastQuarterStart < 0 ? today.getFullYear() - 1 : today.getFullYear();
-        const adjustedQuarterStart =
-          lastQuarterStart < 0 ? lastQuarterStart + 12 : lastQuarterStart;
-        setDateFrom(new Date(lastQuarterYear, adjustedQuarterStart, 1));
-        setDateTo(new Date(lastQuarterYear, adjustedQuarterStart + 3, 0));
+      case "lastQuarter": {
+        const lqStart = Math.floor(today.getMonth() / 3) * 3 - 3;
+        const lqYear = lqStart < 0 ? today.getFullYear() - 1 : today.getFullYear();
+        const adjStart = lqStart < 0 ? lqStart + 12 : lqStart;
+        setDateFrom(new Date(lqYear, adjStart, 1));
+        setDateTo(new Date(lqYear, adjStart + 3, 0));
         break;
       }
-      case "This Year":
+      case "thisYear":
         setDateFrom(new Date(today.getFullYear(), 0, 1));
         setDateTo(startOfToday);
         break;
-      case "All Time":
-        setDateFrom(new Date(2020, 0, 1)); // Or earliest reasonable date
+      case "allTime":
+        setDateFrom(new Date(2023, 0, 1));
         setDateTo(startOfToday);
         break;
     }
@@ -580,51 +563,34 @@ export default function TransferReview() {
                   Date Range:
                 </span>
 
-                {/* Date From Picker */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-[140px] justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateFrom
-                        ? format(dateFrom, "MMM d, yyyy")
-                        : "Start Date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={dateFrom}
-                      onSelect={setDateFrom}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                {/* Simple Date Inputs */}
+                <input
+                  type="date"
+                  value={dateFrom ? format(dateFrom, "yyyy-MM-dd") : ""}
+                  onChange={(e) =>
+                    setDateFrom(
+                      e.target.value
+                        ? new Date(e.target.value + "T00:00:00")
+                        : undefined,
+                    )
+                  }
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
 
                 <span className="text-gray-400">to</span>
 
-                {/* Date To Picker */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-[140px] justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateTo ? format(dateTo, "MMM d, yyyy") : "End Date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={dateTo}
-                      onSelect={setDateTo}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <input
+                  type="date"
+                  value={dateTo ? format(dateTo, "yyyy-MM-dd") : ""}
+                  onChange={(e) =>
+                    setDateTo(
+                      e.target.value
+                        ? new Date(e.target.value + "T00:00:00")
+                        : undefined,
+                    )
+                  }
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
 
               {/* Quick Presets Dropdown */}
@@ -633,16 +599,15 @@ export default function TransferReview() {
                   <SelectValue placeholder="Quick Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Last 7 days">Last 7 days</SelectItem>
-                  <SelectItem value="Last 30 days">Last 30 days</SelectItem>
-                  <SelectItem value="Last 60 days">Last 60 days</SelectItem>
-                  <SelectItem value="Last 90 days">Last 90 days</SelectItem>
-                  <SelectItem value="This Month">This Month</SelectItem>
-                  <SelectItem value="Last Month">Last Month</SelectItem>
-                  <SelectItem value="This Quarter">This Quarter</SelectItem>
-                  <SelectItem value="Last Quarter">Last Quarter</SelectItem>
-                  <SelectItem value="This Year">This Year</SelectItem>
-                  <SelectItem value="All Time">All Time</SelectItem>
+                  <SelectItem value="last7">Last 7 days</SelectItem>
+                  <SelectItem value="last30">Last 30 days</SelectItem>
+                  <SelectItem value="last90">Last 90 days</SelectItem>
+                  <SelectItem value="thisMonth">This Month</SelectItem>
+                  <SelectItem value="lastMonth">Last Month</SelectItem>
+                  <SelectItem value="thisQuarter">This Quarter</SelectItem>
+                  <SelectItem value="lastQuarter">Last Quarter</SelectItem>
+                  <SelectItem value="thisYear">This Year</SelectItem>
+                  <SelectItem value="allTime">All Time</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -656,7 +621,7 @@ export default function TransferReview() {
                     setDateTo(undefined);
                   }}
                 >
-                  Clear Dates
+                  Clear
                 </Button>
               )}
             </div>
