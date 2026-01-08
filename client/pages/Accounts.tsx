@@ -423,7 +423,8 @@ export default function Accounts() {
 
     const accountData = {
       name: formData.accountName.trim(),
-      bank_name: formData.accountType === "petty_cash" ? "Cash" : formData.institution,
+      bank_name:
+        formData.accountType === "petty_cash" ? "Cash" : formData.institution,
       currency: formData.currency,
       account_type: formData.accountType,
       is_personal: formData.isPersonal,
