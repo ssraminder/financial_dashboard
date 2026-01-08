@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -118,7 +118,9 @@ export function TransactionEditModal({
   const [payeeName, setPayeeName] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [hasGst, setHasGst] = useState(false);
-  const [gstAmount, setGstAmount] = useState(0);
+  const [gstRate, setGstRate] = useState(0.05);
+  const [hasTip, setHasTip] = useState(false);
+  const [tipAmount, setTipAmount] = useState(0);
   const [needsReview, setNeedsReview] = useState(false);
   const [contextText, setContextText] = useState("");
   const [manuallyLocked, setManuallyLocked] = useState(false);
