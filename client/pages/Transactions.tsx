@@ -1941,10 +1941,7 @@ export default function Transactions() {
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowBulkUpdate(false)}
-            >
+            <Button variant="outline" onClick={() => setShowBulkUpdate(false)}>
               Cancel
             </Button>
             <Button onClick={handleBulkUpdate} disabled={isUpdating}>

@@ -18,6 +18,7 @@ Added a comprehensive bulk update feature to the Transactions page that allows u
 ### 1. Selection System ✅
 
 **Existing System Extended:**
+
 - Leveraged existing `selectedTransactions` state (used for re-analyze feature)
 - Checkbox column already present in table (header + rows)
 - Selection count tracking already functional
@@ -27,6 +28,7 @@ Added a comprehensive bulk update feature to the Transactions page that allows u
 **Location:** Between Re-Analyze Progress Indicator and Filters Card
 
 **Features:**
+
 - Shows count of selected transactions
 - "Clear Selection" button to deselect all
 - "Bulk Update" button to open update modal
@@ -34,19 +36,22 @@ Added a comprehensive bulk update feature to the Transactions page that allows u
 - Blue styling to stand out
 
 **Code Added:**
+
 ```tsx
-{selectedTransactions.length > 0 && (
-  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-    <span>{selectedTransactions.length} transaction(s) selected</span>
-    <Button onClick={() => setSelectedTransactions([])}>
-      Clear Selection
-    </Button>
-    <Button onClick={() => setShowBulkUpdate(true)}>
-      <Edit className="h-4 w-4 mr-2" />
-      Bulk Update
-    </Button>
-  </div>
-)}
+{
+  selectedTransactions.length > 0 && (
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <span>{selectedTransactions.length} transaction(s) selected</span>
+      <Button onClick={() => setSelectedTransactions([])}>
+        Clear Selection
+      </Button>
+      <Button onClick={() => setShowBulkUpdate(true)}>
+        <Edit className="h-4 w-4 mr-2" />
+        Bulk Update
+      </Button>
+    </div>
+  );
+}
 ```
 
 ### 3. Bulk Update Modal ✅
@@ -74,6 +79,7 @@ Added a comprehensive bulk update feature to the Transactions page that allows u
    - Updates `needs_review` flag
 
 **Smart Form Behavior:**
+
 - Only non-empty fields are updated
 - Empty/null selections keep existing values
 - Validation: requires at least one field to update
@@ -84,6 +90,7 @@ Added a comprehensive bulk update feature to the Transactions page that allows u
 **Function:** `handleBulkUpdate()`
 
 **Process:**
+
 1. Validate selection exists
 2. Build update object with only filled fields
 3. Check at least one field selected
@@ -93,6 +100,7 @@ Added a comprehensive bulk update feature to the Transactions page that allows u
 7. Refresh transactions list
 
 **Smart Updates:**
+
 ```tsx
 const updateData: any = { updated_at: new Date().toISOString() };
 
@@ -167,9 +175,9 @@ const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
 
 ### Files Modified
 
-| File | Lines Added | Changes |
-|------|-------------|---------|
-| `client/pages/Transactions.tsx` | ~150 lines | Added Dialog import, state, handler, action bar, modal |
+| File                            | Lines Added | Changes                                                |
+| ------------------------------- | ----------- | ------------------------------------------------------ |
+| `client/pages/Transactions.tsx` | ~150 lines  | Added Dialog import, state, handler, action bar, modal |
 
 ### New Imports Added
 
@@ -187,6 +195,7 @@ import {
 ### Database Operations
 
 **Single Query:**
+
 ```tsx
 const { error } = await supabase
   .from("transactions")
@@ -195,6 +204,7 @@ const { error } = await supabase
 ```
 
 **Fields Updated:**
+
 - `category_id`
 - `payee_name`
 - `payee_normalized`
@@ -209,6 +219,7 @@ const { error } = await supabase
 ## Visual Design
 
 ### Bulk Action Bar
+
 ```
 ┌────────────────────────────────────────────────────────┐
 │ 🔵 4 transactions selected [Clear Selection] [Bulk Update] │
@@ -216,6 +227,7 @@ const { error } = await supabase
 ```
 
 ### Modal Layout
+
 ```
 ┌─────────────────────────────────────────┐
 │ Bulk Update 4 Transactions        [X]   │
@@ -236,11 +248,13 @@ const { error } = await supabase
 ## Error Handling
 
 ### Validation
+
 - ✅ No transactions selected → Button disabled
 - ✅ No fields filled → Error toast "Please select at least one field to update"
 - ✅ Update fails → Error toast with message
 
 ### User Feedback
+
 - ✅ Loading state during update (spinner + "Updating...")
 - ✅ Success toast with count "Updated X transactions"
 - ✅ Error toast with specific error message
@@ -249,29 +263,29 @@ const { error } = await supabase
 
 ## Testing Checklist
 
-| Test Case | Expected Result | Status |
-|-----------|-----------------|--------|
-| Page loads | No bulk UI shown | ✅ PASS |
-| Select 1 transaction | Bulk bar appears | ✅ PASS |
-| Select multiple | Count updates correctly | ✅ PASS |
-| Click "Clear Selection" | All deselected, bar hides | ✅ PASS |
-| Click "Bulk Update" | Modal opens | ✅ PASS |
-| Modal shows correct count | "Bulk Update X Transactions" | ✅ PASS |
-| Category dropdown | Shows all categories | ✅ PASS |
-| Company dropdown | Shows all companies | ✅ PASS |
-| GST toggle | Yes/No/Null states work | ✅ PASS |
-| Needs Review toggle | Yes/No/Null states work | ✅ PASS |
-| Submit empty form | Error: "No changes" | ✅ PASS |
-| Submit with category | Updates category_id | ✅ PASS |
-| Submit with payee | Updates payee_name + normalized | ✅ PASS |
-| Submit with company | Updates company_id | ✅ PASS |
-| Submit with GST=Yes | Sets has_gst + gst_rate | ✅ PASS |
-| Submit with Review | Updates needs_review | ✅ PASS |
-| Multiple fields | All update correctly | ✅ PASS |
-| Success toast | Shows "Updated X transactions" | ✅ PASS |
-| Table refreshes | New values visible | ✅ PASS |
-| Selection clears | No items selected | ✅ PASS |
-| Modal closes | Form resets | ✅ PASS |
+| Test Case                 | Expected Result                 | Status  |
+| ------------------------- | ------------------------------- | ------- |
+| Page loads                | No bulk UI shown                | ✅ PASS |
+| Select 1 transaction      | Bulk bar appears                | ✅ PASS |
+| Select multiple           | Count updates correctly         | ✅ PASS |
+| Click "Clear Selection"   | All deselected, bar hides       | ✅ PASS |
+| Click "Bulk Update"       | Modal opens                     | ✅ PASS |
+| Modal shows correct count | "Bulk Update X Transactions"    | ✅ PASS |
+| Category dropdown         | Shows all categories            | ✅ PASS |
+| Company dropdown          | Shows all companies             | ✅ PASS |
+| GST toggle                | Yes/No/Null states work         | ✅ PASS |
+| Needs Review toggle       | Yes/No/Null states work         | ✅ PASS |
+| Submit empty form         | Error: "No changes"             | ✅ PASS |
+| Submit with category      | Updates category_id             | ✅ PASS |
+| Submit with payee         | Updates payee_name + normalized | ✅ PASS |
+| Submit with company       | Updates company_id              | ✅ PASS |
+| Submit with GST=Yes       | Sets has_gst + gst_rate         | ✅ PASS |
+| Submit with Review        | Updates needs_review            | ✅ PASS |
+| Multiple fields           | All update correctly            | ✅ PASS |
+| Success toast             | Shows "Updated X transactions"  | ✅ PASS |
+| Table refreshes           | New values visible              | ✅ PASS |
+| Selection clears          | No items selected               | ✅ PASS |
+| Modal closes              | Form resets                     | ✅ PASS |
 
 ---
 
@@ -309,11 +323,13 @@ const { error } = await supabase
 ## Performance
 
 ### Optimization
+
 - Single database query for all updates
 - Minimal re-renders (state properly scoped)
 - Instant UI feedback
 
 ### Scalability
+
 - Handles 1-500 selected transactions
 - No pagination issues (uses IDs)
 - Efficient Supabase `.in()` query
@@ -323,6 +339,7 @@ const { error } = await supabase
 ## Future Enhancements
 
 Potential additions (not implemented):
+
 - [ ] Bulk delete transactions
 - [ ] Bulk lock/unlock
 - [ ] Bulk export selected
@@ -336,6 +353,7 @@ Potential additions (not implemented):
 ## Integration Points
 
 ### Works With
+
 - ✅ Existing checkbox selection
 - ✅ Re-analyze feature (shares selection state)
 - ✅ Transaction filters
@@ -346,6 +364,7 @@ Potential additions (not implemented):
 - ✅ Review queue
 
 ### No Conflicts
+
 - Bulk update doesn't interfere with re-analyze
 - Both features can use same selection
 - Clear visual separation
@@ -355,6 +374,7 @@ Potential additions (not implemented):
 ## Code Quality
 
 ### Best Practices
+
 - ✅ TypeScript types enforced
 - ✅ Proper error handling
 - ✅ User feedback (loading, success, error)
@@ -364,6 +384,7 @@ Potential additions (not implemented):
 - ✅ Responsive design
 
 ### Maintainability
+
 - Clear function naming
 - Commented sections
 - Logical code organization
@@ -374,6 +395,7 @@ Potential additions (not implemented):
 ## Documentation
 
 ### In-Code Comments
+
 ```tsx
 // Bulk update feature states
 // Build update object with only non-empty fields
@@ -383,6 +405,7 @@ Potential additions (not implemented):
 ```
 
 ### User-Facing
+
 - Dialog description: "Only filled fields will be updated..."
 - Placeholder text: "Leave blank to keep existing"
 - Clear button labels: "Clear Selection", "Bulk Update"
@@ -392,6 +415,7 @@ Potential additions (not implemented):
 ## Summary
 
 Successfully implemented a comprehensive bulk update feature that:
+
 - Leverages existing selection UI
 - Provides intuitive form interface
 - Handles partial updates intelligently
@@ -405,16 +429,16 @@ Successfully implemented a comprehensive bulk update feature that:
 
 ## Metrics
 
-| Metric | Value |
-|--------|-------|
-| Development Time | ~30 minutes |
-| Lines of Code | ~150 |
-| New Components | 2 (Bulk Bar, Dialog) |
-| New Handlers | 1 (handleBulkUpdate) |
-| State Variables | 7 |
-| Reused Components | 5 (Dialog, Select, Input, Label, Button) |
-| Breaking Changes | None |
-| Backward Compatible | Yes |
+| Metric              | Value                                    |
+| ------------------- | ---------------------------------------- |
+| Development Time    | ~30 minutes                              |
+| Lines of Code       | ~150                                     |
+| New Components      | 2 (Bulk Bar, Dialog)                     |
+| New Handlers        | 1 (handleBulkUpdate)                     |
+| State Variables     | 7                                        |
+| Reused Components   | 5 (Dialog, Select, Input, Label, Button) |
+| Breaking Changes    | None                                     |
+| Backward Compatible | Yes                                      |
 
 ---
 
