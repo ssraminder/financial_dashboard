@@ -17,13 +17,15 @@ Successfully implemented GST auto-calculation with rate dropdown and tip trackin
 ## Part 1: GST Improvements ✅
 
 ### Before
+
 - ❌ Manual checkbox "Has GST"
 - ❌ Manual number input for GST amount
 - ❌ No rate visibility
 - ❌ User had to calculate GST manually
 
 ### After
-- ✅ Checkbox "Has GST"  
+
+- ✅ Checkbox "Has GST"
 - ✅ **Dropdown for GST rate** (5% GST, 13% HST, 15% HST)
 - ✅ **Auto-calculated GST amount** (read-only display)
 - ✅ Formula: `GST = total_amount × rate / (1 + rate)`
@@ -31,6 +33,7 @@ Successfully implemented GST auto-calculation with rate dropdown and tip trackin
 ### Implementation
 
 #### State Management
+
 ```tsx
 const [hasGst, setHasGst] = useState(false);
 const [gstRate, setGstRate] = useState(0.05);
@@ -40,11 +43,12 @@ const gstAmount = useMemo(() => {
   if (!hasGst || !transaction?.amount) return 0;
   const totalAmount = Math.abs(transaction.amount);
   // GST is included in total: GST = total × rate / (1 + rate)
-  return Math.round((totalAmount * gstRate) / (1 + gstRate) * 100) / 100;
+  return Math.round(((totalAmount * gstRate) / (1 + gstRate)) * 100) / 100;
 }, [hasGst, gstRate, transaction?.amount]);
 ```
 
 #### UI Components
+
 - **Checkbox**: Enable/disable GST
 - **Dropdown**: Select rate (5%, 13%, 15%)
 - **Read-only display**: Auto-calculated amount with "(auto-calculated)" label
@@ -54,6 +58,7 @@ const gstAmount = useMemo(() => {
 ## Part 2: Tip Field for Meals & Entertainment ✅
 
 ### Features
+
 - **Conditional display**: Only shows for `meals_entertainment` category
 - **Checkbox**: "Has Tip"
 - **Input field**: Manual tip amount entry
@@ -69,7 +74,7 @@ const gstAmount = useMemo(() => {
         <Checkbox id="has-tip" ... />
         <Label>Has Tip</Label>
       </div>
-      
+
       {hasTip && (
         <div className="flex items-center gap-2">
           <span>$</span>
@@ -77,7 +82,7 @@ const gstAmount = useMemo(() => {
         </div>
       )}
     </div>
-    
+
     {!transaction?.receipt_id && hasTip && (
       <p className="text-xs text-amber-600">
         ⚠️ No receipt attached. Tip amount should be verified.
@@ -93,15 +98,15 @@ const gstAmount = useMemo(() => {
 
 ### Smart Defaults Applied
 
-| Category | Has GST | GST Rate | Has Tip |
-|----------|---------|----------|---------|
-| **meals_entertainment** | ✅ Yes | 5% | ✅ Yes |
-| **bank_fee** | ❌ No | - | ❌ No |
-| **insurance** | ❌ No | - | ❌ No |
-| **loan_payment** | ❌ No | - | ❌ No |
-| **tax_cra** | ❌ No | - | ❌ No |
-| **bank_transfer** | ❌ No | - | ❌ No |
-| **Other expenses** | ✅ Yes | 5% | ❌ No |
+| Category                | Has GST | GST Rate | Has Tip |
+| ----------------------- | ------- | -------- | ------- |
+| **meals_entertainment** | ✅ Yes  | 5%       | ✅ Yes  |
+| **bank_fee**            | ❌ No   | -        | ❌ No   |
+| **insurance**           | ❌ No   | -        | ❌ No   |
+| **loan_payment**        | ❌ No   | -        | ❌ No   |
+| **tax_cra**             | ❌ No   | -        | ❌ No   |
+| **bank_transfer**       | ❌ No   | -        | ❌ No   |
+| **Other expenses**      | ✅ Yes  | 5%       | ❌ No   |
 
 ### Implementation
 
@@ -117,7 +122,15 @@ useEffect(() => {
       if (!transaction.receipt_id) {
         setTipAmount(0);
       }
-    } else if (["bank_fee", "insurance", "loan_payment", "tax_cra", "bank_transfer"].includes(categoryCode)) {
+    } else if (
+      [
+        "bank_fee",
+        "insurance",
+        "loan_payment",
+        "tax_cra",
+        "bank_transfer",
+      ].includes(categoryCode)
+    ) {
       setHasGst(false);
       setHasTip(false);
     } else {
@@ -138,16 +151,19 @@ useEffect(() => {
 #### New Columns Added
 
 **transactions table:**
+
 - `gst_rate` (NUMERIC(5,4), default 0.05)
 - `has_tip` (BOOLEAN, default false)
 - `tip_amount` (NUMERIC(12,2), default 0)
 
 **knowledgebase_payees table:**
+
 - `default_has_tip` (BOOLEAN, default false)
 - `default_tip_percent` (NUMERIC(5,2), default 0)
 - `default_gst_rate` (NUMERIC(5,4), default 0.05)
 
 #### Data Migration
+
 ```sql
 -- Update existing transactions with GST to have default 5% rate
 UPDATE transactions
@@ -156,7 +172,7 @@ WHERE has_gst = true AND (gst_rate IS NULL OR gst_rate = 0);
 
 -- Update existing meals_entertainment KB entries
 UPDATE knowledgebase_payees
-SET 
+SET
   default_has_gst = true,
   default_gst_rate = 0.05,
   default_has_tip = true
@@ -176,10 +192,10 @@ const updates: any = {
   payee_name: payeeName,
   category_id: selectedCategoryId,
   has_gst: hasGst,
-  gst_rate: hasGst ? gstRate : 0,      // ✅ NEW
+  gst_rate: hasGst ? gstRate : 0, // ✅ NEW
   gst_amount: hasGst ? gstAmount : 0,
-  has_tip: hasTip,                      // ✅ NEW
-  tip_amount: hasTip ? tipAmount : 0,   // ✅ NEW
+  has_tip: hasTip, // ✅ NEW
+  tip_amount: hasTip ? tipAmount : 0, // ✅ NEW
   needs_review: needsReview,
   is_edited: true,
   edited_at: new Date().toISOString(),
@@ -192,6 +208,7 @@ const updates: any = {
 ## Code Changes Summary
 
 ### Files Modified
+
 1. ✅ **`client/components/TransactionEditModal.tsx`** (Multiple sections)
    - Added `useMemo` import
    - Added `gstRate`, `hasTip`, `tipAmount` state
@@ -204,6 +221,7 @@ const updates: any = {
    - Added tip field UI (conditional on category)
 
 ### Files Created
+
 1. ✅ **`supabase-gst-tip-improvements.sql`** (49 lines)
    - Schema changes for transactions
    - Schema changes for knowledgebase_payees
@@ -218,23 +236,28 @@ const updates: any = {
 ## User Benefits
 
 ### 🎯 Accuracy
+
 - **Before:** Users manually calculated GST, prone to errors
 - **After:** GST auto-calculated with 100% accuracy
 
 ### ⚡ Speed
+
 - **Before:** 3 steps (check box, type amount, verify calculation)
 - **After:** 2 steps (check box, select rate)
 - **Time saved:** ~50% faster
 
 ### 🧠 Intelligence
+
 - **Before:** No smart defaults
 - **After:** Category-based defaults reduce manual work
 
 ### 📊 Compliance
+
 - **Before:** Inconsistent GST rates
 - **After:** Standardized rates (5%, 13%, 15%)
 
 ### 🍽️ Meal Tracking
+
 - **Before:** No tip tracking
 - **After:** Explicit tip field with receipt warnings
 
@@ -243,6 +266,7 @@ const updates: any = {
 ## Testing Checklist ✅
 
 ### GST Auto-Calculation
+
 - [x] 5% GST calculates correctly
 - [x] 13% HST calculates correctly
 - [x] 15% HST calculates correctly
@@ -252,6 +276,7 @@ const updates: any = {
 - [x] Read-only display shows "(auto-calculated)"
 
 ### Tip Field
+
 - [x] Only shows for meals_entertainment category
 - [x] Checkbox enables/disables input
 - [x] Tip amount saves correctly
@@ -259,6 +284,7 @@ const updates: any = {
 - [x] Warning hides when receipt exists
 
 ### Category Defaults
+
 - [x] meals_entertainment → GST + Tip enabled
 - [x] bank_fee → No GST, No Tip
 - [x] insurance → No GST, No Tip
@@ -267,6 +293,7 @@ const updates: any = {
 - [x] Other categories → GST enabled, No Tip
 
 ### Database
+
 - [x] Migration runs without errors
 - [x] Existing transactions updated
 - [x] KB entries updated for meals
@@ -282,16 +309,19 @@ const updates: any = {
 **Why this formula?**
 
 In Canada, GST is typically **included** in the displayed price. For example:
+
 - Total shown on receipt: $105.00
 - This includes 5% GST
 - We need to extract the GST portion
 
 **Formula:**
+
 ```
 GST = total × rate / (1 + rate)
 ```
 
 **Example:**
+
 ```
 Total = $105.00
 Rate = 0.05 (5%)
@@ -305,6 +335,7 @@ Subtotal = $105.00 - $5.00 = $100.00
 ```
 
 **Verification:**
+
 ```
 Subtotal: $100.00
 GST (5%): $100.00 × 0.05 = $5.00
@@ -315,21 +346,21 @@ Total: $100.00 + $5.00 = $105.00 ✓
 
 ## Provincial HST Rates
 
-| Province/Territory | Rate | Dropdown Option |
-|--------------------|------|-----------------|
-| Alberta | 5% GST | 5% GST |
-| British Columbia | 5% GST | 5% GST |
-| Manitoba | 5% GST | 5% GST |
-| New Brunswick | **13% HST** | 13% HST |
-| Newfoundland and Labrador | **15% HST** | 15% HST |
-| Northwest Territories | 5% GST | 5% GST |
-| Nova Scotia | **15% HST** | 15% HST |
-| Nunavut | 5% GST | 5% GST |
-| Ontario | **13% HST** | 13% HST |
-| Prince Edward Island | **15% HST** | 15% HST |
-| Quebec | 5% GST | 5% GST |
-| Saskatchewan | 5% GST | 5% GST |
-| Yukon | 5% GST | 5% GST |
+| Province/Territory        | Rate        | Dropdown Option |
+| ------------------------- | ----------- | --------------- |
+| Alberta                   | 5% GST      | 5% GST          |
+| British Columbia          | 5% GST      | 5% GST          |
+| Manitoba                  | 5% GST      | 5% GST          |
+| New Brunswick             | **13% HST** | 13% HST         |
+| Newfoundland and Labrador | **15% HST** | 15% HST         |
+| Northwest Territories     | 5% GST      | 5% GST          |
+| Nova Scotia               | **15% HST** | 15% HST         |
+| Nunavut                   | 5% GST      | 5% GST          |
+| Ontario                   | **13% HST** | 13% HST         |
+| Prince Edward Island      | **15% HST** | 15% HST         |
+| Quebec                    | 5% GST      | 5% GST          |
+| Saskatchewan              | 5% GST      | 5% GST          |
+| Yukon                     | 5% GST      | 5% GST          |
 
 ---
 
@@ -349,19 +380,22 @@ Total: $100.00 + $5.00 = $105.00 ✓
 ## Migration Instructions
 
 ### Step 1: Backup Data
+
 ```sql
 -- Backup transactions table
-CREATE TABLE transactions_backup_20260108 AS 
+CREATE TABLE transactions_backup_20260108 AS
 SELECT * FROM transactions;
 ```
 
 ### Step 2: Run Migration
+
 ```sql
 -- Run the migration file
 \i supabase-gst-tip-improvements.sql
 ```
 
 ### Step 3: Verify
+
 ```sql
 -- Check new columns exist
 SELECT column_name, data_type, column_default
@@ -375,6 +409,7 @@ SELECT COUNT(*) FROM knowledgebase_payees WHERE default_has_tip = true;
 ```
 
 ### Step 4: Test in UI
+
 1. Open a transaction
 2. Check "Has GST"
 3. Select 5% GST rate
@@ -391,12 +426,12 @@ If issues occur:
 
 ```sql
 -- Remove new columns
-ALTER TABLE transactions 
+ALTER TABLE transactions
 DROP COLUMN IF EXISTS gst_rate,
 DROP COLUMN IF EXISTS has_tip,
 DROP COLUMN IF EXISTS tip_amount;
 
-ALTER TABLE knowledgebase_payees 
+ALTER TABLE knowledgebase_payees
 DROP COLUMN IF EXISTS default_has_tip,
 DROP COLUMN IF EXISTS default_tip_percent,
 DROP COLUMN IF EXISTS default_gst_rate;
@@ -410,6 +445,7 @@ DROP COLUMN IF EXISTS default_gst_rate;
 ## Success Metrics
 
 ✅ **All objectives met:**
+
 1. GST rate dropdown implemented
 2. GST auto-calculation working
 3. Tip field for meals implemented

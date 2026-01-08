@@ -176,7 +176,7 @@ export function TransactionEditModal({
     if (!hasGst || !transaction?.amount) return 0;
     const totalAmount = Math.abs(transaction.amount);
     // GST is included in total: GST = total × rate / (1 + rate)
-    return Math.round((totalAmount * gstRate) / (1 + gstRate) * 100) / 100;
+    return Math.round(((totalAmount * gstRate) / (1 + gstRate)) * 100) / 100;
   }, [hasGst, gstRate, transaction?.amount]);
 
   // Get selected category
