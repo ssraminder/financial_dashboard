@@ -228,11 +228,7 @@ export default function Transactions() {
 
       case "this_month":
       case "mtd": {
-        const firstOfMonth = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          1,
-        );
+        const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         firstOfMonth.setHours(0, 0, 0, 0);
         return { from: firstOfMonth, to: today };
       }
