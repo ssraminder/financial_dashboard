@@ -374,7 +374,8 @@ export default function TransferReview() {
       }
       case "lastQuarter": {
         const lqStart = Math.floor(today.getMonth() / 3) * 3 - 3;
-        const lqYear = lqStart < 0 ? today.getFullYear() - 1 : today.getFullYear();
+        const lqYear =
+          lqStart < 0 ? today.getFullYear() - 1 : today.getFullYear();
         const adjStart = lqStart < 0 ? lqStart + 12 : lqStart;
         setDateFrom(new Date(lqYear, adjStart, 1));
         setDateTo(new Date(lqYear, adjStart + 3, 0));
