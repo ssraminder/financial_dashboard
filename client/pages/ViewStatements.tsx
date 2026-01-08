@@ -920,7 +920,9 @@ export default function ViewStatements() {
 
       if (signedError) {
         console.error("Signed URL error:", signedError);
-        throw new Error(signedError.message || "Failed to generate download link");
+        throw new Error(
+          signedError.message || "Failed to generate download link",
+        );
       }
 
       if (!signedData?.signedUrl) {
