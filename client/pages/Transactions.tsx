@@ -1319,8 +1319,8 @@ export default function Transactions() {
                   {/* Show selected range as read-only text for presets */}
                   {datePreset !== "custom" && fromDate && toDate && (
                     <span className="text-sm text-muted-foreground whitespace-nowrap">
-                      {format(new Date(fromDate), "MMM d, yyyy")} –{" "}
-                      {format(new Date(toDate), "MMM d, yyyy")}
+                      {format(parseLocalDate(fromDate), "MMM d, yyyy")} –{" "}
+                      {format(parseLocalDate(toDate), "MMM d, yyyy")}
                     </span>
                   )}
                 </div>
