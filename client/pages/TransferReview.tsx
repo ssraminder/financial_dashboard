@@ -3,12 +3,26 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { Sidebar } from "@/components/Sidebar";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   CheckCircle,
   XCircle,
   ArrowDown,
   Building2,
-  Calendar,
+  Calendar as CalendarIcon,
   DollarSign,
   AlertTriangle,
   Loader2,
@@ -19,6 +33,7 @@ import {
   Filter,
   Search,
 } from "lucide-react";
+import { format, subDays } from "date-fns";
 import { toast as sonnerToast } from "sonner";
 
 interface ConfidenceFactors {
@@ -99,6 +114,12 @@ export default function TransferReview() {
     auto_linked: number;
     pending_hitl: number;
   } | null>(null);
+
+  // Date range state
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(
+    subDays(new Date(), 30)
+  );
+  const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
 
   // Filter state
   const [statusFilter, setStatusFilter] = useState<string>("pending");
@@ -318,14 +339,89 @@ export default function TransferReview() {
     sonnerToast.info("Skipped for now");
   };
 
+  // Date preset handler
+  const handleDatePreset = (presetLabel: string) => {
+    const today = new Date();
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
+    switch (presetLabel) {
+      case "Last 7 days":
+        setDateFrom(
+          new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000)
+        );
+        setDateTo(startOfToday);
+        break;
+      case "Last 30 days":
+        setDateFrom(
+          new Date(startOfToday.getTime() - 30 * 24 * 60 * 60 * 1000)
+        );
+        setDateTo(startOfToday);
+        break;
+      case "Last 60 days":
+        setDateFrom(
+          new Date(startOfToday.getTime() - 60 * 24 * 60 * 60 * 1000)
+        );
+        setDateTo(startOfToday);
+        break;
+      case "Last 90 days":
+        setDateFrom(
+          new Date(startOfToday.getTime() - 90 * 24 * 60 * 60 * 1000)
+        );
+        setDateTo(startOfToday);
+        break;
+      case "This Month": {
+        setDateFrom(new Date(today.getFullYear(), today.getMonth(), 1));
+        setDateTo(startOfToday);
+        break;
+      }
+      case "Last Month": {
+        setDateFrom(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+        setDateTo(new Date(today.getFullYear(), today.getMonth(), 0));
+        break;
+      }
+      case "This Quarter": {
+        const quarterStart = Math.floor(today.getMonth() / 3) * 3;
+        setDateFrom(new Date(today.getFullYear(), quarterStart, 1));
+        setDateTo(startOfToday);
+        break;
+      }
+      case "Last Quarter": {
+        const lastQuarterStart = Math.floor(today.getMonth() / 3) * 3 - 3;
+        const lastQuarterYear =
+          lastQuarterStart < 0 ? today.getFullYear() - 1 : today.getFullYear();
+        const adjustedQuarterStart =
+          lastQuarterStart < 0 ? lastQuarterStart + 12 : lastQuarterStart;
+        setDateFrom(new Date(lastQuarterYear, adjustedQuarterStart, 1));
+        setDateTo(new Date(lastQuarterYear, adjustedQuarterStart + 3, 0));
+        break;
+      }
+      case "This Year":
+        setDateFrom(new Date(today.getFullYear(), 0, 1));
+        setDateTo(startOfToday);
+        break;
+      case "All Time":
+        setDateFrom(new Date(2020, 0, 1)); // Or earliest reasonable date
+        setDateTo(startOfToday);
+        break;
+    }
+  };
+
   const handleDetectTransfers = async () => {
+    // Require date range to be selected
+    if (!dateFrom || !dateTo) {
+      sonnerToast.error("Please select a date range to detect transfers");
+      return;
+    }
+
     setIsDetecting(true);
     try {
-      // Get date range - last 60 days
-      const dateTo = new Date().toISOString().split("T")[0];
-      const dateFrom = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0];
+      // Format dates for API
+      const dateToStr = format(dateTo, "yyyy-MM-dd");
+      const dateFromStr = format(dateFrom, "yyyy-MM-dd");
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/detect-transfers`,
@@ -337,12 +433,13 @@ export default function TransferReview() {
           },
           body: JSON.stringify({
             filter: {
-              date_from: dateFrom,
-              date_to: dateTo,
+              date_from: dateFromStr,
+              date_to: dateToStr,
             },
             auto_link_threshold: 95,
             date_tolerance_days: 3,
             dry_run: false,
+            exclude_locked: true, // Exclude locked transactions
           }),
         },
       );
@@ -444,10 +541,10 @@ export default function TransferReview() {
                   reviewed
                 </span>
               </div>
-              <button
+              <Button
                 onClick={handleDetectTransfers}
-                disabled={isDetecting}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
+                disabled={isDetecting || (!dateFrom && !dateTo)}
+                className="flex items-center gap-2"
               >
                 {isDetecting ? (
                   <>
@@ -458,9 +555,14 @@ export default function TransferReview() {
                   <>
                     <Search className="h-4 w-4" />
                     Detect Transfers
+                    {dateFrom && dateTo && (
+                      <span className="text-xs opacity-75">
+                        ({format(dateFrom, "MMM d")} - {format(dateTo, "MMM d")})
+                      </span>
+                    )}
                   </>
                 )}
-              </button>
+              </Button>
               <button
                 onClick={fetchCandidates}
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
@@ -468,6 +570,94 @@ export default function TransferReview() {
               >
                 <RefreshCw className="w-5 h-5" />
               </button>
+            </div>
+          </div>
+
+          {/* Date Range Filters */}
+          <div className="bg-white rounded-lg border p-4 mb-6">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Date Range:
+                </span>
+
+                {/* Date From Picker */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-[140px] justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateFrom ? format(dateFrom, "MMM d, yyyy") : "Start Date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateFrom}
+                      onSelect={setDateFrom}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <span className="text-gray-400">to</span>
+
+                {/* Date To Picker */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-[140px] justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateTo ? format(dateTo, "MMM d, yyyy") : "End Date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateTo}
+                      onSelect={setDateTo}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Quick Presets Dropdown */}
+              <Select onValueChange={handleDatePreset}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Quick Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Last 7 days">Last 7 days</SelectItem>
+                  <SelectItem value="Last 30 days">Last 30 days</SelectItem>
+                  <SelectItem value="Last 60 days">Last 60 days</SelectItem>
+                  <SelectItem value="Last 90 days">Last 90 days</SelectItem>
+                  <SelectItem value="This Month">This Month</SelectItem>
+                  <SelectItem value="Last Month">Last Month</SelectItem>
+                  <SelectItem value="This Quarter">This Quarter</SelectItem>
+                  <SelectItem value="Last Quarter">Last Quarter</SelectItem>
+                  <SelectItem value="This Year">This Year</SelectItem>
+                  <SelectItem value="All Time">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Clear Dates Button */}
+              {(dateFrom || dateTo) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setDateFrom(undefined);
+                    setDateTo(undefined);
+                  }}
+                >
+                  Clear Dates
+                </Button>
+              )}
             </div>
           </div>
 
