@@ -97,9 +97,7 @@ Return ONLY valid JSON, no markdown.`;
     }
 
     const aiResponse = await response.json();
-    const textContent = aiResponse.content.find(
-      (c: any) => c.type === "text",
-    );
+    const textContent = aiResponse.content.find((c: any) => c.type === "text");
 
     if (!textContent) {
       throw new Error("No text content in AI response");

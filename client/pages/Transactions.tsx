@@ -253,11 +253,7 @@ export default function Transactions() {
           (quarter - 1) * 3,
           1,
         );
-        const lastQuarterEnd = new Date(
-          today.getFullYear(),
-          quarter * 3,
-          0,
-        );
+        const lastQuarterEnd = new Date(today.getFullYear(), quarter * 3, 0);
         return { from: lastQuarterStart, to: lastQuarterEnd };
       }
 
@@ -732,7 +728,9 @@ export default function Transactions() {
     setIsAiProcessing(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-filter-query`,
