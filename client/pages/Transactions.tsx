@@ -43,6 +43,8 @@ import {
   X as XIcon,
   Lock,
   LockOpen,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { formatDate } from "@/lib/dateUtils";
@@ -124,6 +126,7 @@ export default function Transactions() {
   const [loading, setLoading] = useState(true);
 
   // Filter state
+  const [datePreset, setDatePreset] = useState("this_month");
   const [fromDate, setFromDate] = useState(
     format(subDays(new Date(), 30), "yyyy-MM-dd"),
   );
@@ -138,6 +141,10 @@ export default function Transactions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showUnconfirmed, setShowUnconfirmed] = useState(false);
 
+  // AI Filter state
+  const [aiQuery, setAiQuery] = useState("");
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
@@ -146,6 +153,23 @@ export default function Transactions() {
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Date presets
+  const datePresets = [
+    { label: "Today", value: "today" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "This Week", value: "this_week" },
+    { label: "Last Week", value: "last_week" },
+    { label: "This Month", value: "this_month" },
+    { label: "Month-to-Date", value: "mtd" },
+    { label: "Last Month", value: "last_month" },
+    { label: "This Quarter", value: "this_quarter" },
+    { label: "Last Quarter", value: "last_quarter" },
+    { label: "Year-to-Date", value: "ytd" },
+    { label: "Last Year", value: "last_year" },
+    { label: "All Time", value: "all" },
+    { label: "Custom Range", value: "custom" },
+  ];
 
   // Re-analyze feature states
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>(
@@ -160,11 +184,118 @@ export default function Transactions() {
     unmatched: number;
   } | null>(null);
 
+  // Date calculation helper
+  const getDateRange = (preset: string): { from: Date; to: Date } => {
+    const today = new Date();
+    const startOfDay = (d: Date) =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    switch (preset) {
+      case "today":
+        return { from: startOfDay(today), to: today };
+
+      case "yesterday": {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        return { from: startOfDay(yesterday), to: startOfDay(yesterday) };
+      }
+
+      case "this_week": {
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        return { from: startOfDay(startOfWeek), to: today };
+      }
+
+      case "last_week": {
+        const startOfLastWeek = new Date(today);
+        startOfLastWeek.setDate(today.getDate() - today.getDay() - 7);
+        const endOfLastWeek = new Date(startOfLastWeek);
+        endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
+        return {
+          from: startOfDay(startOfLastWeek),
+          to: startOfDay(endOfLastWeek),
+        };
+      }
+
+      case "this_month":
+      case "mtd":
+        return {
+          from: new Date(today.getFullYear(), today.getMonth(), 1),
+          to: today,
+        };
+
+      case "last_month": {
+        const firstOfLastMonth = new Date(
+          today.getFullYear(),
+          today.getMonth() - 1,
+          1,
+        );
+        const lastOfLastMonth = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          0,
+        );
+        return { from: firstOfLastMonth, to: lastOfLastMonth };
+      }
+
+      case "this_quarter": {
+        const quarter = Math.floor(today.getMonth() / 3);
+        return {
+          from: new Date(today.getFullYear(), quarter * 3, 1),
+          to: today,
+        };
+      }
+
+      case "last_quarter": {
+        const quarter = Math.floor(today.getMonth() / 3);
+        const lastQuarterStart = new Date(
+          today.getFullYear(),
+          (quarter - 1) * 3,
+          1,
+        );
+        const lastQuarterEnd = new Date(
+          today.getFullYear(),
+          quarter * 3,
+          0,
+        );
+        return { from: lastQuarterStart, to: lastQuarterEnd };
+      }
+
+      case "ytd":
+        return {
+          from: new Date(today.getFullYear(), 0, 1),
+          to: today,
+        };
+
+      case "last_year":
+        return {
+          from: new Date(today.getFullYear() - 1, 0, 1),
+          to: new Date(today.getFullYear() - 1, 11, 31),
+        };
+
+      case "all":
+        return {
+          from: new Date(2020, 0, 1),
+          to: today,
+        };
+
+      default:
+        return { from: startOfDay(today), to: today };
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
     }
   }, [user, authLoading, navigate]);
+
+  // Initialize default date preset on mount
+  useEffect(() => {
+    const { from, to } = getDateRange("this_month");
+    setFromDate(format(from, "yyyy-MM-dd"));
+    setToDate(format(to, "yyyy-MM-dd"));
+  }, []);
 
   // Fetch filter options and transactions
   useEffect(() => {
@@ -594,10 +725,81 @@ export default function Transactions() {
 
   const totalPages = Math.ceil(transactions.length / itemsPerPage);
 
+  // AI Filter Handler
+  const handleAiFilter = async () => {
+    if (!aiQuery.trim()) return;
+
+    setIsAiProcessing(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-filter-query`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ query: aiQuery }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (data.success && data.filters) {
+        // Apply parsed filters
+        const f = data.filters;
+
+        if (f.date_preset) {
+          setDatePreset(f.date_preset);
+          const { from, to } = getDateRange(f.date_preset);
+          setFromDate(format(from, "yyyy-MM-dd"));
+          setToDate(format(to, "yyyy-MM-dd"));
+        }
+        if (f.date_from) setFromDate(f.date_from);
+        if (f.date_to) setToDate(f.date_to);
+        if (f.category) {
+          // Find category by code
+          const category = filterOptions.categories.find(
+            (c) => c.code === f.category,
+          );
+          if (category) setSelectedCategory(category.id);
+        }
+        if (f.bank_account_id) setSelectedBankAccount(f.bank_account_id);
+        if (f.description) setSearchTerm(f.description);
+        if (f.needs_review !== undefined) setShowNeedsReview(f.needs_review);
+
+        toast({
+          title: "AI Filters Applied",
+          description: data.filters.summary || "Filters updated",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Could not parse query",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("AI filter error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to process AI query",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAiProcessing(false);
+    }
+  };
+
   // Clear all filters
   const clearFilters = () => {
-    setFromDate(format(subDays(new Date(), 30), "yyyy-MM-dd"));
-    setToDate(format(new Date(), "yyyy-MM-dd"));
+    setDatePreset("this_month");
+    const { from, to } = getDateRange("this_month");
+    setFromDate(format(from, "yyyy-MM-dd"));
+    setToDate(format(to, "yyyy-MM-dd"));
     setSelectedBankAccount("all");
     setSelectedCompany("all");
     setSelectedCategory("all");
@@ -605,6 +807,7 @@ export default function Transactions() {
     setShowNeedsReview(false);
     setSearchTerm("");
     setShowUnconfirmed(false);
+    setAiQuery("");
     setCurrentPage(1);
   };
 
@@ -932,6 +1135,45 @@ export default function Transactions() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* AI Natural Language Filter */}
+              <div className="flex items-center gap-2 w-full">
+                <div className="relative flex-1 max-w-2xl">
+                  <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-500" />
+                  <Input
+                    placeholder="Ask AI: e.g., 'restaurant expenses over $50 last month'"
+                    value={aiQuery}
+                    onChange={(e) => setAiQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && aiQuery.trim()) {
+                        handleAiFilter();
+                      }
+                    }}
+                    className="pl-10 pr-10"
+                  />
+                  {aiQuery && (
+                    <button
+                      onClick={() => setAiQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 hover:bg-gray-100 rounded p-0.5"
+                    >
+                      <X className="h-4 w-4 text-gray-400" />
+                    </button>
+                  )}
+                </div>
+                <Button
+                  onClick={handleAiFilter}
+                  disabled={!aiQuery.trim() || isAiProcessing}
+                  variant="secondary"
+                  size="sm"
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {isAiProcessing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Apply AI"
+                  )}
+                </Button>
+              </div>
+
               {/* Main Filter Bar */}
               <div className="flex flex-wrap gap-3 items-center">
                 <SearchableDropdown
@@ -1011,24 +1253,60 @@ export default function Transactions() {
                   className="w-[180px]"
                 />
 
-                {/* Date Range */}
-                <div className="flex gap-2 items-center">
+                {/* Date Preset */}
+                <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="date"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
-                    className="w-[130px] text-sm"
-                    title="From date"
-                  />
-                  <span className="text-muted-foreground">to</span>
-                  <Input
-                    type="date"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                    className="w-[130px] text-sm"
-                    title="To date"
-                  />
+                  <Select
+                    value={datePreset}
+                    onValueChange={(value) => {
+                      setDatePreset(value);
+                      if (value !== "custom") {
+                        const { from, to } = getDateRange(value);
+                        setFromDate(format(from, "yyyy-MM-dd"));
+                        setToDate(format(to, "yyyy-MM-dd"));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {datePresets.map((preset) => (
+                        <SelectItem key={preset.value} value={preset.value}>
+                          {preset.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Show date pickers only for Custom Range */}
+                  {datePreset === "custom" && (
+                    <>
+                      <Input
+                        type="date"
+                        value={fromDate}
+                        onChange={(e) => setFromDate(e.target.value)}
+                        className="w-[130px] text-sm"
+                        title="From date"
+                      />
+                      <span className="text-muted-foreground text-sm">to</span>
+                      <Input
+                        type="date"
+                        value={toDate}
+                        onChange={(e) => setToDate(e.target.value)}
+                        className="w-[130px] text-sm"
+                        title="To date"
+                      />
+                    </>
+                  )}
+
+                  {/* Show selected range as read-only text for presets */}
+                  {datePreset !== "custom" && fromDate && toDate && (
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      {format(new Date(fromDate), "MMM d, yyyy")} –{" "}
+                      {format(new Date(toDate), "MMM d, yyyy")}
+                    </span>
+                  )}
                 </div>
 
                 {/* Clear Filters Button */}
