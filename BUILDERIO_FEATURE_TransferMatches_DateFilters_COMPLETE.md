@@ -24,6 +24,7 @@
 **File**: `client/pages/TransferReview.tsx`
 
 Added necessary UI components and utilities:
+
 - `Calendar` component from `@/components/ui/calendar`
 - `Popover`, `PopoverTrigger`, `PopoverContent` from `@/components/ui/popover`
 - `Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem` from `@/components/ui/select`
@@ -36,7 +37,7 @@ Added necessary UI components and utilities:
 ```typescript
 // Date range state
 const [dateFrom, setDateFrom] = useState<Date | undefined>(
-  subDays(new Date(), 30)
+  subDays(new Date(), 30),
 );
 const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
 ```
@@ -46,6 +47,7 @@ const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
 ### 3. Added Date Preset Handler
 
 Implemented `handleDatePreset()` function with the following presets:
+
 - **Last 7 days**
 - **Last 30 days**
 - **Last 60 days** (previous hardcoded default)
@@ -60,6 +62,7 @@ Implemented `handleDatePreset()` function with the following presets:
 ### 4. Updated Detect Transfers Function
 
 **Before**:
+
 ```typescript
 // Hardcoded 60-day range
 const dateTo = new Date().toISOString().split("T")[0];
@@ -69,6 +72,7 @@ const dateFrom = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
 ```
 
 **After**:
+
 ```typescript
 // Require date range to be selected
 if (!dateFrom || !dateTo) {
@@ -82,6 +86,7 @@ const dateFromStr = format(dateFrom, "yyyy-MM-dd");
 ```
 
 **Added Parameters**:
+
 ```typescript
 body: JSON.stringify({
   filter: {
@@ -98,6 +103,7 @@ body: JSON.stringify({
 ### 5. Updated Detect Button UI
 
 **Before**:
+
 ```tsx
 <button onClick={handleDetectTransfers} disabled={isDetecting}>
   {isDetecting ? "Detecting..." : "Detect Transfers"}
@@ -105,6 +111,7 @@ body: JSON.stringify({
 ```
 
 **After**:
+
 ```tsx
 <Button
   onClick={handleDetectTransfers}
@@ -131,6 +138,7 @@ body: JSON.stringify({
 ```
 
 **Features**:
+
 - Disabled when no date range selected
 - Shows selected date range in button text
 - Visual feedback for loading state
@@ -140,7 +148,9 @@ body: JSON.stringify({
 New UI section inserted between the header and summary cards:
 
 ```tsx
-{/* Date Range Filters */}
+{
+  /* Date Range Filters */
+}
 <div className="bg-white rounded-lg border p-4 mb-6">
   <div className="flex flex-wrap items-center gap-4">
     {/* Date From Picker */}
@@ -159,12 +169,12 @@ New UI section inserted between the header and summary cards:
         />
       </PopoverContent>
     </Popover>
-    
+
     {/* Date To Picker */}
     {/* Quick Presets Dropdown */}
     {/* Clear Dates Button */}
   </div>
-</div>
+</div>;
 ```
 
 ---
@@ -195,11 +205,13 @@ New UI section inserted between the header and summary cards:
 ## User Flow
 
 ### 1. Page Load
+
 - Default date range: **Last 30 days**
 - User sees date range displayed in the header
 - Detect Transfers button is enabled
 
 ### 2. Selecting Custom Dates
+
 1. Click "Start Date" or "End Date" button
 2. Calendar popover opens
 3. Select desired date
@@ -207,18 +219,21 @@ New UI section inserted between the header and summary cards:
 5. Button shows new date range
 
 ### 3. Using Quick Presets
+
 1. Click "Quick Select" dropdown
 2. Choose a preset (e.g., "Last 90 days")
 3. Both dates update automatically
 4. Button shows new date range
 
 ### 4. Clearing Dates
+
 1. Click "Clear Dates" button
 2. Both dates are cleared
 3. Detect button becomes disabled
 4. User must select dates to re-enable
 
 ### 5. Detecting Transfers
+
 1. Ensure dates are selected
 2. Click "Detect Transfers" button
 3. Button shows "Detecting..." with spinner
@@ -235,6 +250,7 @@ New UI section inserted between the header and summary cards:
 **Endpoint**: `/functions/v1/detect-transfers`
 
 **Request Body**:
+
 ```json
 {
   "filter": {
@@ -249,6 +265,7 @@ New UI section inserted between the header and summary cards:
 ```
 
 **New Parameters**:
+
 - `filter.date_from`: Start date in YYYY-MM-DD format
 - `filter.date_to`: End date in YYYY-MM-DD format
 - `exclude_locked`: Boolean to exclude locked transactions (default: true)
@@ -263,7 +280,7 @@ The `detect-transfers` Edge Function should support the `exclude_locked` paramet
 // In detect-transfers Edge Function, after building the base query:
 if (body.exclude_locked !== false) {
   // Default: exclude locked transactions
-  query = query.or('is_locked.is.null,is_locked.eq.false');
+  query = query.or("is_locked.is.null,is_locked.eq.false");
 }
 ```
 
@@ -273,44 +290,46 @@ if (body.exclude_locked !== false) {
 
 ## Testing Checklist
 
-| Test Case | Expected Result | Status |
-|-----------|-----------------|--------|
-| Page loads with default dates | Last 30 days selected | ✅ PASS |
-| Click "Start Date" picker | Calendar popover opens | ✅ PASS |
-| Select a start date | Date updates, popover closes | ✅ PASS |
-| Click "End Date" picker | Calendar popover opens | ✅ PASS |
-| Select an end date | Date updates, popover closes | ✅ PASS |
-| Click "Last 7 days" preset | Both dates update correctly | ✅ PASS |
-| Click "This Month" preset | Dates set to month start and today | ✅ PASS |
-| Click "Clear Dates" | Both dates cleared, button disabled | ✅ PASS |
-| Click Detect with no dates | Error toast shown | ✅ PASS |
-| Click Detect with valid dates | API called with correct params | ✅ PASS |
-| Button shows date range | Displays "(Dec 9 - Jan 8)" format | ✅ PASS |
+| Test Case                     | Expected Result                     | Status  |
+| ----------------------------- | ----------------------------------- | ------- |
+| Page loads with default dates | Last 30 days selected               | ✅ PASS |
+| Click "Start Date" picker     | Calendar popover opens              | ✅ PASS |
+| Select a start date           | Date updates, popover closes        | ✅ PASS |
+| Click "End Date" picker       | Calendar popover opens              | ✅ PASS |
+| Select an end date            | Date updates, popover closes        | ✅ PASS |
+| Click "Last 7 days" preset    | Both dates update correctly         | ✅ PASS |
+| Click "This Month" preset     | Dates set to month start and today  | ✅ PASS |
+| Click "Clear Dates"           | Both dates cleared, button disabled | ✅ PASS |
+| Click Detect with no dates    | Error toast shown                   | ✅ PASS |
+| Click Detect with valid dates | API called with correct params      | ✅ PASS |
+| Button shows date range       | Displays "(Dec 9 - Jan 8)" format   | ✅ PASS |
 
 ---
 
 ## Code Quality
 
-| Metric | Value |
-|--------|-------|
-| Lines Added | ~150 lines |
-| New Components | Calendar, Popover, Select (reused) |
-| New State Variables | 2 (dateFrom, dateTo) |
-| New Functions | 1 (handleDatePreset) |
-| Breaking Changes | None |
-| Backward Compatible | Yes (defaults to last 30 days) |
+| Metric              | Value                              |
+| ------------------- | ---------------------------------- |
+| Lines Added         | ~150 lines                         |
+| New Components      | Calendar, Popover, Select (reused) |
+| New State Variables | 2 (dateFrom, dateTo)               |
+| New Functions       | 1 (handleDatePreset)               |
+| Breaking Changes    | None                               |
+| Backward Compatible | Yes (defaults to last 30 days)     |
 
 ---
 
 ## Benefits
 
 ### For Users
+
 1. **More Control**: Choose specific date ranges to analyze
 2. **Faster Processing**: Smaller date ranges = faster detection
 3. **Better Results**: Focus on recent or specific periods
 4. **Flexibility**: 10 preset options + custom range
 
 ### For System
+
 1. **Reduced Load**: Smaller queries reduce database load
 2. **Better Performance**: Faster detection on focused datasets
 3. **Excludes Locked**: Locked transactions automatically excluded
@@ -333,11 +352,13 @@ if (body.exclude_locked !== false) {
 ## Follow-Up Actions
 
 ### Recommended ✅
+
 1. **Update Edge Function**: Add support for `exclude_locked` parameter
 2. **Test with Real Data**: Verify date filtering works correctly across time zones
 3. **User Feedback**: Monitor usage patterns to optimize default preset
 
 ### Optional
+
 1. **Add Tooltip**: Explain what "exclude locked" means
 2. **Save Preferences**: Remember last selected date range
 3. **Add "Today" Preset**: For detecting same-day transfers
@@ -349,6 +370,7 @@ if (body.exclude_locked !== false) {
 ### Why Last 30 Days Default?
 
 Most transfers are detected within a 30-day window. This balances:
+
 - **Speed**: Fast enough for real-time detection
 - **Coverage**: Captures most recent activity
 - **UX**: Reasonable default for most users
@@ -362,11 +384,12 @@ Most transfers are detected within a 30-day window. This balances:
 ### Preset Calculations
 
 All presets use timezone-safe date calculations:
+
 ```typescript
 const startOfToday = new Date(
   today.getFullYear(),
   today.getMonth(),
-  today.getDate()
+  today.getDate(),
 );
 ```
 
@@ -376,46 +399,46 @@ This ensures consistent behavior across timezones.
 
 ## Files Modified
 
-| File | Lines Changed | Purpose |
-|------|---------------|---------|
-| `client/pages/TransferReview.tsx` | +150 | Added date range filters, UI, and logic |
+| File                              | Lines Changed | Purpose                                 |
+| --------------------------------- | ------------- | --------------------------------------- |
+| `client/pages/TransferReview.tsx` | +150          | Added date range filters, UI, and logic |
 
 ---
 
 ## Success Criteria
 
-| Criteria | Status |
-|----------|--------|
-| Date pickers work correctly | ✅ DONE |
-| Quick presets set correct ranges | ✅ DONE |
-| Clear button resets dates | ✅ DONE |
+| Criteria                             | Status  |
+| ------------------------------------ | ------- |
+| Date pickers work correctly          | ✅ DONE |
+| Quick presets set correct ranges     | ✅ DONE |
+| Clear button resets dates            | ✅ DONE |
 | Detect button disabled without dates | ✅ DONE |
 | API receives correct date parameters | ✅ DONE |
-| Button shows selected date range | ✅ DONE |
-| Default to last 30 days | ✅ DONE |
-| UI matches design spec | ✅ DONE |
+| Button shows selected date range     | ✅ DONE |
+| Default to last 30 days              | ✅ DONE |
+| UI matches design spec               | ✅ DONE |
 
 ---
 
 ## Changelog
 
-| Date | Action | Person |
-|------|--------|--------|
-| Jan 8, 2026 | Feature requested | Raminder Shah |
-| Jan 8, 2026 | Feature implemented | Claude (Builder.io) |
+| Date        | Action                | Person              |
+| ----------- | --------------------- | ------------------- |
+| Jan 8, 2026 | Feature requested     | Raminder Shah       |
+| Jan 8, 2026 | Feature implemented   | Claude (Builder.io) |
 | Jan 8, 2026 | Documentation created | Claude (Builder.io) |
 
 ---
 
 ## Document Metadata
 
-| Field | Value |
-|-------|-------|
-| Document | BUILDERIO_FEATURE_TransferMatches_DateFilters_COMPLETE.md |
-| Version | 1.0 |
-| Created | January 8, 2026 |
-| Status | Complete |
-| Feature Type | Enhancement |
+| Field        | Value                                                     |
+| ------------ | --------------------------------------------------------- |
+| Document     | BUILDERIO_FEATURE_TransferMatches_DateFilters_COMPLETE.md |
+| Version      | 1.0                                                       |
+| Created      | January 8, 2026                                           |
+| Status       | Complete                                                  |
+| Feature Type | Enhancement                                               |
 
 ---
 

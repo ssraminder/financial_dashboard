@@ -117,7 +117,7 @@ export default function TransferReview() {
 
   // Date range state
   const [dateFrom, setDateFrom] = useState<Date | undefined>(
-    subDays(new Date(), 30)
+    subDays(new Date(), 30),
   );
   const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
 
@@ -345,31 +345,29 @@ export default function TransferReview() {
     const startOfToday = new Date(
       today.getFullYear(),
       today.getMonth(),
-      today.getDate()
+      today.getDate(),
     );
 
     switch (presetLabel) {
       case "Last 7 days":
-        setDateFrom(
-          new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000)
-        );
+        setDateFrom(new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000));
         setDateTo(startOfToday);
         break;
       case "Last 30 days":
         setDateFrom(
-          new Date(startOfToday.getTime() - 30 * 24 * 60 * 60 * 1000)
+          new Date(startOfToday.getTime() - 30 * 24 * 60 * 60 * 1000),
         );
         setDateTo(startOfToday);
         break;
       case "Last 60 days":
         setDateFrom(
-          new Date(startOfToday.getTime() - 60 * 24 * 60 * 60 * 1000)
+          new Date(startOfToday.getTime() - 60 * 24 * 60 * 60 * 1000),
         );
         setDateTo(startOfToday);
         break;
       case "Last 90 days":
         setDateFrom(
-          new Date(startOfToday.getTime() - 90 * 24 * 60 * 60 * 1000)
+          new Date(startOfToday.getTime() - 90 * 24 * 60 * 60 * 1000),
         );
         setDateTo(startOfToday);
         break;
@@ -557,7 +555,8 @@ export default function TransferReview() {
                     Detect Transfers
                     {dateFrom && dateTo && (
                       <span className="text-xs opacity-75">
-                        ({format(dateFrom, "MMM d")} - {format(dateTo, "MMM d")})
+                        ({format(dateFrom, "MMM d")} - {format(dateTo, "MMM d")}
+                        )
                       </span>
                     )}
                   </>
@@ -589,7 +588,9 @@ export default function TransferReview() {
                       className="w-[140px] justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateFrom ? format(dateFrom, "MMM d, yyyy") : "Start Date"}
+                      {dateFrom
+                        ? format(dateFrom, "MMM d, yyyy")
+                        : "Start Date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
