@@ -345,7 +345,10 @@ export default function Accounts() {
     const errors: Record<string, string> = {};
 
     if (!formData.accountType) errors.accountType = "Required";
-    if (!formData.institution) errors.institution = "Required";
+    // Institution not required for Petty Cash
+    if (formData.accountType !== "petty_cash" && !formData.institution) {
+      errors.institution = "Required";
+    }
     if (!formData.accountName.trim()) errors.accountName = "Required";
     if (!formData.currency) errors.currency = "Required";
 
@@ -420,7 +423,7 @@ export default function Accounts() {
 
     const accountData = {
       name: formData.accountName.trim(),
-      bank_name: formData.institution,
+      bank_name: formData.accountType === "petty_cash" ? "Cash" : formData.institution,
       currency: formData.currency,
       account_type: formData.accountType,
       is_personal: formData.isPersonal,
@@ -866,8 +869,8 @@ export default function Accounts() {
               )}
             </div>
 
-            {/* Institution */}
-            {formData.accountType && (
+            {/* Institution - Hidden for Petty Cash */}
+            {formData.accountType && formData.accountType !== "petty_cash" && (
               <div className="space-y-2">
                 <Label>Bank / Institution *</Label>
                 <Select
