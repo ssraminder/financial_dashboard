@@ -29,16 +29,19 @@ When querying with `.select('*, bank_accounts(*)')`, Supabase cannot determine w
 Updated all Supabase queries to use **explicit foreign key syntax**:
 
 ### Syntax
+
 ```typescript
 alias:table_name!foreign_key_column(columns)
 ```
 
 ### Before (Ambiguous)
+
 ```typescript
-bank_account:bank_accounts(id, name, bank_name)
+bank_account: bank_accounts(id, name, bank_name);
 ```
 
 ### After (Explicit)
+
 ```typescript
 bank_account:bank_accounts!bank_account_id(id, name, bank_name)
 ```
@@ -50,11 +53,13 @@ bank_account:bank_accounts!bank_account_id(id, name, bank_name)
 ### 1. **client/pages/Transactions.tsx** (Line 401)
 
 **Before:**
+
 ```typescript
 bank_account:bank_accounts(id, name, nickname, bank_name, account_number, balance_type),
 ```
 
 **After:**
+
 ```typescript
 bank_account:bank_accounts!bank_account_id(id, name, nickname, bank_name, account_number, balance_type),
 ```
@@ -64,11 +69,13 @@ bank_account:bank_accounts!bank_account_id(id, name, nickname, bank_name, accoun
 ### 2. **client/components/TransactionEditModal.tsx** (Line 306)
 
 **Before:**
+
 ```typescript
-bank_account:bank_accounts(name, bank_name)
+bank_account: bank_accounts(name, bank_name);
 ```
 
 **After:**
+
 ```typescript
 bank_account:bank_accounts!bank_account_id(name, bank_name)
 ```
@@ -78,11 +85,13 @@ bank_account:bank_accounts!bank_account_id(name, bank_name)
 ### 3. **client/pages/ReviewQueue.tsx** (Line 197)
 
 **Before:**
+
 ```typescript
 bank_account:bank_accounts(id, name, bank_name),
 ```
 
 **After:**
+
 ```typescript
 bank_account:bank_accounts!bank_account_id(id, name, bank_name),
 ```
@@ -109,11 +118,13 @@ to_account:bank_accounts!to_account_id(
 ## Verification
 
 ### Search Command Used
+
 ```bash
 grep -n "bank_account:bank_accounts(" **/*.tsx | grep -v "bank_account_id"
 ```
 
 ### Result
+
 ```
 No ambiguous joins found
 ```
@@ -124,12 +135,12 @@ No ambiguous joins found
 
 ## Testing
 
-| Test Case | Expected Result | Status |
-|-----------|-----------------|--------|
-| Load Transactions page | No FK errors | ✅ PASS |
-| Load Review Queue page | No FK errors | ✅ PASS |
-| Open Transaction Edit Modal | No FK errors | ✅ PASS |
-| Load Transfer Review page | No FK errors | ✅ PASS |
+| Test Case                       | Expected Result        | Status  |
+| ------------------------------- | ---------------------- | ------- |
+| Load Transactions page          | No FK errors           | ✅ PASS |
+| Load Review Queue page          | No FK errors           | ✅ PASS |
+| Open Transaction Edit Modal     | No FK errors           | ✅ PASS |
+| Load Transfer Review page       | No FK errors           | ✅ PASS |
 | Query returns bank account data | Correct account joined | ✅ PASS |
 
 ---
@@ -139,15 +150,19 @@ No ambiguous joins found
 For reference, the two foreign key relationships are:
 
 ### Main Account Relationship
+
 ```typescript
 bank_account:bank_accounts!bank_account_id(*)
 ```
+
 Used in most queries to get the primary account for a transaction.
 
 ### Counterpart Account Relationship
+
 ```typescript
 counterpart_account:bank_accounts!counterpart_account_id(*)
 ```
+
 Used for transfer transactions to identify the receiving/sending account.
 
 ---
@@ -164,13 +179,13 @@ When the `transactions` table has multiple foreign keys to the same table (`bank
 
 ## Impact
 
-| Metric | Value |
-|--------|-------|
-| Files Modified | 3 |
-| Lines Changed | 3 |
-| Breaking Changes | None |
-| Backward Compatible | Yes |
-| Database Changes | None |
+| Metric              | Value |
+| ------------------- | ----- |
+| Files Modified      | 3     |
+| Lines Changed       | 3     |
+| Breaking Changes    | None  |
+| Backward Compatible | Yes   |
+| Database Changes    | None  |
 
 ---
 
@@ -183,10 +198,10 @@ When the `transactions` table has multiple foreign keys to the same table (`bank
 
 ## Resolution Timeline
 
-| Date | Action | Person |
-|------|--------|--------|
-| Jan 8, 2026 | Error reported | Raminder Shah |
-| Jan 8, 2026 | 3 files fixed | Claude (Builder.io) |
+| Date        | Action                | Person              |
+| ----------- | --------------------- | ------------------- |
+| Jan 8, 2026 | Error reported        | Raminder Shah       |
+| Jan 8, 2026 | 3 files fixed         | Claude (Builder.io) |
 | Jan 8, 2026 | Verification complete | Claude (Builder.io) |
 
 ---
