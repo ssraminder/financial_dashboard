@@ -171,6 +171,12 @@ export default function Transactions() {
     { label: "Custom Range", value: "custom" },
   ];
 
+  // Timezone-safe date string parser (for YYYY-MM-DD strings)
+  const parseLocalDate = (dateString: string): Date => {
+    const [year, month, day] = dateString.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   // Re-analyze feature states
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>(
     [],
