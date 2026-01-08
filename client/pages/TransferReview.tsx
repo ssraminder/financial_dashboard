@@ -17,6 +17,7 @@ import {
   Check,
   X,
   Filter,
+  Search,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
@@ -91,6 +92,13 @@ export default function TransferReview() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [lastDetectionResult, setLastDetectionResult] = useState<{
+    analyzed: number;
+    candidates: number;
+    auto_linked: number;
+    pending_hitl: number;
+  } | null>(null);
 
   // Filter state
   const [statusFilter, setStatusFilter] = useState<string>("pending");
@@ -310,6 +318,55 @@ export default function TransferReview() {
     sonnerToast.info("Skipped for now");
   };
 
+  const handleDetectTransfers = async () => {
+    setIsDetecting(true);
+    try {
+      // Get date range - last 60 days
+      const dateTo = new Date().toISOString().split("T")[0];
+      const dateFrom = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0];
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/detect-transfers`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({
+            filter: {
+              date_from: dateFrom,
+              date_to: dateTo,
+            },
+            auto_link_threshold: 95,
+            date_tolerance_days: 3,
+            dry_run: false,
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setLastDetectionResult(result.summary);
+        sonnerToast.success(
+          `Found ${result.summary.candidates} potential transfers`,
+        );
+        // Refresh the candidates list
+        fetchCandidates();
+      } else {
+        sonnerToast.error(result.error || "Detection failed");
+      }
+    } catch (error) {
+      console.error("Transfer detection error:", error);
+      sonnerToast.error("Failed to run transfer detection");
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+
   // Helper functions
   const getConfidenceBadge = (score: number) => {
     if (score >= 90)
@@ -387,6 +444,23 @@ export default function TransferReview() {
                   reviewed
                 </span>
               </div>
+              <button
+                onClick={handleDetectTransfers}
+                disabled={isDetecting}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
+              >
+                {isDetecting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Detecting...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4" />
+                    Detect Transfers
+                  </>
+                )}
+              </button>
               <button
                 onClick={fetchCandidates}
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
