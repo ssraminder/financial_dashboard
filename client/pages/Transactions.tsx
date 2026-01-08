@@ -198,6 +198,15 @@ export default function Transactions() {
     unmatched: number;
   } | null>(null);
 
+  // Bulk update feature states
+  const [showBulkUpdate, setShowBulkUpdate] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [bulkCategory, setBulkCategory] = useState<string>("");
+  const [bulkPayee, setBulkPayee] = useState<string>("");
+  const [bulkCompany, setBulkCompany] = useState<string>("");
+  const [bulkHasGst, setBulkHasGst] = useState<boolean | null>(null);
+  const [bulkNeedsReview, setBulkNeedsReview] = useState<boolean | null>(null);
+
   // Date calculation helper
   const getDateRange = (preset: string): { from: Date; to: Date } => {
     const today = new Date();
