@@ -57,6 +57,7 @@ interface Statement {
   total_credits: number;
   total_debits: number;
   file_name: string;
+  file_path?: string;
   imported_at: string;
   import_status?:
     | "processing"
@@ -320,7 +321,7 @@ export default function ViewStatements() {
       const { data, error } = await supabase
         .from("statement_imports")
         .select(
-          "id, statement_period_start, statement_period_end, opening_balance, closing_balance, total_transactions, total_credits, total_debits, file_name, imported_at, import_status, confirmed_at, confirmed_by",
+          "id, statement_period_start, statement_period_end, opening_balance, closing_balance, total_transactions, total_credits, total_debits, file_name, file_path, imported_at, import_status, confirmed_at, confirmed_by",
         )
         .eq("bank_account_id", selectedBankAccountId)
         .order("statement_period_end", { ascending: false });
@@ -879,18 +880,23 @@ export default function ViewStatements() {
 
   // Fetch original file path from parse_queue
   const fetchOriginalFilePath = async (statementId: string) => {
-    const { data, error } = await supabase
-      .from("parse_queue")
-      .select("file_path")
-      .eq("statement_import_id", statementId)
-      .single();
-
-    if (!error && data?.file_path) {
-      // Backend now updates file_path to processed/ folder after moving
-      // So we can use it directly without fallback logic
-      setOriginalFilePath(data.file_path);
+    // Get file_path from statement_imports table
+    const statement = statements.find((s) => s.id === statementId);
+    if (statement?.file_path) {
+      setOriginalFilePath(statement.file_path);
     } else {
-      setOriginalFilePath(null);
+      // Fallback: try parse_queue if file_path not in statement_imports
+      const { data, error } = await supabase
+        .from("parse_queue")
+        .select("file_path")
+        .eq("statement_import_id", statementId)
+        .single();
+
+      if (!error && data?.file_path) {
+        setOriginalFilePath(data.file_path);
+      } else {
+        setOriginalFilePath(null);
+      }
     }
   };
 
