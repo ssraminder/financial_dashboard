@@ -194,7 +194,7 @@ export default function ReviewQueue() {
         .select(
           `*,
           category:categories!category_id(id, code, name, category_type),
-          bank_account:bank_accounts(id, name, bank_name),
+          bank_account:bank_accounts!bank_account_id(id, name, bank_name),
           company:companies(id, name)`,
         )
         .eq("needs_review", true)

@@ -398,7 +398,7 @@ export default function Transactions() {
           is_locked,
           statement_import_id,
           category:categories!category_id(id, code, name, category_type),
-          bank_account:bank_accounts(id, name, nickname, bank_name, account_number, balance_type),
+          bank_account:bank_accounts!bank_account_id(id, name, nickname, bank_name, account_number, balance_type),
           company:companies(id, name),
           linked_transaction:transactions!linked_to(id, description, amount, transaction_date),
           statement:statement_imports(id, import_status, confirmed_at)`,

@@ -303,7 +303,7 @@ export function TransactionEditModal({
           total_amount,
           transaction_type,
           linked_to,
-          bank_account:bank_accounts(name, bank_name)
+          bank_account:bank_accounts!bank_account_id(name, bank_name)
         `,
         )
         .eq("bank_account_id", accountId)
