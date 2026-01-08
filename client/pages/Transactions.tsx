@@ -731,6 +731,85 @@ export default function Transactions() {
     }
   };
 
+  // Bulk update handler
+  const handleBulkUpdate = async () => {
+    if (selectedTransactions.length === 0) return;
+
+    setIsUpdating(true);
+
+    try {
+      // Build update object with only non-empty fields
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (bulkCategory) {
+        updateData.category_id = bulkCategory;
+      }
+      if (bulkPayee.trim()) {
+        updateData.payee_name = bulkPayee.trim();
+        updateData.payee_normalized = bulkPayee.trim().toLowerCase();
+      }
+      if (bulkCompany) {
+        updateData.company_id = bulkCompany;
+      }
+      if (bulkHasGst !== null) {
+        updateData.has_gst = bulkHasGst;
+        if (bulkHasGst) {
+          updateData.gst_rate = 0.05;
+        }
+      }
+      if (bulkNeedsReview !== null) {
+        updateData.needs_review = bulkNeedsReview;
+      }
+
+      // Check if any fields to update
+      if (Object.keys(updateData).length === 1) {
+        toast({
+          title: "No Changes",
+          description: "Please select at least one field to update.",
+          variant: "destructive",
+        });
+        setIsUpdating(false);
+        return;
+      }
+
+      // Perform bulk update
+      const { error } = await supabase
+        .from("transactions")
+        .update(updateData)
+        .in("id", selectedTransactions);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Updated ${selectedTransactions.length} transactions.`,
+      });
+
+      // Reset form and selection
+      setShowBulkUpdate(false);
+      setSelectedTransactions([]);
+      setBulkCategory("");
+      setBulkPayee("");
+      setBulkCompany("");
+      setBulkHasGst(null);
+      setBulkNeedsReview(null);
+
+      // Refresh transactions
+      fetchTransactions();
+    } catch (error) {
+      console.error("Bulk update error:", error);
+      toast({
+        title: "Update Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   // Helper function to determine amount color based on transaction type
   const getAmountColor = (transaction: Transaction) => {
     const { transaction_type } = transaction;
