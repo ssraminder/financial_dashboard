@@ -355,7 +355,7 @@ export default function TransferReview() {
           `Found ${result.summary.candidates} potential transfers`,
         );
         // Refresh the candidates list
-        fetchCandidates();
+        await fetchCandidates();
       } else {
         sonnerToast.error(result.error || "Detection failed");
       }
