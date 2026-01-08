@@ -1829,6 +1829,138 @@ export default function Transactions() {
         </div>
       )}
 
+      {/* Bulk Update Dialog */}
+      <Dialog open={showBulkUpdate} onOpenChange={setShowBulkUpdate}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Bulk Update {selectedTransactions.length} Transactions
+            </DialogTitle>
+            <DialogDescription>
+              Only filled fields will be updated. Leave blank to keep existing
+              values.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Category */}
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={bulkCategory} onValueChange={setBulkCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">-- Keep existing --</SelectItem>
+                  {filterOptions.categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Payee Name */}
+            <div className="space-y-2">
+              <Label>Payee Name</Label>
+              <Input
+                value={bulkPayee}
+                onChange={(e) => setBulkPayee(e.target.value)}
+                placeholder="Leave blank to keep existing"
+              />
+            </div>
+
+            {/* Company */}
+            <div className="space-y-2">
+              <Label>Company</Label>
+              <Select value={bulkCompany} onValueChange={setBulkCompany}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select company (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">-- Keep existing --</SelectItem>
+                  {filterOptions.companies.map((co) => (
+                    <SelectItem key={co.id} value={co.id}>
+                      {co.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* GST Toggle */}
+            <div className="flex items-center justify-between">
+              <Label>Has GST</Label>
+              <div className="flex gap-2">
+                <Button
+                  variant={bulkHasGst === true ? "default" : "outline"}
+                  size="sm"
+                  onClick={() =>
+                    setBulkHasGst(bulkHasGst === true ? null : true)
+                  }
+                >
+                  Yes
+                </Button>
+                <Button
+                  variant={bulkHasGst === false ? "default" : "outline"}
+                  size="sm"
+                  onClick={() =>
+                    setBulkHasGst(bulkHasGst === false ? null : false)
+                  }
+                >
+                  No
+                </Button>
+              </div>
+            </div>
+
+            {/* Needs Review Toggle */}
+            <div className="flex items-center justify-between">
+              <Label>Needs Review</Label>
+              <div className="flex gap-2">
+                <Button
+                  variant={bulkNeedsReview === true ? "default" : "outline"}
+                  size="sm"
+                  onClick={() =>
+                    setBulkNeedsReview(bulkNeedsReview === true ? null : true)
+                  }
+                >
+                  Yes
+                </Button>
+                <Button
+                  variant={bulkNeedsReview === false ? "default" : "outline"}
+                  size="sm"
+                  onClick={() =>
+                    setBulkNeedsReview(bulkNeedsReview === false ? null : false)
+                  }
+                >
+                  No
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowBulkUpdate(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleBulkUpdate} disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>Update {selectedTransactions.length} Transactions</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Transaction Edit Modal */}
       <TransactionEditModal
         transaction={selectedTransaction}
