@@ -756,31 +756,89 @@ export function TransactionEditModal({
                 </div>
 
                 {/* GST */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="has-gst"
-                      checked={hasGst}
-                      onCheckedChange={(checked) =>
-                        setHasGst(checked as boolean)
-                      }
-                    />
-                    <Label htmlFor="has-gst" className="cursor-pointer">
-                      Has GST
-                    </Label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="has-gst"
+                        checked={hasGst}
+                        onCheckedChange={(checked) =>
+                          setHasGst(checked as boolean)
+                        }
+                      />
+                      <Label htmlFor="has-gst" className="cursor-pointer">
+                        Has GST
+                      </Label>
+                    </div>
+
+                    {hasGst && (
+                      <Select
+                        value={gstRate.toString()}
+                        onValueChange={(v) => setGstRate(parseFloat(v))}
+                      >
+                        <SelectTrigger className="w-24">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0.05">5% GST</SelectItem>
+                          <SelectItem value="0.13">13% HST</SelectItem>
+                          <SelectItem value="0.15">15% HST</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
+
                   {hasGst && (
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={gstAmount}
-                      onChange={(e) =>
-                        setGstAmount(parseFloat(e.target.value) || 0)
-                      }
-                      placeholder="GST amount"
-                    />
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>GST Amount:</span>
+                      <span className="font-medium">
+                        ${gstAmount.toFixed(2)}
+                      </span>
+                      <span className="text-xs">(auto-calculated)</span>
+                    </div>
                   )}
                 </div>
+
+                {/* Tip - Only for meals_entertainment */}
+                {selectedCategory?.code === "meals_entertainment" && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="has-tip"
+                          checked={hasTip}
+                          onCheckedChange={(checked) =>
+                            setHasTip(checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="has-tip" className="cursor-pointer">
+                          Has Tip
+                        </Label>
+                      </div>
+
+                      {hasTip && (
+                        <div className="flex items-center gap-2">
+                          <span>$</span>
+                          <Input
+                            type="number"
+                            value={tipAmount}
+                            onChange={(e) =>
+                              setTipAmount(parseFloat(e.target.value) || 0)
+                            }
+                            className="w-24"
+                            step="0.01"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {!(transaction as any)?.receipt_id && hasTip && (
+                      <p className="text-xs text-amber-600">
+                        ⚠️ No receipt attached. Tip amount should be verified.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Needs Review */}
                 <div className="flex items-center gap-2">
