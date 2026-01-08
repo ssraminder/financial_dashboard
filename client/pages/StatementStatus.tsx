@@ -280,7 +280,7 @@ export default function StatementStatus() {
   const handleViewStatement = (statement: StatementStatus) => {
     window.open(
       `/statements?account=${statement.bank_account_id}&statement=${statement.statement_import_id}&autoOpen=true`,
-      "_blank"
+      "_blank",
     );
   };
 
@@ -748,7 +748,9 @@ export default function StatementStatus() {
                                   <>
                                     <StatusBadge status={statement.status} />
                                     <button
-                                      onClick={() => handleViewStatement(statement)}
+                                      onClick={() =>
+                                        handleViewStatement(statement)
+                                      }
                                       className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
                                       title="View Statement"
                                     >
@@ -764,7 +766,9 @@ export default function StatementStatus() {
                                   <>
                                     <StatusBadge status={statement.status} />
                                     <button
-                                      onClick={() => handleViewStatement(statement)}
+                                      onClick={() =>
+                                        handleViewStatement(statement)
+                                      }
                                       className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
                                       title="View Statement"
                                     >
