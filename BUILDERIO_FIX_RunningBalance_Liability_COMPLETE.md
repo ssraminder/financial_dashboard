@@ -23,11 +23,11 @@
 
 ### Example: CIBC Credit Card Statement
 
-| Field | Expected | Actual (Bug) | Status |
-|-------|----------|--------------|--------|
-| Opening Balance | -$131.73 (131.73 CR) | -$131.73 | ✅ Correct |
-| First Purchase (DSW $230.96 debit) | +$99.23 | -$362.69 | ❌ WRONG |
-| Closing Balance | +$3,943.93 | -$3,943.93 | ❌ WRONG (inverted sign) |
+| Field                              | Expected             | Actual (Bug) | Status                   |
+| ---------------------------------- | -------------------- | ------------ | ------------------------ |
+| Opening Balance                    | -$131.73 (131.73 CR) | -$131.73     | ✅ Correct               |
+| First Purchase (DSW $230.96 debit) | +$99.23              | -$362.69     | ❌ WRONG                 |
+| Closing Balance                    | +$3,943.93           | -$3,943.93   | ❌ WRONG (inverted sign) |
 
 **Problem**: For credit cards, purchases (debits) should INCREASE the balance (you owe more), but the code was SUBTRACTING them.
 
@@ -41,32 +41,36 @@
 **Location**: `calculateRunningBalance()` function
 
 **Before**:
+
 ```typescript
 function calculateRunningBalance(
-  transactions: Transaction[], 
-  openingBalance: number
-): Transaction[]
+  transactions: Transaction[],
+  openingBalance: number,
+): Transaction[];
 ```
 
 **After**:
+
 ```typescript
 function calculateRunningBalance(
-  transactions: Transaction[], 
+  transactions: Transaction[],
   openingBalance: number,
-  balanceType: 'asset' | 'liability' = 'asset'
-): Transaction[]
+  balanceType: "asset" | "liability" = "asset",
+): Transaction[];
 ```
 
 ### 2. Added Conditional Balance Logic
 
 **Before** (Asset-only logic applied to all):
+
 ```typescript
 balance += t.transaction_type === "credit" ? t.total_amount : -t.total_amount;
 ```
 
 **After** (Handles both asset and liability):
+
 ```typescript
-const isLiability = balanceType === 'liability';
+const isLiability = balanceType === "liability";
 
 if (isLiability) {
   // LIABILITY accounts (credit cards, LOC, loans):
@@ -84,19 +88,21 @@ if (isLiability) {
 ### 3. Updated Function Call Site
 
 **Before**:
+
 ```typescript
 finalResult.transactions = calculateRunningBalance(
-  finalResult.transactions, 
-  finalResult.account_info.opening_balance
+  finalResult.transactions,
+  finalResult.account_info.opening_balance,
 );
 ```
 
 **After**:
+
 ```typescript
 finalResult.transactions = calculateRunningBalance(
-  finalResult.transactions, 
+  finalResult.transactions,
   finalResult.account_info.opening_balance,
-  bankAccount.balance_type || 'asset'
+  bankAccount.balance_type || "asset",
 );
 ```
 
@@ -104,12 +110,12 @@ finalResult.transactions = calculateRunningBalance(
 
 ## Logic Reference Table
 
-| Account Type | Transaction Type | Effect on Balance | Formula |
-|--------------|------------------|-------------------|---------|
-| Asset (Chequing) | Credit (deposit) | **ADD** to balance | `balance + amount` |
-| Asset (Chequing) | Debit (withdrawal) | **SUBTRACT** from balance | `balance - amount` |
-| Liability (Credit Card) | Credit (payment) | **SUBTRACT** from balance | `balance - amount` |
-| Liability (Credit Card) | Debit (purchase) | **ADD** to balance | `balance + amount` |
+| Account Type            | Transaction Type   | Effect on Balance         | Formula            |
+| ----------------------- | ------------------ | ------------------------- | ------------------ |
+| Asset (Chequing)        | Credit (deposit)   | **ADD** to balance        | `balance + amount` |
+| Asset (Chequing)        | Debit (withdrawal) | **SUBTRACT** from balance | `balance - amount` |
+| Liability (Credit Card) | Credit (payment)   | **SUBTRACT** from balance | `balance - amount` |
+| Liability (Credit Card) | Debit (purchase)   | **ADD** to balance        | `balance + amount` |
 
 ---
 
@@ -158,21 +164,21 @@ Status: ✅ PASS (No regression - asset logic unchanged)
 
 ## Deployment Details
 
-| Field | Value |
-|-------|-------|
-| Edge Function | `parse-statement` |
-| Version | **39** (v10.8) |
-| Deployed At | January 8, 2026 |
-| Project ID | llxlkawdmuwsothxaada |
-| Deployment Status | ✅ ACTIVE |
+| Field             | Value                |
+| ----------------- | -------------------- |
+| Edge Function     | `parse-statement`    |
+| Version           | **39** (v10.8)       |
+| Deployed At       | January 8, 2026      |
+| Project ID        | llxlkawdmuwsothxaada |
+| Deployment Status | ✅ ACTIVE            |
 
 ### Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 10.8 | Jan 8, 2026 | **FIXED: Running balance for liability accounts** |
-| 10.7 | Jan 8, 2026 | Two-phase AI parsing for cost optimization |
-| 10.6 | Jan 8, 2026 | Enhanced duplicate detection (5 fields) |
+| Version | Date        | Changes                                           |
+| ------- | ----------- | ------------------------------------------------- |
+| 10.8    | Jan 8, 2026 | **FIXED: Running balance for liability accounts** |
+| 10.7    | Jan 8, 2026 | Two-phase AI parsing for cost optimization        |
+| 10.6    | Jan 8, 2026 | Enhanced duplicate detection (5 fields)           |
 
 ---
 
@@ -215,7 +221,6 @@ To verify the fix is working:
 - **Client**: `client/pages/ViewStatements.tsx` (lines 538-570)
   - Already had correct liability logic
   - Used for real-time editing and display
-  
 - **Process Queue**: `process-queue` Edge Function
   - Passes through `running_balance` from parse-statement
   - No changes needed
@@ -230,13 +235,13 @@ To verify the fix is working:
 
 ## Code Quality
 
-| Metric | Value |
-|--------|-------|
-| Lines Changed | ~20 lines |
-| New Parameters | 1 (`balanceType`) |
-| Breaking Changes | None (default value ensures compatibility) |
-| Test Coverage | 3 test cases (credit card purchase, payment, asset regression) |
-| Documentation | JSDoc comments added |
+| Metric           | Value                                                          |
+| ---------------- | -------------------------------------------------------------- |
+| Lines Changed    | ~20 lines                                                      |
+| New Parameters   | 1 (`balanceType`)                                              |
+| Breaking Changes | None (default value ensures compatibility)                     |
+| Test Coverage    | 3 test cases (credit card purchase, payment, asset regression) |
+| Documentation    | JSDoc comments added                                           |
 
 ---
 
@@ -288,37 +293,37 @@ This explains why users may not have noticed the bug in some contexts - the UI w
 
 ## Success Criteria
 
-| Criteria | Status |
-|----------|--------|
-| Function signature updated | ✅ DONE |
-| Conditional logic implemented | ✅ DONE |
-| Call site updated with balance_type | ✅ DONE |
-| Edge Function deployed | ✅ DONE (v39) |
-| No breaking changes | ✅ VERIFIED |
-| Backward compatible | ✅ VERIFIED (default value) |
+| Criteria                            | Status                      |
+| ----------------------------------- | --------------------------- |
+| Function signature updated          | ✅ DONE                     |
+| Conditional logic implemented       | ✅ DONE                     |
+| Call site updated with balance_type | ✅ DONE                     |
+| Edge Function deployed              | ✅ DONE (v39)               |
+| No breaking changes                 | ✅ VERIFIED                 |
+| Backward compatible                 | ✅ VERIFIED (default value) |
 
 ---
 
 ## Changelog
 
-| Date | Action | Person |
-|------|--------|--------|
-| Jan 8, 2026 | Investigation completed | Claude (Builder.io) |
+| Date        | Action                       | Person              |
+| ----------- | ---------------------------- | ------------------- |
+| Jan 8, 2026 | Investigation completed      | Claude (Builder.io) |
 | Jan 8, 2026 | Fix implemented and deployed | Claude (Builder.io) |
-| Jan 8, 2026 | Documentation created | Claude (Builder.io) |
+| Jan 8, 2026 | Documentation created        | Claude (Builder.io) |
 
 ---
 
 ## Document Metadata
 
-| Field | Value |
-|-------|-------|
-| Document | BUILDERIO_FIX_RunningBalance_Liability_COMPLETE.md |
-| Version | 1.0 |
-| Created | January 8, 2026 |
-| Status | Complete |
-| Edge Function Version | 39 (v10.8) |
+| Field                 | Value                                              |
+| --------------------- | -------------------------------------------------- |
+| Document              | BUILDERIO_FIX_RunningBalance_Liability_COMPLETE.md |
+| Version               | 1.0                                                |
+| Created               | January 8, 2026                                    |
+| Status                | Complete                                           |
+| Edge Function Version | 39 (v10.8)                                         |
 
 ---
 
-*End of Document - BUILDERIO_FIX_RunningBalance_Liability_COMPLETE.md v1.0*
+_End of Document - BUILDERIO_FIX_RunningBalance_Liability_COMPLETE.md v1.0_
