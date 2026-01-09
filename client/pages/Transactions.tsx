@@ -333,13 +333,29 @@ export default function Transactions() {
     }
   }, [user]);
 
-  // Re-fetch when filters change
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    fromDate,
+    toDate,
+    selectedBankAccount,
+    selectedCompany,
+    selectedCategory,
+    selectedStatus,
+    showNeedsReview,
+    searchTerm,
+    showUnconfirmed,
+  ]);
+
+  // Fetch transactions when page or filters change
   useEffect(() => {
     if (user) {
       fetchTransactions();
-      setCurrentPage(1);
     }
   }, [
+    user,
+    currentPage,
     fromDate,
     toDate,
     selectedBankAccount,
