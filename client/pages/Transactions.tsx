@@ -1789,8 +1789,14 @@ export default function Transactions() {
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-6 pt-6 border-t">
                       <div className="text-sm text-muted-foreground">
-                        Page {currentPage} of {totalPages} (
-                        {transactions.length} total)
+                        Showing{" "}
+                        {((currentPage - 1) * itemsPerPage + 1).toLocaleString()}{" "}
+                        -{" "}
+                        {Math.min(
+                          currentPage * itemsPerPage,
+                          totalCount,
+                        ).toLocaleString()}{" "}
+                        of {totalCount.toLocaleString()} transactions
                       </div>
                       <div className="flex gap-2">
                         <Button
