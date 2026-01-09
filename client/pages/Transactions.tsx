@@ -1804,37 +1804,28 @@ export default function Transactions() {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => setCurrentPage(1)}
+                          disabled={currentPage === 1}
+                          title="First page"
+                        >
+                          <ChevronsLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() =>
                             setCurrentPage((p) => Math.max(1, p - 1))
                           }
                           disabled={currentPage === 1}
+                          title="Previous page"
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
-                        {Array.from({ length: totalPages }, (_, i) => i + 1)
-                          .filter(
-                            (page) =>
-                              page === 1 ||
-                              page === totalPages ||
-                              (page >= currentPage - 1 &&
-                                page <= currentPage + 1),
-                          )
-                          .map((page, index, arr) => (
-                            <div key={page}>
-                              {index > 0 && arr[index - 1] !== page - 1 && (
-                                <span className="px-2">...</span>
-                              )}
-                              <Button
-                                variant={
-                                  page === currentPage ? "default" : "outline"
-                                }
-                                size="sm"
-                                onClick={() => setCurrentPage(page)}
-                              >
-                                {page}
-                              </Button>
-                            </div>
-                          ))}
+
+                        <span className="flex items-center px-3 text-sm">
+                          Page {currentPage} of {totalPages}
+                        </span>
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -1842,8 +1833,18 @@ export default function Transactions() {
                             setCurrentPage((p) => Math.min(totalPages, p + 1))
                           }
                           disabled={currentPage === totalPages}
+                          title="Next page"
                         >
                           <ChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                          title="Last page"
+                        >
+                          <ChevronsRight className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
