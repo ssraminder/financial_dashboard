@@ -885,14 +885,9 @@ export default function Transactions() {
     return "text-red-600";
   };
 
-  // Pagination
-  const paginatedTransactions = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return transactions.slice(startIndex, endIndex);
-  }, [transactions, currentPage]);
-
-  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  // Server-side pagination - transactions are already paginated from DB
+  const paginatedTransactions = transactions;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   // AI Filter Handler
   const handleAiFilter = async () => {
