@@ -155,6 +155,7 @@ export default function Transactions() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const itemsPerPage = 50;
 
   // Modal state
