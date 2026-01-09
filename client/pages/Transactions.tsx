@@ -1345,6 +1345,7 @@ export default function Transactions() {
                 <SearchableDropdown
                   options={[
                     { value: "all", label: "All Categories" },
+                    { value: "uncategorized", label: "Uncategorized" },
                     {
                       value: "group-expense",
                       label: "── Expenses ──",
