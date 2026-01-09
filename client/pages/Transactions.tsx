@@ -387,6 +387,50 @@ export default function Transactions() {
     try {
       setLoading(true);
 
+      // First, get total count with same filters
+      let countQuery = supabase
+        .from("transactions")
+        .select("*", { count: "exact", head: true });
+
+      // Apply all filters to count query
+      if (fromDate) {
+        countQuery = countQuery.gte("transaction_date", fromDate);
+      }
+      if (toDate) {
+        countQuery = countQuery.lte("transaction_date", toDate);
+      }
+      if (selectedBankAccount !== "all") {
+        countQuery = countQuery.eq("bank_account_id", selectedBankAccount);
+      }
+      if (selectedCompany !== "all") {
+        countQuery = countQuery.eq("company_id", selectedCompany);
+      }
+      if (selectedCategory === "uncategorized") {
+        countQuery = countQuery.is("category_id", null);
+      } else if (selectedCategory !== "all") {
+        countQuery = countQuery.eq("category_id", selectedCategory);
+      }
+      if (selectedStatus !== "all") {
+        countQuery = countQuery.eq("status", selectedStatus);
+      }
+      if (showNeedsReview) {
+        countQuery = countQuery.eq("needs_review", true);
+      }
+      if (!showUnconfirmed) {
+        countQuery = countQuery.not(
+          "statement_import_id",
+          "is",
+          null,
+        ).neq("statement.import_status", "pending");
+      }
+
+      const { count } = await countQuery;
+      setTotalCount(count || 0);
+
+      // Now fetch paginated data
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+
       let query = supabase
         .from("transactions")
         .select(
@@ -421,8 +465,8 @@ export default function Transactions() {
           linked_transaction:transactions!linked_to(id, description, amount, transaction_date),
           statement:statement_imports(id, import_status, confirmed_at)`,
         )
-        .order("transaction_date", { ascending: false })
-        .limit(500);
+        .range(from, to)
+        .order("transaction_date", { ascending: false });
 
       // Apply date filter
       if (fromDate) {
@@ -443,7 +487,9 @@ export default function Transactions() {
       }
 
       // Apply category filter
-      if (selectedCategory !== "all") {
+      if (selectedCategory === "uncategorized") {
+        query = query.is("category_id", null);
+      } else if (selectedCategory !== "all") {
         query = query.eq("category_id", selectedCategory);
       }
 
