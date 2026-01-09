@@ -435,11 +435,9 @@ export default function Transactions() {
         countQuery = countQuery.eq("needs_review", true);
       }
       if (!showUnconfirmed) {
-        countQuery = countQuery.not(
-          "statement_import_id",
-          "is",
-          null,
-        ).neq("statement.import_status", "pending");
+        countQuery = countQuery
+          .not("statement_import_id", "is", null)
+          .neq("statement.import_status", "pending");
       }
 
       const { count } = await countQuery;
@@ -1792,7 +1790,10 @@ export default function Transactions() {
                     <div className="flex items-center justify-between mt-6 pt-6 border-t">
                       <div className="text-sm text-muted-foreground">
                         Showing{" "}
-                        {((currentPage - 1) * itemsPerPage + 1).toLocaleString()}{" "}
+                        {(
+                          (currentPage - 1) * itemsPerPage +
+                          1
+                        ).toLocaleString()}{" "}
                         -{" "}
                         {Math.min(
                           currentPage * itemsPerPage,
