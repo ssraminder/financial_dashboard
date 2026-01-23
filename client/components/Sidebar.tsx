@@ -321,6 +321,17 @@ export function Sidebar() {
           <NotificationBell dropdownPosition="top" />
         </div>
 
+        {/* Footer Logo */}
+        <div className="mb-4 pb-4 border-b border-sidebar-border flex justify-center">
+          <img
+            src="https://lmzoyezvsjgsxveoakdr.supabase.co/storage/v1/object/public/web-assets/final_logo_dark_bg_cethosAsset%202.svg"
+            alt="Cethos"
+            width={180}
+            height={48}
+            className="w-[140px] sm:w-[160px] lg:w-[180px] h-auto"
+          />
+        </div>
+
         {/* User Profile */}
         <div className="mb-3">
           <p className="text-sm font-medium text-sidebar-foreground">
