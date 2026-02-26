@@ -63,6 +63,7 @@ const sidebarSections: SidebarSection[] = [
       { label: "Statements", href: "/statements" },
       { label: "Statement Status", href: "/statements/status" },
       { label: "Receipts", href: "/receipts" },
+      { label: "Exports", href: "/exports" },
     ],
   },
   {
