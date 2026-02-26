@@ -1072,7 +1072,9 @@ export default function Transactions() {
       "Date",
       "Payee",
       "Description",
-      "Amount",
+      "Type",
+      "Debit",
+      "Credit",
       "Category",
       "Account",
       "GST",
@@ -1081,18 +1083,23 @@ export default function Transactions() {
       "Edited",
     ];
 
-    const rows = transactions.map((t) => [
-      formatDate(t.transaction_date),
-      t.payee_name || "",
-      t.description || "",
-      (t.amount ?? 0).toFixed(2),
-      t.category?.name || "",
-      t.bank_account?.nickname || "",
-      t.gst_amount ? `$${t.gst_amount.toFixed(2)}` : "",
-      t.needs_review ? "Yes" : "No",
-      t.linked_to ? "Yes" : "No",
-      t.is_edited ? "Yes" : "No",
-    ]);
+    const rows = transactions.map((t) => {
+      const amount = Math.abs(t.amount ?? 0).toFixed(2);
+      return [
+        formatDate(t.transaction_date),
+        t.payee_name || "",
+        t.description || "",
+        t.transaction_type || "",
+        t.transaction_type === "debit" ? amount : "",
+        t.transaction_type === "credit" ? amount : "",
+        t.category?.name || "",
+        t.bank_account?.nickname || "",
+        t.gst_amount ? `$${t.gst_amount.toFixed(2)}` : "",
+        t.needs_review ? "Yes" : "No",
+        t.linked_to ? "Yes" : "No",
+        t.is_edited ? "Yes" : "No",
+      ];
+    });
 
     const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${cell}"`).join(","))
@@ -1619,6 +1626,7 @@ export default function Transactions() {
                         <TableHead className="w-24">Date</TableHead>
                         <TableHead className="w-32">Payee</TableHead>
                         <TableHead className="w-48">Description</TableHead>
+                        <TableHead className="w-16">Type</TableHead>
                         <TableHead className="w-24 text-right">
                           Amount
                         </TableHead>
@@ -1681,6 +1689,20 @@ export default function Transactions() {
                             <span title={transaction.description}>
                               {transaction.description}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                transaction.transaction_type === "credit"
+                                  ? "border-green-300 bg-green-50 text-green-700"
+                                  : "border-red-300 bg-red-50 text-red-700"
+                              }
+                            >
+                              {transaction.transaction_type === "credit"
+                                ? "Credit"
+                                : "Debit"}
+                            </Badge>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             <span className={getAmountColor(transaction)}>
