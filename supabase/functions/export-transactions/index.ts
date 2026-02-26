@@ -84,10 +84,8 @@ serve(async (req) => {
       throw new Error("export_id is required");
     }
 
-    // Build query for ALL matching transactions (no pagination)
-    let query = supabase
-      .from("transactions")
-      .select(`
+    // Helper to build a filtered query (reused for each page)
+    const selectFields = `
         id,
         transaction_date,
         description,
@@ -105,44 +103,66 @@ serve(async (req) => {
         bank_account:bank_accounts!bank_account_id(nickname),
         company:companies(name),
         statement:statement_imports(import_status)
-      `)
-      .order("transaction_date", { ascending: false });
+    `;
 
-    // Apply filters
-    if (filters.from_date) {
-      query = query.gte("transaction_date", filters.from_date);
-    }
-    if (filters.to_date) {
-      query = query.lte("transaction_date", filters.to_date);
-    }
-    if (filters.bank_account_id) {
-      query = query.eq("bank_account_id", filters.bank_account_id);
-    }
-    if (filters.company_id) {
-      query = query.eq("company_id", filters.company_id);
-    }
-    if (filters.category_id === "uncategorized") {
-      query = query.is("category_id", null);
-    } else if (filters.category_id) {
-      query = query.eq("category_id", filters.category_id);
-    }
-    if (filters.status) {
-      query = query.eq("status", filters.status);
-    }
-    if (filters.needs_review) {
-      query = query.eq("needs_review", true);
-    }
-    if (!filters.show_unconfirmed) {
-      query = query.eq("statement.import_status", "confirmed");
+    const applyFilters = (query: any) => {
+      if (filters.from_date) {
+        query = query.gte("transaction_date", filters.from_date);
+      }
+      if (filters.to_date) {
+        query = query.lte("transaction_date", filters.to_date);
+      }
+      if (filters.bank_account_id) {
+        query = query.eq("bank_account_id", filters.bank_account_id);
+      }
+      if (filters.company_id) {
+        query = query.eq("company_id", filters.company_id);
+      }
+      if (filters.category_id === "uncategorized") {
+        query = query.is("category_id", null);
+      } else if (filters.category_id) {
+        query = query.eq("category_id", filters.category_id);
+      }
+      if (filters.status) {
+        query = query.eq("status", filters.status);
+      }
+      if (filters.needs_review) {
+        query = query.eq("needs_review", true);
+      }
+      if (!filters.show_unconfirmed) {
+        query = query.eq("statement.import_status", "confirmed");
+      }
+      return query;
+    };
+
+    // Fetch ALL matching transactions in batches (Supabase caps at 1000 per request)
+    const PAGE_SIZE = 5000;
+    let allTransactions: any[] = [];
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      let query = supabase
+        .from("transactions")
+        .select(selectFields)
+        .order("transaction_date", { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      query = applyFilters(query);
+
+      const { data, error: queryError } = await query;
+
+      if (queryError) {
+        throw new Error(`Query failed: ${queryError.message}`);
+      }
+
+      const batch = data || [];
+      allTransactions = allTransactions.concat(batch);
+      offset += PAGE_SIZE;
+      hasMore = batch.length === PAGE_SIZE;
     }
 
-    const { data: transactions, error: queryError } = await query;
-
-    if (queryError) {
-      throw new Error(`Query failed: ${queryError.message}`);
-    }
-
-    let rows = transactions || [];
+    let rows = allTransactions;
 
     // Apply client-side search filter (same as Transactions page)
     if (filters.search_term) {
