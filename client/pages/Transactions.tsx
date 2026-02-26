@@ -210,6 +210,9 @@ export default function Transactions() {
   const [bulkHasGst, setBulkHasGst] = useState<boolean | null>(null);
   const [bulkNeedsReview, setBulkNeedsReview] = useState<boolean | null>(null);
 
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
+
   // Date calculation helper
   const getDateRange = (preset: string): { from: Date; to: Date } => {
     const today = new Date();
@@ -1066,54 +1069,101 @@ export default function Transactions() {
     }
   };
 
-  // Export CSV
-  const exportCSV = () => {
-    const headers = [
-      "Date",
-      "Payee",
-      "Description",
-      "Type",
-      "Debit",
-      "Credit",
-      "Category",
-      "Account",
-      "GST",
-      "Needs Review",
-      "Linked",
-      "Edited",
-    ];
+  // Export CSV (background via edge function)
+  const exportCSV = async () => {
+    setIsExporting(true);
 
-    const rows = transactions.map((t) => {
-      const amount = Math.abs(t.amount ?? 0).toFixed(2);
-      return [
-        formatDate(t.transaction_date),
-        t.payee_name || "",
-        t.description || "",
-        t.transaction_type || "",
-        t.transaction_type === "debit" ? amount : "",
-        t.transaction_type === "credit" ? amount : "",
-        t.category?.name || "",
-        t.bank_account?.nickname || "",
-        t.gst_amount ? `$${t.gst_amount.toFixed(2)}` : "",
-        t.needs_review ? "Yes" : "No",
-        t.linked_to ? "Yes" : "No",
-        t.is_edited ? "Yes" : "No",
-      ];
-    });
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    const csv = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${cell}"`).join(","))
-      .join("\n");
+      if (!session?.user) throw new Error("Not authenticated");
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `transactions-${format(new Date(), "yyyy-MM-dd")}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+      const fileName = `transactions-${format(new Date(), "yyyy-MM-dd-HHmmss")}.csv`;
+
+      // Build filter metadata for display on Exports page
+      const bankAccount = filterOptions.bankAccounts.find(
+        (a) => a.id === selectedBankAccount,
+      );
+      const company = filterOptions.companies.find(
+        (c) => c.id === selectedCompany,
+      );
+      const category = filterOptions.categories.find(
+        (c) => c.id === selectedCategory,
+      );
+
+      const filters: Record<string, any> = {};
+      if (fromDate) filters.from_date = fromDate;
+      if (toDate) filters.to_date = toDate;
+      if (selectedBankAccount !== "all") {
+        filters.bank_account_id = selectedBankAccount;
+        filters.bank_account_name = bankAccount?.nickname || bankAccount?.name;
+      }
+      if (selectedCompany !== "all") {
+        filters.company_id = selectedCompany;
+        filters.company_name = company?.name;
+      }
+      if (selectedCategory === "uncategorized") {
+        filters.category_id = "uncategorized";
+        filters.category_name = "Uncategorized";
+      } else if (selectedCategory !== "all") {
+        filters.category_id = selectedCategory;
+        filters.category_name = category?.name;
+      }
+      if (selectedStatus !== "all") filters.status = selectedStatus;
+      if (showNeedsReview) filters.needs_review = true;
+      if (searchTerm) filters.search_term = searchTerm;
+      if (showUnconfirmed) filters.show_unconfirmed = true;
+
+      // Create the export record first
+      const { data: exportRecord, error: insertError } = await supabase
+        .from("exports")
+        .insert({
+          user_id: session.user.id,
+          status: "processing",
+          file_name: fileName,
+          filters,
+        })
+        .select("id")
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Trigger the edge function (fire and forget)
+      fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/export-transactions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            export_id: exportRecord.id,
+            filters,
+          }),
+        },
+      ).catch((err) => {
+        console.error("Export trigger error:", err);
+      });
+
+      toast({
+        title: "Export Started",
+        description:
+          "Your export is being prepared. Visit the Exports page to download it when ready.",
+      });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast({
+        title: "Export Failed",
+        description:
+          error instanceof Error ? error.message : "Failed to start export",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (authLoading) {
@@ -1328,10 +1378,14 @@ export default function Transactions() {
                     size="sm"
                     variant="outline"
                     onClick={exportCSV}
-                    disabled={transactions.length === 0}
+                    disabled={transactions.length === 0 || isExporting}
                   >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export CSV
+                    {isExporting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4 mr-2" />
+                    )}
+                    {isExporting ? "Starting..." : "Export CSV"}
                   </Button>
                 </div>
               </CardTitle>
