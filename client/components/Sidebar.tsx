@@ -103,6 +103,7 @@ const sidebarSections: SidebarSection[] = [
     label: "XTRF",
     items: [
       { label: "Invoices", href: "/xtrf-invoices" },
+      { label: "Payables Backfill", href: "/admin/payables-backfill" },
     ],
   },
   {

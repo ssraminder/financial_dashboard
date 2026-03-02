@@ -35,6 +35,7 @@ import AcceptInvite from "./pages/AcceptInvite";
 import AIPromptsManagement from "./pages/AIPromptsManagement";
 import Exports from "./pages/Exports";
 import XtrfInvoices from "./pages/XtrfInvoices";
+import PayablesCSVBackfill from "./pages/PayablesCSVBackfill";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,7 @@ const App = () => (
           <Route path="/admin/ai-prompts" element={<AIPromptsManagement />} />
           <Route path="/exports" element={<Exports />} />
           <Route path="/xtrf-invoices" element={<XtrfInvoices />} />
+          <Route path="/admin/payables-backfill" element={<PayablesCSVBackfill />} />
           <Route path="/notifications" element={<Notifications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
