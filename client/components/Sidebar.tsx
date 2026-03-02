@@ -102,7 +102,8 @@ const sidebarSections: SidebarSection[] = [
     icon: FileText,
     label: "XTRF",
     items: [
-      { label: "Invoices", href: "/xtrf-invoices" },
+      { label: "All Records", href: "/xtrf-invoices" },
+      { label: "Invoices", href: "/invoices" },
       { label: "Payables Backfill", href: "/admin/payables-backfill" },
     ],
   },
