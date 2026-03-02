@@ -61,6 +61,8 @@ import {
   CreditCard,
   Hash,
   Info,
+  AlertTriangle,
+  Upload,
 } from "lucide-react";
 import { format, parseISO, isAfter, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear, endOfYear, subYears, differenceInMinutes } from "date-fns";
 import type {
@@ -68,6 +70,7 @@ import type {
   XtrfReceivableInvoice,
   XtrfSyncLog,
   PaymentStatus,
+  PayableStatusValue,
   TabType,
   DateFieldOption,
   DatePreset,
@@ -147,6 +150,53 @@ function truncate(str: string | null, max: number): string {
   return str.length > max ? str.slice(0, max) + "\u2026" : str;
 }
 
+function formatCadAmount(value: number | null, payableStatus: PayableStatusValue | null): React.ReactNode {
+  if (value != null) {
+    return (
+      <span className="text-right block font-medium tabular-nums">
+        ${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </span>
+    );
+  }
+  if (payableStatus === "pending_ap_entry") {
+    return <span className="text-right block" style={{ color: "#C47B00" }}>{"\u2014"}</span>;
+  }
+  if (payableStatus === "no_invoice_submitted") {
+    return <span className="text-right block text-gray-500">{"\u2014"}</span>;
+  }
+  return <span className="text-right block">{"\u2014"}</span>;
+}
+
+function getApStatusBadge(status: PayableStatusValue | null) {
+  switch (status) {
+    case "complete":
+      return <Badge className="border-0 hover:opacity-90" style={{ backgroundColor: "#E2EFDA", color: "#1F7A4F" }}>Complete</Badge>;
+    case "pending_ap_entry":
+      return <Badge className="border-0 hover:opacity-90" style={{ backgroundColor: "#FFF2CC", color: "#C47B00" }}>Pending AP</Badge>;
+    case "no_invoice_submitted":
+      return <Badge className="border-0 hover:opacity-90" style={{ backgroundColor: "#F0F0F0", color: "#666666" }}>No Invoice</Badge>;
+    default:
+      return <Badge className="border-0 hover:opacity-90" style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}>Unknown</Badge>;
+  }
+}
+
+function getMissingFields(row: any): string[] {
+  const fields: string[] = [];
+  if (row.invoice_date == null) fields.push("Invoice Date");
+  if (row.vendor_name == null) fields.push("Vendor Name");
+  if (row.amount_cad == null) fields.push("Amount (CAD)");
+  if (row.invoice_internal_number == null) fields.push("Internal Number");
+  if (row.payment_due_date == null) fields.push("Payment Due Date");
+  return fields;
+}
+
+const PAYABLE_STATUS_TABS: { value: PayableStatusValue | "all"; label: string; emoji?: string }[] = [
+  { value: "all", label: "All" },
+  { value: "complete", label: "Complete", emoji: "\u2705" },
+  { value: "pending_ap_entry", label: "Pending AP Entry", emoji: "\u26A0\uFE0F" },
+  { value: "no_invoice_submitted", label: "Uninvoiced", emoji: "\u26AA" },
+];
+
 const ALL_STATUSES: PaymentStatus[] = ["NOT_PAID", "PARTIALLY_PAID", "FULLY_PAID", "IRRECOVERABLE"];
 
 const PAYABLE_COLUMNS = [
@@ -158,7 +208,9 @@ const PAYABLE_COLUMNS = [
   { key: "language_combination", label: "Language" },
   { key: "invoice_final_number", label: "Invoice #" },
   { key: "amount_gross", label: "Amount" },
-  { key: "payment_status", label: "Status" },
+  { key: "amount_cad", label: "Amount (CAD)" },
+  { key: "payment_status", label: "Invoice Status" },
+  { key: "payable_status", label: "AP Status" },
   { key: "invoice_date", label: "Invoice Date" },
   { key: "payment_due_date", label: "Due Date" },
   { key: "payment_date", label: "Payment Date" },
@@ -288,6 +340,20 @@ export default function XtrfInvoices() {
   // Mobile filter sheet
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  // Payable status tab filter
+  const [payableStatusTab, setPayableStatusTab] = useState<PayableStatusValue | "all">("all");
+  const [payableStatusCounts, setPayableStatusCounts] = useState<Record<string, number>>({
+    all: 0,
+    complete: 0,
+    pending_ap_entry: 0,
+    no_invoice_submitted: 0,
+  });
+
+  // Warning banner
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    return localStorage.getItem("cethos_payables_banner_dismissed") === "true";
+  });
+
   // Debounce ref for search
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -315,6 +381,28 @@ export default function XtrfInvoices() {
     };
     fetchSync();
   }, [user]);
+
+  // Fetch payable status counts
+  const fetchPayableStatusCounts = useCallback(async () => {
+    if (!user || activeTab !== "payables") return;
+    const { data: rows } = await supabase
+      .from("xtrf_payable_invoices")
+      .select("payable_status");
+    if (rows) {
+      const counts: Record<string, number> = { all: rows.length, complete: 0, pending_ap_entry: 0, no_invoice_submitted: 0 };
+      rows.forEach((r: any) => {
+        const status = r.payable_status;
+        if (status && counts[status] !== undefined) {
+          counts[status]++;
+        }
+      });
+      setPayableStatusCounts(counts);
+    }
+  }, [user, activeTab]);
+
+  useEffect(() => {
+    fetchPayableStatusCounts();
+  }, [fetchPayableStatusCounts]);
 
   // Fetch filter options when tab changes
   useEffect(() => {
@@ -390,6 +478,11 @@ export default function XtrfInvoices() {
     const table = activeTab === "payables" ? "xtrf_payable_invoices" : "xtrf_receivable_invoices";
     let query = supabase.from(table).select("*", { count: "exact" });
 
+    // Payable status tab filter (payables only)
+    if (activeTab === "payables" && payableStatusTab !== "all") {
+      query = query.eq("payable_status", payableStatusTab);
+    }
+
     // Search
     if (filters.search) {
       const s = filters.search;
@@ -451,7 +544,7 @@ export default function XtrfInvoices() {
     setData(rows || []);
     setTotalCount(count || 0);
     setLoading(false);
-  }, [user, activeTab, filters, effectiveDateRange, sort, page, pageSize]);
+  }, [user, activeTab, filters, effectiveDateRange, sort, page, pageSize, payableStatusTab]);
 
   // Fetch summary
   const fetchSummary = useCallback(async () => {
@@ -462,6 +555,9 @@ export default function XtrfInvoices() {
     let query = supabase.from(table).select("amount_gross, payment_status");
 
     // Apply same filters (except pagination)
+    if (activeTab === "payables" && payableStatusTab !== "all") {
+      query = query.eq("payable_status", payableStatusTab);
+    }
     if (filters.search) {
       const s = filters.search;
       const searchFields = activeTab === "payables"
@@ -500,7 +596,7 @@ export default function XtrfInvoices() {
       setSummaryPaid(paid);
     }
     setSummaryLoading(false);
-  }, [user, activeTab, filters, effectiveDateRange]);
+  }, [user, activeTab, filters, effectiveDateRange, payableStatusTab]);
 
   // Trigger fetch on filter/sort/page changes
   useEffect(() => {
@@ -538,6 +634,19 @@ export default function XtrfInvoices() {
       setFilters((f) => ({ ...f, search: value }));
       setPage(0);
     }, 300);
+  };
+
+  // Handle payable status tab change
+  const handlePayableStatusTabChange = (tab: PayableStatusValue | "all") => {
+    setPayableStatusTab(tab);
+    setPage(0);
+    setExpandedRow(null);
+  };
+
+  // Handle banner dismiss
+  const handleDismissBanner = () => {
+    setBannerDismissed(true);
+    localStorage.setItem("cethos_payables_banner_dismissed", "true");
   };
 
   // Handle tab change
@@ -606,6 +715,9 @@ export default function XtrfInvoices() {
     let query = supabase.from(table).select("*");
 
     // Apply same filters
+    if (activeTab === "payables" && payableStatusTab !== "all") {
+      query = query.eq("payable_status", payableStatusTab);
+    }
     if (filters.search) {
       const s = filters.search;
       const searchFields = activeTab === "payables"
@@ -1057,8 +1169,35 @@ export default function XtrfInvoices() {
             {formatCurrency(row.amount_gross)}
           </span>
         );
+      case "amount_cad":
+        return formatCadAmount(row.amount_cad, row.payable_status);
       case "payment_status":
         return getStatusBadge(row.payment_status);
+      case "payable_status": {
+        const badge = getApStatusBadge(row.payable_status);
+        if (row.payable_status === "pending_ap_entry") {
+          const missing = getMissingFields(row);
+          if (missing.length > 0) {
+            return (
+              <span className="inline-flex items-center gap-1">
+                {badge}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 cursor-help" style={{ color: "#C47B00" }} />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p className="font-medium text-xs mb-1">Missing fields:</p>
+                    <ul className="text-xs list-disc pl-3.5 space-y-0.5">
+                      {missing.map((f) => <li key={f}>{f}</li>)}
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </span>
+            );
+          }
+        }
+        return badge;
+      }
       case "invoice_date":
         return formatDate(row.invoice_date);
       case "payment_due_date":
@@ -1110,6 +1249,35 @@ export default function XtrfInvoices() {
             </div>
           )}
 
+          {/* Pending AP Entry Warning Banner */}
+          {activeTab === "payables" && payableStatusCounts.pending_ap_entry > 0 && !bannerDismissed && (
+            <div className="mb-4 flex items-start gap-3 rounded-lg border px-4 py-3 text-sm" style={{ backgroundColor: "#FFF8E1", borderColor: "#FFE082", color: "#7A5200" }}>
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "#C47B00" }} />
+              <div className="flex-1">
+                <span className="font-medium">{payableStatusCounts.pending_ap_entry}</span> payables are missing AP data — invoice date, vendor name, and CAD amount are incomplete.
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5 h-7"
+                  style={{ borderColor: "#C47B00", color: "#C47B00" }}
+                  onClick={() => navigate("/admin/payables-backfill")}
+                >
+                  <Upload className="h-3 w-3" />
+                  Upload CSV to fix
+                </Button>
+                <button
+                  onClick={handleDismissBanner}
+                  className="text-xs hover:underline"
+                  style={{ color: "#C47B00" }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="mb-4">
@@ -1151,6 +1319,41 @@ export default function XtrfInvoices() {
               {/* Main Content Area */}
               <div className="flex-1 min-w-0">
                 <TabsContent value="payables" className="mt-0">
+                  {/* Payable Status Filter Tabs */}
+                  <div className="flex items-center gap-1 mb-4 border-b overflow-x-auto">
+                    {PAYABLE_STATUS_TABS.map((t) => {
+                      const isActive = payableStatusTab === t.value;
+                      const count = payableStatusCounts[t.value] ?? 0;
+                      const isPending = t.value === "pending_ap_entry";
+                      return (
+                        <button
+                          key={t.value}
+                          onClick={() => handlePayableStatusTabChange(t.value)}
+                          className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                            isActive
+                              ? "border-[#1F3864] text-[#1F3864]"
+                              : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                          }`}
+                        >
+                          {t.emoji && <span>{t.emoji}</span>}
+                          {t.label}
+                          <span
+                            className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                              isPending
+                                ? "text-[#C47B00]"
+                                : isActive
+                                  ? "bg-gray-200 text-gray-700"
+                                  : "bg-gray-100 text-gray-500"
+                            }`}
+                            style={isPending ? { backgroundColor: "#FFF2CC" } : undefined}
+                          >
+                            {count.toLocaleString()}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <InvoiceTableContent
                     tab="payables"
                     data={data}
@@ -1430,10 +1633,21 @@ function InvoiceTableContent({
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((row: any, idx: number) => (
+                data.map((row: any, idx: number) => {
+                  const isPendingAp = isPayables && row.payable_status === "pending_ap_entry";
+                  let rowClassName = "cursor-pointer transition-colors ";
+                  if (expandedRow === row.id) {
+                    rowClassName += "bg-primary/5";
+                  } else if (isPendingAp) {
+                    rowClassName += "hover:bg-[#FFF7D6]";
+                  } else {
+                    rowClassName += (idx % 2 === 1 ? "bg-muted/30 " : "") + "hover:bg-muted/50";
+                  }
+                  return (
                   <React.Fragment key={row.id}>
                     <TableRow
-                      className={`cursor-pointer transition-colors ${idx % 2 === 1 ? "bg-muted/30" : ""} ${expandedRow === row.id ? "bg-primary/5" : "hover:bg-muted/50"}`}
+                      className={rowClassName}
+                      style={isPendingAp && expandedRow !== row.id ? { backgroundColor: "#FFFDF0" } : undefined}
                       onClick={() => onExpandRow(row.id)}
                     >
                       {visibleCols.map((col) => (
@@ -1485,7 +1699,8 @@ function InvoiceTableContent({
                       </TableRow>
                     )}
                   </React.Fragment>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
