@@ -29,6 +29,16 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
   Table,
   TableBody,
   TableCell,
@@ -64,7 +74,7 @@ import {
   AlertTriangle,
   Upload,
 } from "lucide-react";
-import { format, parseISO, isAfter, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear, endOfYear, subYears, differenceInMinutes } from "date-fns";
+import { format, parseISO, isAfter, differenceInMinutes } from "date-fns";
 import type {
   XtrfPayableInvoice,
   XtrfReceivableInvoice,
@@ -119,29 +129,100 @@ function getStatusBadge(status: PaymentStatus | null) {
   }
 }
 
-function getDateRange(preset: DatePreset): { from: string; to: string } {
-  const now = new Date();
+function getDateRange(preset: DatePreset): { from: string; to: string } | null {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const fmt = (d: Date) => d.toISOString().split('T')[0]; // returns YYYY-MM-DD
+
+  // Week starts Monday
+  const getMonday = (d: Date) => {
+    const day  = d.getDay(); // 0 = Sunday
+    const diff = day === 0 ? -6 : 1 - day;
+    const mon  = new Date(d);
+    mon.setDate(d.getDate() + diff);
+    mon.setHours(0, 0, 0, 0);
+    return mon;
+  };
+
+  const getQuarter = (d: Date) => Math.floor(d.getMonth() / 3); // 0–3
+
   switch (preset) {
-    case "this_month":
-      return { from: format(startOfMonth(now), "yyyy-MM-dd"), to: format(endOfMonth(now), "yyyy-MM-dd") };
-    case "last_month": {
-      const lm = subMonths(now, 1);
-      return { from: format(startOfMonth(lm), "yyyy-MM-dd"), to: format(endOfMonth(lm), "yyyy-MM-dd") };
+
+    case 'today': {
+      return { from: fmt(today), to: fmt(today) };
     }
-    case "this_quarter":
-      return { from: format(startOfQuarter(now), "yyyy-MM-dd"), to: format(endOfQuarter(now), "yyyy-MM-dd") };
-    case "last_quarter": {
-      const lq = subQuarters(now, 1);
-      return { from: format(startOfQuarter(lq), "yyyy-MM-dd"), to: format(endOfQuarter(lq), "yyyy-MM-dd") };
+
+    case 'yesterday': {
+      const y = new Date(today);
+      y.setDate(today.getDate() - 1);
+      return { from: fmt(y), to: fmt(y) };
     }
-    case "this_year":
-      return { from: format(startOfYear(now), "yyyy-MM-dd"), to: format(endOfYear(now), "yyyy-MM-dd") };
-    case "last_year": {
-      const ly = subYears(now, 1);
-      return { from: format(startOfYear(ly), "yyyy-MM-dd"), to: format(endOfYear(ly), "yyyy-MM-dd") };
+
+    case 'this_week': {
+      const mon = getMonday(today);
+      const sun = new Date(mon);
+      sun.setDate(mon.getDate() + 6);
+      return { from: fmt(mon), to: fmt(sun) };
     }
-    case "all_time":
-      return { from: "", to: "" };
+
+    case 'last_week': {
+      const thisMon = getMonday(today);
+      const lastMon = new Date(thisMon);
+      lastMon.setDate(thisMon.getDate() - 7);
+      const lastSun = new Date(lastMon);
+      lastSun.setDate(lastMon.getDate() + 6);
+      return { from: fmt(lastMon), to: fmt(lastSun) };
+    }
+
+    case 'this_month': {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      const end   = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      return { from: fmt(start), to: fmt(end) };
+    }
+
+    case 'last_month': {
+      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const end   = new Date(today.getFullYear(), today.getMonth(), 0);
+      return { from: fmt(start), to: fmt(end) };
+    }
+
+    case 'this_quarter': {
+      const q     = getQuarter(today);
+      const start = new Date(today.getFullYear(), q * 3, 1);
+      const end   = new Date(today.getFullYear(), q * 3 + 3, 0);
+      return { from: fmt(start), to: fmt(end) };
+    }
+
+    case 'last_quarter': {
+      const q  = getQuarter(today);
+      const pq = q === 0 ? 3 : q - 1;
+      const yr = q === 0 ? today.getFullYear() - 1 : today.getFullYear();
+      const start = new Date(yr, pq * 3, 1);
+      const end   = new Date(yr, pq * 3 + 3, 0);
+      return { from: fmt(start), to: fmt(end) };
+    }
+
+    case 'this_year': {
+      return {
+        from: `${today.getFullYear()}-01-01`,
+        to:   `${today.getFullYear()}-12-31`,
+      };
+    }
+
+    case 'last_year': {
+      const yr = today.getFullYear() - 1;
+      return { from: `${yr}-01-01`, to: `${yr}-12-31` };
+    }
+
+    // Dynamic per-year cases — handle any 4-digit year string
+    default: {
+      if (/^\d{4}$/.test(preset)) {
+        return { from: `${preset}-01-01`, to: `${preset}-12-31` };
+      }
+      if (preset === 'all_time') return { from: "", to: "" };
+      if (preset === 'custom')   return null; // caller handles From/To pickers
+      return null;
+    }
   }
 }
 
@@ -230,14 +311,37 @@ const RECEIVABLE_COLUMNS = [
   { key: "payment_date", label: "Payment Date" },
 ] as const;
 
-const DATE_PRESETS: { value: DatePreset; label: string }[] = [
-  { value: "this_month", label: "This Month" },
-  { value: "last_month", label: "Last Month" },
-  { value: "this_quarter", label: "This Quarter" },
-  { value: "last_quarter", label: "Last Quarter" },
-  { value: "this_year", label: "This Year" },
-  { value: "last_year", label: "Last Year" },
-  { value: "all_time", label: "All Time" },
+const currentYear = new Date().getFullYear();
+const yearOptions = Array.from({ length: 4 }, (_, i) => {
+  const yr = currentYear - i;
+  return { value: String(yr), label: String(yr) };
+});
+
+const DATE_OPTIONS: { value: string | null; label: string; isDisabled?: boolean }[] = [
+  { label: '─ Quick ─────────────', value: null, isDisabled: true },
+  { value: 'today',         label: 'Today'         },
+  { value: 'yesterday',     label: 'Yesterday'     },
+  { value: 'this_week',     label: 'This Week'     },
+  { value: 'last_week',     label: 'Last Week'     },
+
+  { label: '─ Monthly ───────────', value: null, isDisabled: true },
+  { value: 'this_month',    label: 'This Month'    },
+  { value: 'last_month',    label: 'Last Month'    },
+
+  { label: '─ Quarterly ─────────', value: null, isDisabled: true },
+  { value: 'this_quarter',  label: 'This Quarter'  },
+  { value: 'last_quarter',  label: 'Last Quarter'  },
+
+  { label: '─ Yearly ────────────', value: null, isDisabled: true },
+  { value: 'this_year',     label: 'This Year'     },
+  { value: 'last_year',     label: 'Last Year'     },
+
+  { label: '─ By Year ───────────', value: null, isDisabled: true },
+  ...yearOptions,
+
+  { label: '─────────────────────', value: null, isDisabled: true },
+  { value: 'all_time',      label: 'All Time'      },
+  { value: 'custom',        label: 'Custom Range'  },
 ];
 
 const PAGE_SIZES = [25, 50, 100];
@@ -248,7 +352,7 @@ function filtersToParams(filters: XtrfInvoiceFilters, tab: TabType): Record<stri
   const params: Record<string, string> = { tab };
   if (filters.search) params.search = filters.search;
   if (filters.dateField !== "invoice_date") params.dateField = filters.dateField;
-  if (filters.datePreset !== "last_year") params.datePreset = filters.datePreset;
+  if (filters.datePreset !== "this_month") params.datePreset = filters.datePreset;
   if (filters.dateFrom) params.dateFrom = filters.dateFrom;
   if (filters.dateTo) params.dateTo = filters.dateTo;
   if (filters.paymentStatuses.length < 4) params.statuses = filters.paymentStatuses.join(",");
@@ -271,7 +375,7 @@ function paramsToFilters(params: URLSearchParams): XtrfInvoiceFilters {
   return {
     search: params.get("search") || "",
     dateField: (params.get("dateField") as DateFieldOption) || "invoice_date",
-    datePreset: (params.get("datePreset") as DatePreset) || "last_year",
+    datePreset: (params.get("datePreset") as DatePreset) || "this_month",
     dateFrom: params.get("dateFrom") || "",
     dateTo: params.get("dateTo") || "",
     paymentStatuses: statusStr ? (statusStr.split(",") as PaymentStatus[]) : [...ALL_STATUSES],
@@ -339,6 +443,10 @@ export default function XtrfInvoices() {
 
   // Mobile filter sheet
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Date preset dropdown
+  const [datePresetOpen, setDatePresetOpen] = useState(false);
+  const [showCustom, setShowCustom] = useState(() => pendingFilters.datePreset === "custom");
 
   // Payable status tab filter
   const [payableStatusTab, setPayableStatusTab] = useState<PayableStatusValue | "all">("all");
@@ -464,10 +572,10 @@ export default function XtrfInvoices() {
 
   // Compute effective date range from preset or custom
   const effectiveDateRange = useMemo(() => {
-    if (filters.dateFrom || filters.dateTo) {
+    if (filters.datePreset === 'custom' || filters.dateFrom || filters.dateTo) {
       return { from: filters.dateFrom, to: filters.dateTo };
     }
-    return getDateRange(filters.datePreset);
+    return getDateRange(filters.datePreset) ?? { from: '', to: '' };
   }, [filters.datePreset, filters.dateFrom, filters.dateTo]);
 
   // Build and run query
@@ -620,8 +728,14 @@ export default function XtrfInvoices() {
   // Clear filters
   const clearFilters = () => {
     const defaults = { ...DEFAULT_FILTERS };
+    const range = getDateRange('this_month');
+    if (range) {
+      defaults.dateFrom = range.from;
+      defaults.dateTo = range.to;
+    }
     setPendingFilters(defaults);
     setFilters(defaults);
+    setShowCustom(false);
     setPage(0);
     setExpandedRow(null);
   };
@@ -685,20 +799,36 @@ export default function XtrfInvoices() {
 
   // Date preset handler
   const handlePresetChange = (preset: DatePreset) => {
+    if (preset === 'custom') {
+      setShowCustom(true);
+      setPendingFilters((f) => ({ ...f, datePreset: preset }));
+      return;
+    }
+
+    setShowCustom(false);
     const range = getDateRange(preset);
-    setPendingFilters((f) => ({
-      ...f,
-      datePreset: preset,
-      dateFrom: range.from,
-      dateTo: range.to,
-    }));
+    if (range) {
+      setPendingFilters((f) => ({
+        ...f,
+        datePreset: preset,
+        dateFrom: range.from ?? '',
+        dateTo: range.to ?? '',
+      }));
+    } else {
+      setPendingFilters((f) => ({
+        ...f,
+        datePreset: preset,
+        dateFrom: '',
+        dateTo: '',
+      }));
+    }
   };
 
   // Count active non-default filters
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (pendingFilters.search) count++;
-    if (pendingFilters.datePreset !== "last_year") count++;
+    if (pendingFilters.datePreset !== "this_month") count++;
     if (pendingFilters.paymentStatuses.length < 4) count++;
     if (pendingFilters.branches.length > 0) count++;
     if (pendingFilters.vendorsOrClients.length > 0) count++;
@@ -876,76 +1006,114 @@ export default function XtrfInvoices() {
           </SelectContent>
         </Select>
 
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {DATE_PRESETS.map((p) => (
-            <button
-              key={p.value}
-              onClick={() => handlePresetChange(p.value)}
-              className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                pendingFilters.datePreset === p.value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-foreground border-border hover:bg-muted"
-              }`}
+        <Popover open={datePresetOpen} onOpenChange={setDatePresetOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={datePresetOpen}
+              className="w-full h-9 text-sm justify-between font-normal mb-2"
             >
-              {p.label}
-            </button>
-          ))}
-        </div>
+              {DATE_OPTIONS.find((o) => o.value === pendingFilters.datePreset)?.label ?? "Select period..."}
+              <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search period..." className="h-9" />
+              <CommandList>
+                <CommandEmpty>No period found.</CommandEmpty>
+                <CommandGroup>
+                  {DATE_OPTIONS.map((option, idx) => {
+                    if (option.isDisabled) {
+                      return (
+                        <div
+                          key={`divider-${idx}`}
+                          className="px-2 py-1.5 text-xs font-medium text-muted-foreground select-none"
+                        >
+                          {option.label}
+                        </div>
+                      );
+                    }
+                    return (
+                      <CommandItem
+                        key={option.value}
+                        value={option.label}
+                        onSelect={() => {
+                          handlePresetChange(option.value as DatePreset);
+                          setDatePresetOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-3.5 w-3.5",
+                            pendingFilters.datePreset === option.value ? "opacity-100" : "opacity-0",
+                          )}
+                        />
+                        {option.label}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label className="text-xs text-muted-foreground">From</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full h-9 text-xs justify-start font-normal">
-                  <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                  {pendingFilters.dateFrom ? format(parseISO(pendingFilters.dateFrom), "MMM dd, yy") : "Start"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={pendingFilters.dateFrom ? parseISO(pendingFilters.dateFrom) : undefined}
-                  onSelect={(date) => {
-                    if (date) {
-                      setPendingFilters((f) => ({
-                        ...f,
-                        dateFrom: format(date, "yyyy-MM-dd"),
-                        datePreset: "all_time",
-                      }));
-                    }
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
+        {showCustom && (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs text-muted-foreground">From</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full h-9 text-xs justify-start font-normal">
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {pendingFilters.dateFrom ? format(parseISO(pendingFilters.dateFrom), "MMM dd, yy") : "Start"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={pendingFilters.dateFrom ? parseISO(pendingFilters.dateFrom) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setPendingFilters((f) => ({
+                          ...f,
+                          dateFrom: format(date, "yyyy-MM-dd"),
+                        }));
+                      }
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">To</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full h-9 text-xs justify-start font-normal">
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {pendingFilters.dateTo ? format(parseISO(pendingFilters.dateTo), "MMM dd, yy") : "End"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={pendingFilters.dateTo ? parseISO(pendingFilters.dateTo) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setPendingFilters((f) => ({
+                          ...f,
+                          dateTo: format(date, "yyyy-MM-dd"),
+                        }));
+                      }
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">To</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full h-9 text-xs justify-start font-normal">
-                  <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                  {pendingFilters.dateTo ? format(parseISO(pendingFilters.dateTo), "MMM dd, yy") : "End"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={pendingFilters.dateTo ? parseISO(pendingFilters.dateTo) : undefined}
-                  onSelect={(date) => {
-                    if (date) {
-                      setPendingFilters((f) => ({
-                        ...f,
-                        dateTo: format(date, "yyyy-MM-dd"),
-                        datePreset: "all_time",
-                      }));
-                    }
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* 3. Payment Status */}

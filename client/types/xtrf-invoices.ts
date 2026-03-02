@@ -65,13 +65,19 @@ export interface XtrfSyncLog {
 export type DateFieldOption = "invoice_date" | "payment_due_date" | "payment_date";
 
 export type DatePreset =
+  | "today"
+  | "yesterday"
+  | "this_week"
+  | "last_week"
   | "this_month"
   | "last_month"
   | "this_quarter"
   | "last_quarter"
   | "this_year"
   | "last_year"
-  | "all_time";
+  | "all_time"
+  | "custom"
+  | string; // dynamic year values like "2026", "2025", etc.
 
 export interface XtrfInvoiceFilters {
   search: string;
@@ -92,7 +98,7 @@ export interface XtrfInvoiceFilters {
 export const DEFAULT_FILTERS: XtrfInvoiceFilters = {
   search: "",
   dateField: "invoice_date",
-  datePreset: "last_year",
+  datePreset: "this_month",
   dateFrom: "",
   dateTo: "",
   paymentStatuses: ["NOT_PAID", "PARTIALLY_PAID", "FULLY_PAID", "IRRECOVERABLE"],
