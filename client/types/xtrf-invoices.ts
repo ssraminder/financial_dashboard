@@ -16,6 +16,8 @@ export interface XtrfPayableInvoice {
   amount_gross: number | null;
   amount_cad: number | null;
   amount_paid: number | null;
+  currency: string | null;
+  original_currency: string | null;
   payment_status: PaymentStatus | null;
   payable_status: PayableStatusValue | null;
   invoice_date: string | null;
@@ -39,7 +41,9 @@ export interface XtrfReceivableInvoice {
   invoice_final_number: string | null;
   invoice_internal_number: string | null;
   amount_gross: number | null;
+  amount_cad: number | null;
   amount_paid: number | null;
+  currency: string | null;
   payment_status: PaymentStatus | null;
   invoice_date: string | null;
   payment_due_date: string | null;

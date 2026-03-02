@@ -248,6 +248,12 @@ function formatCadAmount(value: number | null, payableStatus: PayableStatusValue
   return <span className="text-right block">{"\u2014"}</span>;
 }
 
+function displayAmountCAD(row: any): number | null {
+  if (row.amount_cad) return row.amount_cad;
+  if (row.currency === 'CAD' || row.original_currency === 'CAD') return row.amount_gross;
+  return null;
+}
+
 function getApStatusBadge(status: PayableStatusValue | null) {
   switch (status) {
     case "complete":
@@ -265,7 +271,7 @@ function getMissingFields(row: any): string[] {
   const fields: string[] = [];
   if (row.invoice_date == null) fields.push("Invoice Date");
   if (row.vendor_name == null) fields.push("Vendor Name");
-  if (row.amount_cad == null) fields.push("Amount (CAD)");
+  if (displayAmountCAD(row) == null) fields.push("Amount (CAD)");
   if (row.invoice_internal_number == null) fields.push("Internal Number");
   if (row.payment_due_date == null) fields.push("Payment Due Date");
   return fields;
@@ -413,6 +419,7 @@ export default function XtrfInvoices() {
   const [pageSize, setPageSize] = useState(50);
   const [sort, setSort] = useState<SortConfig>({ field: "invoice_date", direction: "desc" });
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Summary card state
   const [summaryTotal, setSummaryTotal] = useState<number | null>(null);
@@ -660,7 +667,10 @@ export default function XtrfInvoices() {
     setSummaryLoading(true);
 
     const table = activeTab === "payables" ? "xtrf_payable_invoices" : "xtrf_receivable_invoices";
-    let query = supabase.from(table).select("amount_gross, payment_status");
+    const summaryFields = activeTab === "payables"
+      ? "amount_gross, amount_cad, currency, original_currency, payment_status"
+      : "amount_gross, amount_cad, currency, payment_status";
+    let query = supabase.from(table).select(summaryFields);
 
     // Apply same filters (except pagination)
     if (activeTab === "payables" && payableStatusTab !== "all") {
@@ -694,9 +704,9 @@ export default function XtrfInvoices() {
     if (rows) {
       let total = 0, unpaid = 0, paid = 0;
       rows.forEach((r: any) => {
-        const amt = r.amount_gross || 0;
+        const amt = displayAmountCAD(r) || 0;
         total += amt;
-        if (r.payment_status === "NOT_PAID") unpaid += amt;
+        if (r.payment_status === "NOT_PAID" || r.payment_status === "PARTIALLY_PAID") unpaid += amt;
         if (r.payment_status === "FULLY_PAID") paid += amt;
       });
       setSummaryTotal(total);
@@ -839,68 +849,95 @@ export default function XtrfInvoices() {
     return count;
   }, [pendingFilters]);
 
-  // Export CSV
+  // Export CSV — fetch all pages before building the download
   const handleExportCSV = async () => {
-    const table = activeTab === "payables" ? "xtrf_payable_invoices" : "xtrf_receivable_invoices";
-    let query = supabase.from(table).select("*");
+    if (exportLoading) return;
+    setExportLoading(true);
 
-    // Apply same filters
-    if (activeTab === "payables" && payableStatusTab !== "all") {
-      query = query.eq("payable_status", payableStatusTab);
+    try {
+      const table = activeTab === "payables" ? "xtrf_payable_invoices" : "xtrf_receivable_invoices";
+      const PAGE_SIZE = 1000;
+      let allRows: any[] = [];
+      let from = 0;
+
+      // Paginate through all matching rows
+      while (true) {
+        let query = supabase.from(table).select("*");
+
+        // Apply same filters
+        if (activeTab === "payables" && payableStatusTab !== "all") {
+          query = query.eq("payable_status", payableStatusTab);
+        }
+        if (filters.search) {
+          const s = filters.search;
+          const searchFields = activeTab === "payables"
+            ? `project_number.ilike.%${s}%,project_name.ilike.%${s}%,client_name.ilike.%${s}%,invoice_final_number.ilike.%${s}%,vendor_name.ilike.%${s}%`
+            : `project_number.ilike.%${s}%,project_name.ilike.%${s}%,client_name.ilike.%${s}%,invoice_final_number.ilike.%${s}%`;
+          query = query.or(searchFields);
+        }
+        const { from: dateFrom, to: dateTo } = effectiveDateRange;
+        if (dateFrom) query = query.gte(filters.dateField, dateFrom);
+        if (dateTo) query = query.lte(filters.dateField, dateTo);
+        if (filters.paymentStatuses.length > 0 && filters.paymentStatuses.length < 4) {
+          query = query.in("payment_status", filters.paymentStatuses);
+        }
+        if (filters.branches.length > 0) query = query.in("client_branch_name", filters.branches);
+        if (filters.vendorsOrClients.length > 0) {
+          const field = activeTab === "payables" ? "vendor_name" : "client_name";
+          query = query.in(field, filters.vendorsOrClients);
+        }
+        if (filters.minAmount) query = query.gte("amount_gross", parseFloat(filters.minAmount));
+        if (filters.maxAmount) query = query.lte("amount_gross", parseFloat(filters.maxAmount));
+        if (filters.invoiceNumber) query = query.ilike("invoice_final_number", `%${filters.invoiceNumber}%`);
+        if (filters.hasInvoiceOnly) query = query.not("invoice_final_number", "is", null);
+        if (filters.languages.length > 0) query = query.in("language_combination", filters.languages);
+
+        query = query
+          .order(sort.field, { ascending: sort.direction === "asc", nullsFirst: false })
+          .range(from, from + PAGE_SIZE - 1);
+
+        const { data: rows, error } = await query;
+        if (error) {
+          console.error("Error fetching CSV page:", error);
+          break;
+        }
+        if (!rows || rows.length === 0) break;
+
+        allRows = allRows.concat(rows);
+        if (rows.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+
+      if (allRows.length === 0) return;
+
+      const headers = Object.keys(allRows[0]);
+      const csvContent = [
+        headers.join(","),
+        ...allRows.map((row: any) =>
+          headers
+            .map((h) => {
+              // Apply displayAmountCAD fallback for the amount_cad column
+              const val = h === "amount_cad" ? displayAmountCAD(row) : row[h];
+              if (val == null) return "";
+              const str = String(val);
+              return str.includes(",") || str.includes('"') || str.includes("\n")
+                ? `"${str.replace(/"/g, '""')}"`
+                : str;
+            })
+            .join(","),
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `xtrf_${activeTab}_${format(new Date(), "yyyy-MM-dd")}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExportLoading(false);
     }
-    if (filters.search) {
-      const s = filters.search;
-      const searchFields = activeTab === "payables"
-        ? `project_number.ilike.%${s}%,project_name.ilike.%${s}%,client_name.ilike.%${s}%,invoice_final_number.ilike.%${s}%,vendor_name.ilike.%${s}%`
-        : `project_number.ilike.%${s}%,project_name.ilike.%${s}%,client_name.ilike.%${s}%,invoice_final_number.ilike.%${s}%`;
-      query = query.or(searchFields);
-    }
-    const { from: dateFrom, to: dateTo } = effectiveDateRange;
-    if (dateFrom) query = query.gte(filters.dateField, dateFrom);
-    if (dateTo) query = query.lte(filters.dateField, dateTo);
-    if (filters.paymentStatuses.length > 0 && filters.paymentStatuses.length < 4) {
-      query = query.in("payment_status", filters.paymentStatuses);
-    }
-    if (filters.branches.length > 0) query = query.in("client_branch_name", filters.branches);
-    if (filters.vendorsOrClients.length > 0) {
-      const field = activeTab === "payables" ? "vendor_name" : "client_name";
-      query = query.in(field, filters.vendorsOrClients);
-    }
-    if (filters.minAmount) query = query.gte("amount_gross", parseFloat(filters.minAmount));
-    if (filters.maxAmount) query = query.lte("amount_gross", parseFloat(filters.maxAmount));
-    if (filters.invoiceNumber) query = query.ilike("invoice_final_number", `%${filters.invoiceNumber}%`);
-    if (filters.hasInvoiceOnly) query = query.not("invoice_final_number", "is", null);
-    if (filters.languages.length > 0) query = query.in("language_combination", filters.languages);
-
-    query = query.order(sort.field, { ascending: sort.direction === "asc", nullsFirst: false });
-
-    const { data: rows } = await query;
-    if (!rows || rows.length === 0) return;
-
-    const headers = Object.keys(rows[0]);
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row: any) =>
-        headers
-          .map((h) => {
-            const val = row[h];
-            if (val == null) return "";
-            const str = String(val);
-            return str.includes(",") || str.includes('"') || str.includes("\n")
-              ? `"${str.replace(/"/g, '""')}"`
-              : str;
-          })
-          .join(","),
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `xtrf_${activeTab}_${format(new Date(), "yyyy-MM-dd")}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
   };
 
   // Columns for current tab
@@ -1338,7 +1375,7 @@ export default function XtrfInvoices() {
           </span>
         );
       case "amount_cad":
-        return formatCadAmount(row.amount_cad, row.payable_status);
+        return formatCadAmount(displayAmountCAD(row), row.payable_status);
       case "payment_status":
         return getStatusBadge(row.payment_status);
       case "payable_status": {
@@ -1548,6 +1585,7 @@ export default function XtrfInvoices() {
                     onToggleColumn={toggleColumn}
                     onToggleColumnDropdown={() => setShowColumnDropdown((v) => !v)}
                     onExportCSV={handleExportCSV}
+                    exportLoading={exportLoading}
                     onClearFilters={clearFilters}
                     renderCell={renderCell}
                   />
@@ -1580,6 +1618,7 @@ export default function XtrfInvoices() {
                     onToggleColumn={toggleColumn}
                     onToggleColumnDropdown={() => setShowColumnDropdown((v) => !v)}
                     onExportCSV={handleExportCSV}
+                    exportLoading={exportLoading}
                     onClearFilters={clearFilters}
                     renderCell={renderCell}
                   />
@@ -1621,6 +1660,7 @@ interface InvoiceTableContentProps {
   onToggleColumn: (key: string) => void;
   onToggleColumnDropdown: () => void;
   onExportCSV: () => void;
+  exportLoading: boolean;
   onClearFilters: () => void;
   renderCell: (row: any, colKey: string) => React.ReactNode;
 }
@@ -1651,6 +1691,7 @@ function InvoiceTableContent({
   onToggleColumn,
   onToggleColumnDropdown,
   onExportCSV,
+  exportLoading,
   onClearFilters,
   renderCell,
 }: InvoiceTableContentProps) {
@@ -1739,9 +1780,9 @@ function InvoiceTableContent({
             )}
           </div>
 
-          <Button variant="outline" size="sm" onClick={onExportCSV} className="gap-1.5 text-xs">
-            <Download className="h-3.5 w-3.5" />
-            Export CSV
+          <Button variant="outline" size="sm" onClick={onExportCSV} disabled={exportLoading} className="gap-1.5 text-xs">
+            {exportLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            {exportLoading ? "Exporting\u2026" : "Export CSV"}
           </Button>
         </div>
       </div>
