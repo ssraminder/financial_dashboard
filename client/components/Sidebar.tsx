@@ -98,6 +98,14 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
   {
+    id: "xtrf",
+    icon: FileText,
+    label: "XTRF",
+    items: [
+      { label: "Invoices", href: "/xtrf-invoices" },
+    ],
+  },
+  {
     id: "contacts",
     icon: UserCircle,
     label: "Contacts",
