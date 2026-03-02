@@ -1,3 +1,8 @@
+export type PayableStatusValue =
+  | "complete"
+  | "pending_ap_entry"
+  | "no_invoice_submitted";
+
 export interface XtrfPayableInvoice {
   id: string;
   project_number: string | null;
@@ -9,8 +14,10 @@ export interface XtrfPayableInvoice {
   invoice_final_number: string | null;
   invoice_internal_number: string | null;
   amount_gross: number | null;
+  amount_cad: number | null;
   amount_paid: number | null;
   payment_status: PaymentStatus | null;
+  payable_status: PayableStatusValue | null;
   invoice_date: string | null;
   payment_due_date: string | null;
   payment_date: string | null;
