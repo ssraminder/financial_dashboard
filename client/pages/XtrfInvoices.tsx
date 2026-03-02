@@ -91,9 +91,9 @@ import { DEFAULT_FILTERS } from "@/types/xtrf-invoices";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function formatCurrency(value: number | null): string {
-  if (value == null) return "$0.00 CAD";
-  return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD`;
+function formatCurrency(value: number | null, currencyCode: string = "CAD"): string {
+  if (value == null) return `$0.00 ${currencyCode}`;
+  return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyCode}`;
 }
 
 function formatDate(dateStr: string | null): string {
@@ -1368,12 +1368,14 @@ export default function XtrfInvoices() {
         return row.invoice_final_number ? (
           <span className="font-mono text-xs">{row.invoice_final_number}</span>
         ) : "\u2014";
-      case "amount_gross":
+      case "amount_gross": {
+        const invoiceCurrency = row.original_currency || row.currency || "CAD";
         return (
           <span className="text-right block font-medium tabular-nums">
-            {formatCurrency(row.amount_gross)}
+            {formatCurrency(row.amount_gross, invoiceCurrency)}
           </span>
         );
+      }
       case "amount_cad":
         return formatCadAmount(displayAmountCAD(row), row.payable_status);
       case "payment_status":
@@ -1891,7 +1893,7 @@ function InvoiceTableContent({
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground text-xs block">Amount Paid</span>
-                                  <span>{row.amount_paid != null ? formatCurrency(row.amount_paid) : "\u2014"}</span>
+                                  <span>{row.amount_paid != null ? formatCurrency(row.amount_paid, row.original_currency || row.currency || "CAD") : "\u2014"}</span>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground text-xs block">Notes from Vendor</span>
