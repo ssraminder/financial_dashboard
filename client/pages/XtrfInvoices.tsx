@@ -310,7 +310,9 @@ const PAYABLE_COLUMNS = [
   { key: "invoice_final_number", label: "Invoice #" },
   { key: "vendor_currency", label: "Currency" },
   { key: "amount_gross", label: "Amount (Gross)" },
-  { key: "amount_cad", label: "Amount (CAD)" },
+  { key: "tax_amount", label: "Tax" },
+  { key: "amount_net_cad", label: "Net (CAD)" },
+  { key: "amount_cad", label: "Gross (CAD)" },
   { key: "payment_status", label: "Invoice Status" },
   { key: "payable_status", label: "AP Status" },
   { key: "invoice_date", label: "Invoice Date" },
@@ -685,7 +687,7 @@ export default function XtrfInvoices() {
 
     const table = activeTab === "payables" ? "xtrf_payable_invoices" : "xtrf_receivable_invoices";
     const summaryFields = activeTab === "payables"
-      ? "amount_gross, amount_cad, currency, original_currency, payment_status"
+      ? "amount_gross, amount_net_cad, amount_cad, currency, original_currency, payment_status"
       : "amount_gross, amount_cad, currency, payment_status";
     let query = supabase.from(table).select(summaryFields);
 
@@ -720,8 +722,9 @@ export default function XtrfInvoices() {
     const { data: rows } = await query;
     if (rows) {
       let total = 0, unpaid = 0, paid = 0;
+      const isPayables = activeTab === "payables";
       rows.forEach((r: any) => {
-        const amt = r.amount_cad || 0;
+        const amt = (isPayables ? r.amount_net_cad : r.amount_cad) || 0;
         total += amt;
         if (r.payment_status === "NOT_PAID" || r.payment_status === "PARTIALLY_PAID") unpaid += amt;
         if (r.payment_status === "FULLY_PAID") paid += amt;
@@ -1394,6 +1397,19 @@ export default function XtrfInvoices() {
             {formatAmount(row.amount_gross, row.original_currency || row.currency || "CAD")}
           </span>
         );
+      case "tax_amount": {
+        const tax = row.tax_amount;
+        if (tax == null || tax <= 0) {
+          return <span className="text-right block text-muted-foreground">{"\u2014"}</span>;
+        }
+        return (
+          <span className="text-right block font-medium tabular-nums">
+            {formatAmount(tax, row.original_currency || row.currency || "CAD")}
+          </span>
+        );
+      }
+      case "amount_net_cad":
+        return formatCadAmount(row.amount_net_cad, row.payable_status);
       case "amount_cad":
         return formatCadAmount(row.amount_cad, row.payable_status);
       case "payment_status":
