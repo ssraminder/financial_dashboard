@@ -40,7 +40,6 @@ const SOURCE_COLORS: Record<string, string> = {
   auto_suggest: "bg-purple-100 text-purple-800",
   csv_import: "bg-orange-100 text-orange-800",
   receipt_ocr: "bg-green-100 text-green-800",
-  xtrf_sync: "bg-cyan-100 text-cyan-800",
   legacy_migration: "bg-slate-50 text-slate-600",
 };
 
@@ -50,7 +49,6 @@ const SOURCE_LABELS: Record<string, string> = {
   auto_suggest: "Auto-Suggest",
   csv_import: "CSV Import",
   receipt_ocr: "OCR",
-  xtrf_sync: "XTRF",
   legacy_migration: "Legacy",
 };
 
