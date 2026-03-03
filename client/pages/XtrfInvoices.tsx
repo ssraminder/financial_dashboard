@@ -92,8 +92,27 @@ import { DEFAULT_FILTERS } from "@/types/xtrf-invoices";
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatCurrency(value: number | null, currencyCode: string = "CAD"): string {
-  if (value == null) return `$0.00 ${currencyCode}`;
-  return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyCode}`;
+  if (value == null) return formatWithCurrency(0, currencyCode);
+  return formatWithCurrency(value, currencyCode);
+}
+
+function formatAmount(value: number | null, currencyCode: string = "CAD"): string {
+  if (value == null) return "\u2014";
+  return formatWithCurrency(value, currencyCode);
+}
+
+function formatWithCurrency(value: number, currencyCode: string): string {
+  try {
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: currencyCode,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  } catch {
+    // Fallback for unrecognized currency codes
+    return `${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyCode}`;
+  }
 }
 
 function formatDate(dateStr: string | null): string {
@@ -294,7 +313,8 @@ const PAYABLE_COLUMNS = [
   { key: "vendor_name", label: "Vendor" },
   { key: "language_combination", label: "Language" },
   { key: "invoice_final_number", label: "Invoice #" },
-  { key: "amount_gross", label: "Amount" },
+  { key: "vendor_currency", label: "Currency" },
+  { key: "amount_gross", label: "Amount (Gross)" },
   { key: "amount_cad", label: "Amount (CAD)" },
   { key: "payment_status", label: "Invoice Status" },
   { key: "payable_status", label: "AP Status" },
@@ -310,7 +330,9 @@ const RECEIVABLE_COLUMNS = [
   { key: "client_branch_name", label: "Branch" },
   { key: "language_combination", label: "Language" },
   { key: "invoice_final_number", label: "Invoice #" },
-  { key: "amount_gross", label: "Amount" },
+  { key: "vendor_currency", label: "Currency" },
+  { key: "amount_gross", label: "Amount (Gross)" },
+  { key: "amount_cad", label: "Amount (CAD)" },
   { key: "payment_status", label: "Status" },
   { key: "invoice_date", label: "Invoice Date" },
   { key: "payment_due_date", label: "Due Date" },
@@ -1368,14 +1390,16 @@ export default function XtrfInvoices() {
         return row.invoice_final_number ? (
           <span className="font-mono text-xs">{row.invoice_final_number}</span>
         ) : "\u2014";
-      case "amount_gross": {
-        const invoiceCurrency = row.original_currency || row.currency || "CAD";
+      case "vendor_currency": {
+        const cur = row.original_currency || row.currency || "CAD";
+        return <span className="font-mono text-xs">{cur}</span>;
+      }
+      case "amount_gross":
         return (
           <span className="text-right block font-medium tabular-nums">
-            {formatCurrency(row.amount_gross, invoiceCurrency)}
+            {formatAmount(row.amount_gross, row.original_currency || row.currency || "CAD")}
           </span>
         );
-      }
       case "amount_cad":
         return formatCadAmount(displayAmountCAD(row), row.payable_status);
       case "payment_status":
@@ -1893,7 +1917,7 @@ function InvoiceTableContent({
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground text-xs block">Amount Paid</span>
-                                  <span>{row.amount_paid != null ? formatCurrency(row.amount_paid, row.original_currency || row.currency || "CAD") : "\u2014"}</span>
+                                  <span>{row.amount_paid != null ? formatAmount(row.amount_paid, row.original_currency || row.currency || "CAD") : "\u2014"}</span>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground text-xs block">Notes from Vendor</span>
