@@ -43,27 +43,32 @@ import { formatDate } from "@/lib/dateUtils";
 const PAGE_SIZE = 50;
 
 interface ARInvoice {
-  xtrf_id: number;
+  invoice_xtrf_id: number;
   invoice_number: string | null;
   customer_name: string | null;
-  status: string;
   currency: string;
-  currency_symbol: string;
-  total_netto: number;
-  total_gross: number;
+  invoice_total: number;
+  payment_status: string | null;
+  invoice_status: string | null;
+  invoice_date: string | null;
+  payment_due_date: string | null;
+  payment_date: string | null;
+  total_paid: number;
+  amount_outstanding: number;
+  branch_id: number;
+  branch_name: string;
   amount_cad: number;
   tax_cad: number;
   gross_cad: number;
   exchange_rate_to_cad: number;
-  is_gst_applicable: boolean;
-  contributes_to_sbd: boolean;
-  invoice_date: string | null;
-  payment_due_date: string | null;
-  payment_terms_name: string | null;
-  branch_id: number;
-  branch_name: string;
-  total_paid: number;
-  last_payment_date: string | null;
+  total_count: number;
+  summary_total_gross: number;
+  summary_total_paid: number;
+  summary_outstanding: number;
+  summary_invoice_count: number;
+  summary_gross_cad: number;
+  summary_net_cad: number;
+  summary_tax_cad: number;
 }
 
 interface Branch {
@@ -72,32 +77,46 @@ interface Branch {
 }
 
 interface Summary {
-  total_count: number;
-  sum_net_cad: number;
-  sum_tax_cad: number;
-  sum_gross_cad: number;
+  invoice_count: number;
+  net_cad: number;
+  tax_cad: number;
+  gross_cad: number;
+  total_paid: number;
+  outstanding: number;
 }
 
-const STATUS_BADGES: Record<string, { label: string; className: string }> = {
+const PAYMENT_STATUS_BADGES: Record<string, { label: string; className: string }> = {
+  PAID: {
+    label: "Paid",
+    className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  },
+  PARTIALLY_PAID: {
+    label: "Partial",
+    className: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  },
+  NOT_PAID: {
+    label: "Not Paid",
+    className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  },
+  OVERDUE: {
+    label: "Overdue",
+    className: "bg-red-200 text-red-900 dark:bg-red-950 dark:text-red-300",
+  },
+};
+
+const INVOICE_STATUS_BADGES: Record<string, { label: string; className: string }> = {
   SENT: {
     label: "Sent",
     className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   },
   READY: {
     label: "Ready",
-    className: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+    className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   },
   NOT_READY: {
     label: "Not Ready",
     className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
   },
-};
-
-const CURRENCY_MAP: Record<number, string> = {
-  1: "EUR",
-  2: "GBP",
-  3: "USD",
-  30: "CAD",
 };
 
 function formatCurrency(amount: number | null | undefined, decimals = 2): string {
@@ -136,36 +155,6 @@ function formatFxRate(rate: number | null | undefined, currency: string): string
   return rate.toFixed(4);
 }
 
-function getPaymentStatus(
-  invoice: ARInvoice,
-): { label: string; className: string } | null {
-  const today = new Date().toISOString().split("T")[0];
-  if (invoice.total_paid >= invoice.total_gross && invoice.total_gross > 0) {
-    return {
-      label: "Paid",
-      className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    };
-  }
-  if (invoice.total_paid > 0 && invoice.total_paid < invoice.total_gross) {
-    return {
-      label: "Partial",
-      className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    };
-  }
-  if (
-    invoice.total_paid === 0 &&
-    invoice.payment_due_date &&
-    invoice.payment_due_date < today &&
-    invoice.status === "SENT"
-  ) {
-    return {
-      label: "Overdue",
-      className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-    };
-  }
-  return null;
-}
-
 export default function ARReceivables() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -175,22 +164,28 @@ export default function ARReceivables() {
   const [invoices, setInvoices] = useState<ARInvoice[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [summary, setSummary] = useState<Summary>({
-    total_count: 0,
-    sum_net_cad: 0,
-    sum_tax_cad: 0,
-    sum_gross_cad: 0,
+    invoice_count: 0,
+    net_cad: 0,
+    tax_cad: 0,
+    gross_cad: 0,
+    total_paid: 0,
+    outstanding: 0,
   });
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Filters
   const [branchFilter, setBranchFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [payStatusFilter, setPayStatusFilter] = useState("all");
+  const [invStatusFilter, setInvStatusFilter] = useState("all");
   const [currencyFilter, setCurrencyFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortCol, setSortCol] = useState("invoice_date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   // Auth redirect
   useEffect(() => {
@@ -211,44 +206,62 @@ export default function ARReceivables() {
     if (user) fetchBranches();
   }, [user]);
 
+  // Build RPC params from current filter state
+  const buildRpcParams = useCallback(
+    (page: number, pageSize: number) => ({
+      p_branch_id: branchFilter !== "all" ? parseInt(branchFilter) : null,
+      p_customer_id: null,
+      p_pay_status: payStatusFilter !== "all" ? payStatusFilter : null,
+      p_inv_status: invStatusFilter !== "all" ? invStatusFilter : null,
+      p_date_from: dateFrom || null,
+      p_date_to: dateTo || null,
+      p_currency_id: currencyFilter !== "all" ? parseInt(currencyFilter) : null,
+      p_search: searchTerm || null,
+      p_page: page,
+      p_page_size: pageSize,
+      p_sort_col: sortCol,
+      p_sort_dir: sortDir,
+    }),
+    [branchFilter, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm, sortCol, sortDir],
+  );
+
   // Fetch invoices
   const fetchInvoices = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const params: Record<string, unknown> = {
-        p_page: currentPage,
-        p_page_size: PAGE_SIZE,
-      };
-      if (branchFilter !== "all") params.p_branch_id = parseInt(branchFilter);
-      if (statusFilter !== "all") params.p_status = statusFilter;
-      if (currencyFilter !== "all") params.p_currency = currencyFilter;
-      if (dateFrom) params.p_date_from = dateFrom;
-      if (dateTo) params.p_date_to = dateTo;
-      if (searchTerm) params.p_search = searchTerm;
-
       const { data, error } = await supabase.rpc(
         "get_ar_invoice_receivables",
-        params,
+        buildRpcParams(currentPage, PAGE_SIZE),
       );
 
       if (error) throw error;
 
-      const result = data as {
-        rows: ARInvoice[];
-        total_count: number;
-        sum_net_cad: number;
-        sum_tax_cad: number;
-        sum_gross_cad: number;
-      };
+      const rows = (data as ARInvoice[]) || [];
+      setInvoices(rows);
 
-      setInvoices(result.rows || []);
-      setSummary({
-        total_count: result.total_count ?? 0,
-        sum_net_cad: result.sum_net_cad ?? 0,
-        sum_tax_cad: result.sum_tax_cad ?? 0,
-        sum_gross_cad: result.sum_gross_cad ?? 0,
-      });
+      if (rows.length > 0) {
+        const first = rows[0];
+        setTotalCount(first.total_count ?? 0);
+        setSummary({
+          invoice_count: first.summary_invoice_count ?? 0,
+          net_cad: first.summary_net_cad ?? 0,
+          tax_cad: first.summary_tax_cad ?? 0,
+          gross_cad: first.summary_gross_cad ?? 0,
+          total_paid: first.summary_total_paid ?? 0,
+          outstanding: first.summary_outstanding ?? 0,
+        });
+      } else {
+        setTotalCount(0);
+        setSummary({
+          invoice_count: 0,
+          net_cad: 0,
+          tax_cad: 0,
+          gross_cad: 0,
+          total_paid: 0,
+          outstanding: 0,
+        });
+      }
     } catch (err: any) {
       console.error("Error fetching AR invoices:", err);
       toast({
@@ -259,17 +272,7 @@ export default function ARReceivables() {
     } finally {
       setLoading(false);
     }
-  }, [
-    user,
-    currentPage,
-    branchFilter,
-    statusFilter,
-    currencyFilter,
-    dateFrom,
-    dateTo,
-    searchTerm,
-    toast,
-  ]);
+  }, [user, currentPage, buildRpcParams, toast]);
 
   useEffect(() => {
     fetchInvoices();
@@ -278,7 +281,7 @@ export default function ARReceivables() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [branchFilter, statusFilter, currencyFilter, dateFrom, dateTo, searchTerm]);
+  }, [branchFilter, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm]);
 
   // Search debounce
   useEffect(() => {
@@ -288,11 +291,12 @@ export default function ARReceivables() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const totalPages = Math.ceil(summary.total_count / PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const clearFilters = () => {
     setBranchFilter("all");
-    setStatusFilter("all");
+    setPayStatusFilter("all");
+    setInvStatusFilter("all");
     setCurrencyFilter("all");
     setDateFrom("");
     setDateTo("");
@@ -302,7 +306,8 @@ export default function ARReceivables() {
 
   const hasActiveFilters =
     branchFilter !== "all" ||
-    statusFilter !== "all" ||
+    payStatusFilter !== "all" ||
+    invStatusFilter !== "all" ||
     currencyFilter !== "all" ||
     dateFrom !== "" ||
     dateTo !== "" ||
@@ -313,62 +318,51 @@ export default function ARReceivables() {
     try {
       toast({ title: "Exporting...", description: "Fetching all filtered records for export." });
 
-      // Fetch all rows (no pagination) via RPC with large page size
-      const params: Record<string, unknown> = {
-        p_page: 1,
-        p_page_size: 100000,
-      };
-      if (branchFilter !== "all") params.p_branch_id = parseInt(branchFilter);
-      if (statusFilter !== "all") params.p_status = statusFilter;
-      if (currencyFilter !== "all") params.p_currency = currencyFilter;
-      if (dateFrom) params.p_date_from = dateFrom;
-      if (dateTo) params.p_date_to = dateTo;
-      if (searchTerm) params.p_search = searchTerm;
-
       const { data, error } = await supabase.rpc(
         "get_ar_invoice_receivables",
-        params,
+        buildRpcParams(1, 100000),
       );
 
       if (error) throw error;
 
-      const result = data as { rows: ARInvoice[] };
-      const rows = result.rows || [];
+      const rows = (data as ARInvoice[]) || [];
 
       const headers = [
         "Invoice #",
         "Customer",
         "Currency",
-        "Net",
-        "Gross",
-        "Net CAD",
+        "Invoice Total",
+        "Total Paid",
+        "Outstanding",
+        "Amount CAD",
         "Tax CAD",
         "Gross CAD",
         "FX Rate",
-        "Status",
+        "Payment Status",
+        "Invoice Status",
         "Invoice Date",
         "Due Date",
+        "Payment Date",
         "Branch",
-        "GST Applicable",
-        "Contributes to SBD",
       ];
 
       const csvRows = rows.map((inv) => [
         inv.invoice_number || "",
         `"${(inv.customer_name || "").replace(/"/g, '""')}"`,
         inv.currency,
-        inv.total_netto?.toFixed(2) ?? "",
-        inv.total_gross?.toFixed(2) ?? "",
+        inv.invoice_total?.toFixed(2) ?? "",
+        inv.total_paid?.toFixed(2) ?? "",
+        inv.amount_outstanding?.toFixed(2) ?? "",
         inv.amount_cad?.toFixed(2) ?? "",
         inv.tax_cad?.toFixed(2) ?? "",
         inv.gross_cad?.toFixed(2) ?? "",
         inv.exchange_rate_to_cad != null ? formatFxRate(inv.exchange_rate_to_cad, inv.currency) : "",
-        inv.status,
+        inv.payment_status || "",
+        inv.invoice_status || "",
         inv.invoice_date || "",
         inv.payment_due_date || "",
+        inv.payment_date || "",
         inv.branch_name,
-        inv.is_gst_applicable ? "Yes" : "No",
-        inv.contributes_to_sbd ? "Yes" : "No",
       ]);
 
       const csvContent = [
@@ -458,7 +452,7 @@ export default function ARReceivables() {
                 variant="outline"
                 size="sm"
                 onClick={handleExportCSV}
-                disabled={loading || summary.total_count === 0}
+                disabled={loading || totalCount === 0}
               >
                 <Download className="h-4 w-4 mr-1" />
                 Export CSV
@@ -477,33 +471,7 @@ export default function ARReceivables() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {summary.total_count.toLocaleString()}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Net Revenue (CAD)
-                </CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(summary.sum_net_cad)}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Tax Collected (CAD)
-                </CardTitle>
-                <Receipt className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(summary.sum_tax_cad)}
+                  {summary.invoice_count.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -512,11 +480,37 @@ export default function ARReceivables() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Gross Invoiced (CAD)
                 </CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(summary.gross_cad)}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Paid
+                </CardTitle>
+                <Receipt className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(summary.total_paid)}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Outstanding
+                </CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {formatCurrency(summary.sum_gross_cad)}
+                  {formatCurrency(summary.outstanding)}
                 </div>
               </CardContent>
             </Card>
@@ -538,12 +532,25 @@ export default function ARReceivables() {
               </SelectContent>
             </Select>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="All Statuses" />
+            <Select value={payStatusFilter} onValueChange={setPayStatusFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Payment Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">All Payment</SelectItem>
+                <SelectItem value="PAID">Paid</SelectItem>
+                <SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
+                <SelectItem value="NOT_PAID">Not Paid</SelectItem>
+                <SelectItem value="OVERDUE">Overdue</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={invStatusFilter} onValueChange={setInvStatusFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Invoice Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Invoice</SelectItem>
                 <SelectItem value="SENT">Sent</SelectItem>
                 <SelectItem value="READY">Ready</SelectItem>
                 <SelectItem value="NOT_READY">Not Ready</SelectItem>
@@ -624,32 +631,40 @@ export default function ARReceivables() {
                         <TableHead className="whitespace-nowrap">Invoice #</TableHead>
                         <TableHead className="whitespace-nowrap">Customer</TableHead>
                         <TableHead className="whitespace-nowrap">CCY</TableHead>
-                        <TableHead className="whitespace-nowrap text-right">Net</TableHead>
-                        <TableHead className="whitespace-nowrap text-right">Gross</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Invoice Total</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Total Paid</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Outstanding</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Net CAD</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Tax CAD</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Gross CAD</TableHead>
-                        <TableHead className="whitespace-nowrap">Status</TableHead>
+                        <TableHead className="whitespace-nowrap">Payment</TableHead>
+                        <TableHead className="whitespace-nowrap">Invoice</TableHead>
                         <TableHead className="whitespace-nowrap text-right">FX Rate</TableHead>
                         <TableHead className="whitespace-nowrap">Invoice Date</TableHead>
                         <TableHead className="whitespace-nowrap">Due Date</TableHead>
+                        <TableHead className="whitespace-nowrap">Payment Date</TableHead>
                         <TableHead className="whitespace-nowrap">Branch</TableHead>
-                        <TableHead className="whitespace-nowrap text-center">GST</TableHead>
-                        <TableHead className="whitespace-nowrap text-center">SBD</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {invoices.map((inv) => {
-                        const statusBadge = STATUS_BADGES[inv.status] || {
-                          label: inv.status,
-                          className: "bg-gray-100 text-gray-600",
-                        };
-                        const paymentStatus = getPaymentStatus(inv);
+                        const payBadge = inv.payment_status
+                          ? PAYMENT_STATUS_BADGES[inv.payment_status] || {
+                              label: inv.payment_status,
+                              className: "bg-gray-100 text-gray-600",
+                            }
+                          : null;
+                        const invBadge = inv.invoice_status
+                          ? INVOICE_STATUS_BADGES[inv.invoice_status] || {
+                              label: inv.invoice_status,
+                              className: "bg-gray-100 text-gray-600",
+                            }
+                          : null;
 
                         return (
-                          <TableRow key={inv.xtrf_id}>
+                          <TableRow key={inv.invoice_xtrf_id}>
                             <TableCell className="font-medium whitespace-nowrap">
-                              {inv.invoice_number || `#${inv.xtrf_id}`}
+                              {inv.invoice_number || `#${inv.invoice_xtrf_id}`}
                             </TableCell>
                             <TableCell
                               className="max-w-[200px] truncate"
@@ -663,12 +678,15 @@ export default function ARReceivables() {
                               </span>
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
-                              {formatOriginalCurrency(inv.total_netto, inv.currency)}
+                              {formatOriginalCurrency(inv.invoice_total, inv.currency)}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
-                              {formatOriginalCurrency(inv.total_gross, inv.currency)}
+                              {formatOriginalCurrency(inv.total_paid, inv.currency)}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums font-medium">
+                              {formatOriginalCurrency(inv.amount_outstanding, inv.currency)}
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap tabular-nums">
                               {formatCurrency(inv.amount_cad)}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
@@ -680,22 +698,24 @@ export default function ARReceivables() {
                               {formatCurrency(inv.gross_cad)}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
-                              <div className="flex items-center gap-1">
+                              {payBadge && (
                                 <Badge
                                   variant="secondary"
-                                  className={`text-xs ${statusBadge.className}`}
+                                  className={`text-xs ${payBadge.className}`}
                                 >
-                                  {statusBadge.label}
+                                  {payBadge.label}
                                 </Badge>
-                                {paymentStatus && (
-                                  <Badge
-                                    variant="secondary"
-                                    className={`text-xs ${paymentStatus.className}`}
-                                  >
-                                    {paymentStatus.label}
-                                  </Badge>
-                                )}
-                              </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {invBadge && (
+                                <Badge
+                                  variant="secondary"
+                                  className={`text-xs ${invBadge.className}`}
+                                >
+                                  {invBadge.label}
+                                </Badge>
+                              )}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums text-muted-foreground text-xs">
                               {formatFxRate(inv.exchange_rate_to_cad, inv.currency)}
@@ -710,6 +730,11 @@ export default function ARReceivables() {
                                 ? formatDate(inv.payment_due_date)
                                 : "—"}
                             </TableCell>
+                            <TableCell className="whitespace-nowrap text-sm">
+                              {inv.payment_date
+                                ? formatDate(inv.payment_date)
+                                : "—"}
+                            </TableCell>
                             <TableCell className="whitespace-nowrap">
                               <Badge
                                 variant="outline"
@@ -717,20 +742,6 @@ export default function ARReceivables() {
                               >
                                 {inv.branch_name}
                               </Badge>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {inv.is_gst_applicable ? (
-                                <span className="text-green-600">&#10003;</span>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {inv.contributes_to_sbd ? (
-                                <span className="text-green-600">&#10003;</span>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
                             </TableCell>
                           </TableRow>
                         );
@@ -747,9 +758,9 @@ export default function ARReceivables() {
                   {((currentPage - 1) * PAGE_SIZE + 1).toLocaleString()}–
                   {Math.min(
                     currentPage * PAGE_SIZE,
-                    summary.total_count,
+                    totalCount,
                   ).toLocaleString()}{" "}
-                  of {summary.total_count.toLocaleString()}
+                  of {totalCount.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-1">
                   <Button
