@@ -180,6 +180,8 @@ export default function APPayables() {
   const [currencyFilter, setCurrencyFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [paymentDateFrom, setPaymentDateFrom] = useState("");
+  const [paymentDateTo, setPaymentDateTo] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -223,6 +225,8 @@ export default function APPayables() {
         p_status: statusFilter !== "all" ? statusFilter : null,
         p_date_from: dateFrom || null,
         p_date_to: dateTo || null,
+        p_payment_date_from: paymentDateFrom || null,
+        p_payment_date_to: paymentDateTo || null,
         p_currency_id: currencyFilter !== "all" ? parseInt(currencyFilter) : null,
         p_search: searchTerm || null,
         p_page: currentPage,
@@ -277,6 +281,8 @@ export default function APPayables() {
     currencyFilter,
     dateFrom,
     dateTo,
+    paymentDateFrom,
+    paymentDateTo,
     searchTerm,
     sortCol,
     sortDir,
@@ -290,7 +296,7 @@ export default function APPayables() {
   // Reset page when filters/sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [branchFilter, statusFilter, currencyFilter, dateFrom, dateTo, searchTerm, sortCol, sortDir]);
+  }, [branchFilter, statusFilter, currencyFilter, dateFrom, dateTo, paymentDateFrom, paymentDateTo, searchTerm, sortCol, sortDir]);
 
   // Search debounce (400ms)
   useEffect(() => {
@@ -308,10 +314,17 @@ export default function APPayables() {
     setCurrencyFilter("all");
     setDateFrom("");
     setDateTo("");
+    setPaymentDateFrom("");
+    setPaymentDateTo("");
     setSearchInput("");
     setSearchTerm("");
     setSortCol("invoice_date");
     setSortDir("desc");
+  };
+
+  const clearPaymentDateFilter = () => {
+    setPaymentDateFrom("");
+    setPaymentDateTo("");
   };
 
   const hasActiveFilters =
@@ -320,7 +333,11 @@ export default function APPayables() {
     currencyFilter !== "all" ||
     dateFrom !== "" ||
     dateTo !== "" ||
+    paymentDateFrom !== "" ||
+    paymentDateTo !== "" ||
     searchTerm !== "";
+
+  const hasPaymentDateFilter = paymentDateFrom !== "" || paymentDateTo !== "";
 
   // Sort handler
   const handleSort = (col: SortCol) => {
@@ -349,6 +366,8 @@ export default function APPayables() {
         p_status: statusFilter !== "all" ? statusFilter : null,
         p_date_from: dateFrom || null,
         p_date_to: dateTo || null,
+        p_payment_date_from: paymentDateFrom || null,
+        p_payment_date_to: paymentDateTo || null,
         p_currency_id: currencyFilter !== "all" ? parseInt(currencyFilter) : null,
         p_search: searchTerm || null,
         p_sort_col: sortCol,
@@ -603,21 +622,49 @@ export default function APPayables() {
               </SelectContent>
             </Select>
 
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-[150px]"
-              placeholder="From"
-            />
-            <span className="text-muted-foreground">to</span>
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-[150px]"
-              placeholder="To"
-            />
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground">Invoice Date:</span>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-[150px]"
+                placeholder="From"
+              />
+              <span className="text-muted-foreground">to</span>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-[150px]"
+                placeholder="To"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground">Payment Date:</span>
+              <Input
+                type="date"
+                value={paymentDateFrom}
+                onChange={(e) => setPaymentDateFrom(e.target.value)}
+                className="w-[150px]"
+                placeholder="Payment From"
+              />
+              <span className="text-muted-foreground">to</span>
+              <Input
+                type="date"
+                value={paymentDateTo}
+                onChange={(e) => setPaymentDateTo(e.target.value)}
+                className="w-[150px]"
+                placeholder="Payment To"
+              />
+              {hasPaymentDateFilter && (
+                <Button variant="ghost" size="sm" onClick={clearPaymentDateFilter} className="h-8 px-2">
+                  <X className="h-3.5 w-3.5 mr-0.5" />
+                  Clear
+                </Button>
+              )}
+            </div>
 
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -632,7 +679,7 @@ export default function APPayables() {
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-1" />
-                Clear
+                Clear All
               </Button>
             )}
           </div>
