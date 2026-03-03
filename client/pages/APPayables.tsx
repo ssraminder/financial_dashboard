@@ -521,46 +521,40 @@ export default function APPayables() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Gross
+                  Net CAD
                 </CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {formatSummaryAmount(summary.summary_total_gross)}
+                  {formatSummaryAmount(summary.summary_net_cad)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">mixed CCY</p>
-                <p className="text-sm font-medium text-muted-foreground mt-0.5">
-                  CAD: {formatSummaryAmount(summary.summary_gross_cad)}
-                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Paid
+                  Tax CAD
                 </CardTitle>
                 <Receipt className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {formatSummaryAmount(summary.summary_total_paid)}
+                  {formatSummaryAmount(summary.summary_tax_cad)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">mixed CCY</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Outstanding
+                  Gross CAD
                 </CardTitle>
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {formatSummaryAmount(summary.summary_outstanding)}
+                  {formatSummaryAmount(summary.summary_gross_cad)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">mixed CCY</p>
               </CardContent>
             </Card>
           </div>
