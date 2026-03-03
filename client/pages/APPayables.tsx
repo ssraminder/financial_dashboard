@@ -534,7 +534,7 @@ export default function APPayables() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {summary.summary_invoice_count.toLocaleString()}
+                  {summary.total_count.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -860,11 +860,11 @@ export default function APPayables() {
                               </TableCell>
                             )}
                             <TableCell className="whitespace-nowrap">
-                              {inv.branch_project_count > 0 ? (
+                              {(inv.branch_project_numbers || []).length > 0 ? (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <span className="text-xs text-muted-foreground cursor-help underline decoration-dotted">
-                                      {inv.branch_project_count} project{inv.branch_project_count !== 1 ? "s" : ""}
+                                      {(inv.branch_project_numbers || []).join('; ')}
                                     </span>
                                   </TooltipTrigger>
                                   <TooltipContent side="left" className="max-w-xs">
@@ -872,15 +872,13 @@ export default function APPayables() {
                                       {inv.branch_clients && inv.branch_clients.length > 0 && (
                                         <div>
                                           <span className="font-medium text-xs">Clients: </span>
-                                          <span className="text-xs">{inv.branch_clients.join(", ")}</span>
+                                          <span className="text-xs">{(inv.branch_clients || []).join('; ')}</span>
                                         </div>
                                       )}
-                                      {inv.branch_project_numbers && inv.branch_project_numbers.length > 0 && (
-                                        <div>
-                                          <span className="font-medium text-xs">Projects: </span>
-                                          <span className="text-xs">{inv.branch_project_numbers.join(", ")}</span>
-                                        </div>
-                                      )}
+                                      <div>
+                                        <span className="font-medium text-xs">Projects: </span>
+                                        <span className="text-xs">{(inv.branch_project_numbers || []).join('; ')}</span>
+                                      </div>
                                     </div>
                                   </TooltipContent>
                                 </Tooltip>
