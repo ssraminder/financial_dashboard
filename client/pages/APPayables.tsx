@@ -88,41 +88,26 @@ const STATUS_CONFIG: Record<
   string,
   { label: string; className: string }
 > = {
+  NOT_PAID: {
+    label: "Not Paid",
+    className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  },
   FULLY_PAID: {
-    label: "Paid",
+    label: "Fully Paid",
     className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   },
   PARTIALLY_PAID: {
-    label: "Partial",
-    className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    label: "Partially Paid",
+    className: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
   },
   OVERDUE: {
     label: "Overdue",
-    className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  },
-  UNPAID_FUTURE: {
-    label: "Unpaid",
-    className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  },
-  UNPAID_NO_DUE: {
-    label: "Unpaid",
-    className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
+    className: "bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-200",
   },
 };
 
 function getStatusBadge(invoice: APInvoice): { label: string; className: string } {
-  if (invoice.payment_status === "FULLY_PAID") return STATUS_CONFIG.FULLY_PAID;
-  if (invoice.payment_status === "PARTIALLY_PAID") return STATUS_CONFIG.PARTIALLY_PAID;
-
-  // NOT_PAID — determine overdue vs unpaid
-  const today = new Date().toISOString().split("T")[0];
-  if (invoice.payment_due_date && invoice.payment_due_date < today) {
-    return STATUS_CONFIG.OVERDUE;
-  }
-  if (invoice.payment_due_date) {
-    return STATUS_CONFIG.UNPAID_FUTURE;
-  }
-  return STATUS_CONFIG.UNPAID_NO_DUE;
+  return STATUS_CONFIG[invoice.payment_status] || STATUS_CONFIG.NOT_PAID;
 }
 
 function formatAmount(amount: number | null | undefined, currency?: string): string {
@@ -575,14 +560,14 @@ export default function APPayables() {
             </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="All Statuses" />
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Payment Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="NOT_PAID">Unpaid</SelectItem>
-                <SelectItem value="PARTIALLY_PAID">Partial</SelectItem>
-                <SelectItem value="FULLY_PAID">Paid</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="NOT_PAID">Not Paid</SelectItem>
+                <SelectItem value="FULLY_PAID">Fully Paid</SelectItem>
+                <SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
                 <SelectItem value="OVERDUE">Overdue</SelectItem>
               </SelectContent>
             </Select>
@@ -673,14 +658,14 @@ export default function APPayables() {
                         >
                           {amountHeader}{sortIndicator("branch_amount")}
                         </TableHead>
-                        <TableHead className="whitespace-nowrap text-right">Paid</TableHead>
-                        <TableHead className="whitespace-nowrap text-right">Outstanding</TableHead>
                         <TableHead
                           className="whitespace-nowrap cursor-pointer select-none"
                           onClick={() => handleSort("payment_status")}
                         >
-                          Status{sortIndicator("payment_status")}
+                          Payment Status{sortIndicator("payment_status")}
                         </TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Paid</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Outstanding</TableHead>
                         <TableHead
                           className="whitespace-nowrap cursor-pointer select-none"
                           onClick={() => handleSort("invoice_date")}
@@ -744,6 +729,14 @@ export default function APPayables() {
                                 )}
                               </div>
                             </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              <Badge
+                                variant="secondary"
+                                className={`text-xs ${statusBadge.className}`}
+                              >
+                                {statusBadge.label}
+                              </Badge>
+                            </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
                               {inv.total_paid > 0
                                 ? formatAmount(inv.total_paid, inv.currency)
@@ -755,14 +748,6 @@ export default function APPayables() {
                                 : outstanding === 0 && inv.total_paid > 0
                                   ? formatAmount(0, inv.currency)
                                   : formatAmount(inv.branch_amount, inv.currency)}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <Badge
-                                variant="secondary"
-                                className={`text-xs ${statusBadge.className}`}
-                              >
-                                {statusBadge.label}
-                              </Badge>
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-sm">
                               {inv.invoice_date ? formatDate(inv.invoice_date) : "—"}
