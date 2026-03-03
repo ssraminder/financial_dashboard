@@ -59,13 +59,27 @@ type DateOperator = "none" | "before" | "after" | "on" | "between";
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatCurrency(value: number | null, currencyCode: string = "CAD"): string {
-  if (value == null) return `$0.00 ${currencyCode}`;
-  return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyCode}`;
+  if (value == null) return formatWithCurrency(0, currencyCode);
+  return formatWithCurrency(value, currencyCode);
 }
 
-function formatAmount(value: number | null): string {
+function formatAmount(value: number | null, currencyCode: string = "CAD"): string {
   if (value == null) return "\u2014";
-  return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return formatWithCurrency(value, currencyCode);
+}
+
+function formatWithCurrency(value: number, currencyCode: string): string {
+  try {
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: currencyCode,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  } catch {
+    // Fallback for unrecognized currency codes
+    return `${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyCode}`;
+  }
 }
 
 function formatDate(dateStr: string | null): string {
@@ -405,7 +419,7 @@ export default function Invoices() {
       case "amount_gross": {
         return (
           <span className="text-right block font-medium tabular-nums">
-            {formatAmount(row.amount_gross)}
+            {formatAmount(row.amount_gross, row.original_currency || row.currency || "CAD")}
           </span>
         );
       }
@@ -413,7 +427,7 @@ export default function Invoices() {
         const cadVal = displayAmountCAD(row);
         return (
           <span className="text-right block font-medium tabular-nums">
-            {formatAmount(cadVal)}
+            {formatAmount(cadVal, "CAD")}
           </span>
         );
       }
