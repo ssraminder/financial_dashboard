@@ -71,6 +71,13 @@ interface APInvoice {
   summary_total_paid: number;
   summary_outstanding: number;
   summary_invoice_count: number;
+  amount_cad: number | null;
+  tax_cad: number | null;
+  gross_cad: number | null;
+  exchange_rate_to_cad: number | null;
+  summary_gross_cad: number;
+  summary_net_cad: number;
+  summary_tax_cad: number;
 }
 
 interface Branch {
@@ -162,6 +169,9 @@ export default function APPayables() {
     summary_total_paid: 0,
     summary_outstanding: 0,
     summary_invoice_count: 0,
+    summary_gross_cad: 0,
+    summary_net_cad: 0,
+    summary_tax_cad: 0,
   });
 
   // Filters
@@ -233,6 +243,9 @@ export default function APPayables() {
           summary_total_paid: rows[0].summary_total_paid,
           summary_outstanding: rows[0].summary_outstanding,
           summary_invoice_count: rows[0].summary_invoice_count,
+          summary_gross_cad: rows[0].summary_gross_cad,
+          summary_net_cad: rows[0].summary_net_cad,
+          summary_tax_cad: rows[0].summary_tax_cad,
         });
       } else {
         setSummary({
@@ -241,6 +254,9 @@ export default function APPayables() {
           summary_total_paid: 0,
           summary_outstanding: 0,
           summary_invoice_count: 0,
+          summary_gross_cad: 0,
+          summary_net_cad: 0,
+          summary_tax_cad: 0,
         });
       }
     } catch (err: any) {
@@ -513,6 +529,10 @@ export default function APPayables() {
                 <div className="text-2xl font-bold">
                   {formatSummaryAmount(summary.summary_total_gross)}
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">mixed CCY</p>
+                <p className="text-sm font-medium text-muted-foreground mt-0.5">
+                  CAD: {formatSummaryAmount(summary.summary_gross_cad)}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -526,6 +546,7 @@ export default function APPayables() {
                 <div className="text-2xl font-bold">
                   {formatSummaryAmount(summary.summary_total_paid)}
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">mixed CCY</p>
               </CardContent>
             </Card>
             <Card>
@@ -539,6 +560,7 @@ export default function APPayables() {
                 <div className="text-2xl font-bold">
                   {formatSummaryAmount(summary.summary_outstanding)}
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">mixed CCY</p>
               </CardContent>
             </Card>
           </div>
@@ -666,6 +688,10 @@ export default function APPayables() {
                         </TableHead>
                         <TableHead className="whitespace-nowrap text-right">Paid</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Outstanding</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Net CAD</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Tax CAD</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Gross CAD</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">FX Rate</TableHead>
                         <TableHead
                           className="whitespace-nowrap cursor-pointer select-none"
                           onClick={() => handleSort("invoice_date")}
@@ -748,6 +774,44 @@ export default function APPayables() {
                                 : outstanding === 0 && inv.total_paid > 0
                                   ? formatAmount(0, inv.currency)
                                   : formatAmount(inv.branch_amount, inv.currency)}
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap tabular-nums">
+                              {inv.amount_cad != null ? (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span>{formatAmount(inv.amount_cad, "CAD")}</span>
+                                  </TooltipTrigger>
+                                  {activeBranchLabel && (
+                                    <TooltipContent side="top">
+                                      <span className="text-xs">Full invoice CAD value</span>
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
+                              ) : "—"}
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap tabular-nums">
+                              {inv.tax_cad != null && inv.tax_cad !== 0
+                                ? formatAmount(inv.tax_cad, "CAD")
+                                : "—"}
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap tabular-nums font-medium">
+                              {inv.gross_cad != null ? (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span>{formatAmount(inv.gross_cad, "CAD")}</span>
+                                  </TooltipTrigger>
+                                  {activeBranchLabel && (
+                                    <TooltipContent side="top">
+                                      <span className="text-xs">Full invoice CAD value</span>
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
+                              ) : "—"}
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap tabular-nums text-sm text-muted-foreground">
+                              {inv.exchange_rate_to_cad != null
+                                ? Number(inv.exchange_rate_to_cad).toFixed(4)
+                                : "—"}
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-sm">
                               {inv.invoice_date ? formatDate(inv.invoice_date) : "—"}
