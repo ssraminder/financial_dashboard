@@ -250,6 +250,12 @@ function truncate(str: string | null, max: number): string {
   return str.length > max ? str.slice(0, max) + "\u2026" : str;
 }
 
+function formatWithSymbol(value: number | null, symbol: string): string {
+  if (value == null) return "\u2014";
+  const formatted = value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `${symbol}${formatted}`;
+}
+
 function formatCadAmount(value: number | null, payableStatus: PayableStatusValue | null): React.ReactNode {
   if (value != null) {
     return (
@@ -313,11 +319,9 @@ const PAYABLE_COLUMNS = [
   { key: "tax_amount", label: "Tax" },
   { key: "amount_net_cad", label: "Net (CAD)" },
   { key: "amount_cad", label: "Gross (CAD)" },
-  { key: "payment_status", label: "Invoice Status" },
+  { key: "invoice_status", label: "Invoice Status" },
   { key: "payable_status", label: "AP Status" },
-  { key: "invoice_date", label: "Invoice Date" },
-  { key: "payment_due_date", label: "Due Date" },
-  { key: "payment_date", label: "Payment Date" },
+  { key: "payment_status", label: "Payment Status" },
 ] as const;
 
 const RECEIVABLE_COLUMNS = [
@@ -490,6 +494,24 @@ export default function XtrfInvoices() {
 
   // Debounce ref for search
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Currency symbol lookup (xtrf_currency_id → symbol)
+  const [currencySymbolMap, setCurrencySymbolMap] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchCurrencies = async () => {
+      const { data: rows } = await supabase
+        .from("currencies")
+        .select("xtrf_id, symbol");
+      if (rows) {
+        const map: Record<number, string> = {};
+        rows.forEach((r: any) => { map[r.xtrf_id] = r.symbol; });
+        setCurrencySymbolMap(map);
+      }
+    };
+    fetchCurrencies();
+  }, [user]);
 
   // Auth redirect
   useEffect(() => {
@@ -686,9 +708,7 @@ export default function XtrfInvoices() {
     setSummaryLoading(true);
 
     const table = activeTab === "payables" ? "xtrf_payable_invoices" : "xtrf_receivable_invoices";
-    const summaryFields = activeTab === "payables"
-      ? "amount_gross, amount_net_cad, amount_cad, currency, original_currency, payment_status"
-      : "amount_gross, amount_cad, currency, payment_status";
+    const summaryFields = "amount_cad, payment_status";
     let query = supabase.from(table).select(summaryFields);
 
     // Apply same filters (except pagination)
@@ -722,9 +742,8 @@ export default function XtrfInvoices() {
     const { data: rows } = await query;
     if (rows) {
       let total = 0, unpaid = 0, paid = 0;
-      const isPayables = activeTab === "payables";
       rows.forEach((r: any) => {
-        const amt = (isPayables ? r.amount_net_cad : r.amount_cad) || 0;
+        const amt = r.amount_cad || 0;
         total += amt;
         if (r.payment_status === "NOT_PAID" || r.payment_status === "PARTIALLY_PAID") unpaid += amt;
         if (r.payment_status === "FULLY_PAID") paid += amt;
@@ -1391,16 +1410,33 @@ export default function XtrfInvoices() {
         const cur = row.original_currency || row.currency || "CAD";
         return <span className="font-mono text-xs">{cur}</span>;
       }
-      case "amount_gross":
+      case "amount_gross": {
+        const grossSymbol = row.xtrf_currency_id != null ? currencySymbolMap[row.xtrf_currency_id] : undefined;
+        if (grossSymbol) {
+          return (
+            <span className="text-right block font-medium tabular-nums">
+              {formatWithSymbol(row.amount_gross, grossSymbol)}
+            </span>
+          );
+        }
         return (
           <span className="text-right block font-medium tabular-nums">
             {formatAmount(row.amount_gross, row.original_currency || row.currency || "CAD")}
           </span>
         );
+      }
       case "tax_amount": {
         const tax = row.tax_amount;
-        if (tax == null || tax <= 0) {
+        if (tax == null || tax === 0) {
           return <span className="text-right block text-muted-foreground">{"\u2014"}</span>;
+        }
+        const taxSymbol = row.xtrf_currency_id != null ? currencySymbolMap[row.xtrf_currency_id] : undefined;
+        if (taxSymbol) {
+          return (
+            <span className="text-right block font-medium tabular-nums">
+              {formatWithSymbol(tax, taxSymbol)}
+            </span>
+          );
         }
         return (
           <span className="text-right block font-medium tabular-nums">
@@ -1412,6 +1448,20 @@ export default function XtrfInvoices() {
         return formatCadAmount(row.amount_net_cad, row.payable_status);
       case "amount_cad":
         return formatCadAmount(row.amount_cad, row.payable_status);
+      case "invoice_status": {
+        const invStatus = row.invoice_status;
+        if (!invStatus) return <Badge variant="outline">{"\u2014"}</Badge>;
+        switch (invStatus) {
+          case "CONFIRMED":
+            return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">Confirmed</Badge>;
+          case "BILL_CREATED":
+            return <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">Bill Created</Badge>;
+          case "POSTPONED":
+            return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100">Postponed</Badge>;
+          default:
+            return <Badge variant="outline">{invStatus}</Badge>;
+        }
+      }
       case "payment_status":
         return getStatusBadge(row.payment_status);
       case "payable_status": {

@@ -20,6 +20,8 @@ export interface XtrfPayableInvoice {
   amount_paid: number | null;
   currency: string | null;
   original_currency: string | null;
+  xtrf_currency_id: number | null;
+  invoice_status: string | null;
   payment_status: PaymentStatus | null;
   payable_status: PayableStatusValue | null;
   invoice_date: string | null;
