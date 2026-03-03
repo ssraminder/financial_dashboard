@@ -109,7 +109,7 @@ const STATUS_CONFIG: Record<
   },
   OVERDUE: {
     label: "Overdue",
-    className: "bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-200",
+    className: "bg-red-200 text-red-900 dark:bg-red-950 dark:text-red-300",
   },
 };
 
@@ -361,20 +361,23 @@ export default function APPayables() {
 
       const headers = [
         "Internal #",
-        "Final #",
+        "Invoice #",
         "Vendor",
         "Currency",
         "Invoice Total",
         "Branch Amount",
-        "Paid",
-        "Outstanding",
-        "Status",
+        "Payment Status",
         "Invoice Date",
         "Due Date",
-        "Paid Date",
+        "Payment Date",
+        "Outstanding",
+        "Net CAD",
+        "Tax CAD",
+        "Gross CAD",
+        "FX Rate",
         "Branch",
         "Clients",
-        "Projects",
+        "Project Numbers",
       ];
 
       const csvRows = rows.map((row) => [
@@ -384,12 +387,15 @@ export default function APPayables() {
         row.currency || "",
         row.invoice_total?.toFixed(2) ?? "",
         row.branch_amount?.toFixed(2) ?? "",
-        row.total_paid?.toFixed(2) ?? "",
-        row.outstanding?.toFixed(2) ?? "",
         row.payment_status || "",
         row.invoice_date || "",
         row.payment_due_date || "",
         row.payment_date || "",
+        row.outstanding?.toFixed(2) ?? "",
+        row.amount_cad?.toFixed(2) ?? "",
+        row.tax_cad?.toFixed(2) ?? "",
+        row.gross_cad?.toFixed(2) ?? "",
+        row.exchange_rate_to_cad != null ? Number(row.exchange_rate_to_cad).toFixed(4) : "",
         row.branch_name || "",
         `"${(row.clients || "").replace(/"/g, '""')}"`,
         `"${(row.project_numbers || "").replace(/"/g, '""')}"`,
@@ -400,13 +406,8 @@ export default function APPayables() {
         ...csvRows.map((row) => row.join(",")),
       ].join("\n");
 
-      const branchLabel =
-        branchFilter !== "all"
-          ? branches.find((b) => b.id === parseInt(branchFilter))?.branch_name || branchFilter
-          : "all";
-      const fromLabel = dateFrom || "start";
-      const toLabel = dateTo || "end";
-      const filename = `ap_payables_${branchLabel}_${fromLabel}_${toLabel}.csv`;
+      const today = new Date().toISOString().slice(0, 10);
+      const filename = `ap-payables-export-${today}.csv`;
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -680,8 +681,7 @@ export default function APPayables() {
                         >
                           Payment Status{sortIndicator("payment_status")}
                         </TableHead>
-                        <TableHead className="whitespace-nowrap text-right">Paid</TableHead>
-                        <TableHead className="whitespace-nowrap text-right">Outstanding</TableHead>
+                        <TableHead className="whitespace-nowrap">Payment Date</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Net CAD</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Tax CAD</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Gross CAD</TableHead>
@@ -698,7 +698,6 @@ export default function APPayables() {
                         >
                           Due Date{sortIndicator("payment_due_date")}
                         </TableHead>
-                        <TableHead className="whitespace-nowrap">Paid Date</TableHead>
                         {activeBranchLabel && (
                           <TableHead className="whitespace-nowrap">Branch</TableHead>
                         )}
@@ -708,7 +707,6 @@ export default function APPayables() {
                     <TableBody>
                       {invoices.map((inv) => {
                         const statusBadge = getStatusBadge(inv);
-                        const outstanding = inv.branch_amount - (inv.total_paid || 0);
                         const isSplit =
                           activeBranchLabel &&
                           inv.branch_amount !== inv.invoice_total &&
@@ -757,17 +755,8 @@ export default function APPayables() {
                                 {statusBadge.label}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-right whitespace-nowrap tabular-nums">
-                              {inv.total_paid > 0
-                                ? formatAmount(inv.total_paid, inv.currency)
-                                : "—"}
-                            </TableCell>
-                            <TableCell className="text-right whitespace-nowrap tabular-nums font-medium">
-                              {outstanding > 0
-                                ? formatAmount(outstanding, inv.currency)
-                                : outstanding === 0 && inv.total_paid > 0
-                                  ? formatAmount(0, inv.currency)
-                                  : formatAmount(inv.branch_amount, inv.currency)}
+                            <TableCell className="whitespace-nowrap text-sm">
+                              {inv.payment_date ? formatDate(inv.payment_date) : "—"}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
                               {inv.amount_cad != null ? (
@@ -812,9 +801,6 @@ export default function APPayables() {
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-sm">
                               {inv.payment_due_date ? formatDate(inv.payment_due_date) : "—"}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap text-sm">
-                              {inv.payment_date ? formatDate(inv.payment_date) : "—"}
                             </TableCell>
                             {activeBranchLabel && (
                               <TableCell className="whitespace-nowrap">
