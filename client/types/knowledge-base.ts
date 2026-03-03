@@ -23,7 +23,6 @@ export type KBSource =
   | "csv_import"
   | "auto_suggest"
   | "receipt_ocr"
-  | "xtrf_sync"
   | "legacy_migration";
 export type TransactionTypeFilter = "debit" | "credit" | null;
 

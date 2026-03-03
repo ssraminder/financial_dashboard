@@ -98,16 +98,6 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
   {
-    id: "xtrf",
-    icon: FileText,
-    label: "XTRF",
-    items: [
-      { label: "All Records", href: "/xtrf-invoices" },
-      { label: "Invoices", href: "/invoices" },
-      { label: "Payables Backfill", href: "/admin/payables-backfill" },
-    ],
-  },
-  {
     id: "contacts",
     icon: UserCircle,
     label: "Contacts",

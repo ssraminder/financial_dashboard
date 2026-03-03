@@ -202,7 +202,6 @@ export function KBFiltersComponent({
               <SelectItem value="auto_suggest">Auto-Suggested</SelectItem>
               <SelectItem value="csv_import">CSV Import</SelectItem>
               <SelectItem value="receipt_ocr">Receipt OCR</SelectItem>
-              <SelectItem value="xtrf_sync">XTRF Sync</SelectItem>
               <SelectItem value="legacy_migration">Legacy</SelectItem>
             </SelectContent>
           </Select>
