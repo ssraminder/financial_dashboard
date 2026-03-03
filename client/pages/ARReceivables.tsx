@@ -81,14 +81,14 @@ interface Summary {
 const STATUS_BADGES: Record<string, { label: string; className: string }> = {
   SENT: {
     label: "Sent",
-    className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   },
   READY: {
     label: "Ready",
-    className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    className: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
   },
   NOT_READY: {
-    label: "Draft",
+    label: "Not Ready",
     className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
   },
 };
@@ -546,7 +546,7 @@ export default function ARReceivables() {
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="SENT">Sent</SelectItem>
                 <SelectItem value="READY">Ready</SelectItem>
-                <SelectItem value="NOT_READY">Draft</SelectItem>
+                <SelectItem value="NOT_READY">Not Ready</SelectItem>
               </SelectContent>
             </Select>
 
@@ -629,8 +629,8 @@ export default function ARReceivables() {
                         <TableHead className="whitespace-nowrap text-right">Net CAD</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Tax CAD</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Gross CAD</TableHead>
-                        <TableHead className="whitespace-nowrap text-right">FX Rate</TableHead>
                         <TableHead className="whitespace-nowrap">Status</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">FX Rate</TableHead>
                         <TableHead className="whitespace-nowrap">Invoice Date</TableHead>
                         <TableHead className="whitespace-nowrap">Due Date</TableHead>
                         <TableHead className="whitespace-nowrap">Branch</TableHead>
@@ -679,9 +679,6 @@ export default function ARReceivables() {
                             <TableCell className="text-right whitespace-nowrap tabular-nums font-medium">
                               {formatCurrency(inv.gross_cad)}
                             </TableCell>
-                            <TableCell className="text-right whitespace-nowrap tabular-nums text-muted-foreground text-xs">
-                              {formatFxRate(inv.exchange_rate_to_cad, inv.currency)}
-                            </TableCell>
                             <TableCell className="whitespace-nowrap">
                               <div className="flex items-center gap-1">
                                 <Badge
@@ -699,6 +696,9 @@ export default function ARReceivables() {
                                   </Badge>
                                 )}
                               </div>
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap tabular-nums text-muted-foreground text-xs">
+                              {formatFxRate(inv.exchange_rate_to_cad, inv.currency)}
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-sm">
                               {inv.invoice_date
