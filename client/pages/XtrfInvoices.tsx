@@ -267,11 +267,6 @@ function formatCadAmount(value: number | null, payableStatus: PayableStatusValue
   return <span className="text-right block">{"\u2014"}</span>;
 }
 
-function displayAmountCAD(row: any): number | null {
-  if (row.amount_cad) return row.amount_cad;
-  if (row.currency === 'CAD' || row.original_currency === 'CAD') return row.amount_gross;
-  return null;
-}
 
 function getApStatusBadge(status: PayableStatusValue | null) {
   switch (status) {
@@ -290,7 +285,7 @@ function getMissingFields(row: any): string[] {
   const fields: string[] = [];
   if (row.invoice_date == null) fields.push("Invoice Date");
   if (row.vendor_name == null) fields.push("Vendor Name");
-  if (displayAmountCAD(row) == null) fields.push("Amount (CAD)");
+  if (row.amount_cad == null) fields.push("Amount (CAD)");
   if (row.invoice_internal_number == null) fields.push("Internal Number");
   if (row.payment_due_date == null) fields.push("Payment Due Date");
   return fields;
@@ -726,7 +721,7 @@ export default function XtrfInvoices() {
     if (rows) {
       let total = 0, unpaid = 0, paid = 0;
       rows.forEach((r: any) => {
-        const amt = displayAmountCAD(r) || 0;
+        const amt = r.amount_cad || 0;
         total += amt;
         if (r.payment_status === "NOT_PAID" || r.payment_status === "PARTIALLY_PAID") unpaid += amt;
         if (r.payment_status === "FULLY_PAID") paid += amt;
@@ -938,8 +933,7 @@ export default function XtrfInvoices() {
         ...allRows.map((row: any) =>
           headers
             .map((h) => {
-              // Apply displayAmountCAD fallback for the amount_cad column
-              const val = h === "amount_cad" ? displayAmountCAD(row) : row[h];
+              const val = row[h];
               if (val == null) return "";
               const str = String(val);
               return str.includes(",") || str.includes('"') || str.includes("\n")
@@ -1401,7 +1395,7 @@ export default function XtrfInvoices() {
           </span>
         );
       case "amount_cad":
-        return formatCadAmount(displayAmountCAD(row), row.payable_status);
+        return formatCadAmount(row.amount_cad, row.payable_status);
       case "payment_status":
         return getStatusBadge(row.payment_status);
       case "payable_status": {
