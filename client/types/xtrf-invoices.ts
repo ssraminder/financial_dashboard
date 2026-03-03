@@ -14,6 +14,8 @@ export interface XtrfPayableInvoice {
   invoice_final_number: string | null;
   invoice_internal_number: string | null;
   amount_gross: number | null;
+  amount_net_cad: number | null;
+  tax_amount: number | null;
   amount_cad: number | null;
   amount_paid: number | null;
   currency: string | null;
