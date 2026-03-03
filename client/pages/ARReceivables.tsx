@@ -244,10 +244,10 @@ export default function ARReceivables() {
 
       setInvoices(result.rows || []);
       setSummary({
-        total_count: result.total_count,
-        sum_net_cad: result.sum_net_cad,
-        sum_tax_cad: result.sum_tax_cad,
-        sum_gross_cad: result.sum_gross_cad,
+        total_count: result.total_count ?? 0,
+        sum_net_cad: result.sum_net_cad ?? 0,
+        sum_tax_cad: result.sum_tax_cad ?? 0,
+        sum_gross_cad: result.sum_gross_cad ?? 0,
       });
     } catch (err: any) {
       console.error("Error fetching AR invoices:", err);

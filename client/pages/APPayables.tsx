@@ -242,14 +242,14 @@ export default function APPayables() {
 
       if (rows.length > 0) {
         setSummary({
-          total_count: rows[0].total_count,
-          summary_total_gross: rows[0].summary_total_gross,
-          summary_total_paid: rows[0].summary_total_paid,
-          summary_outstanding: rows[0].summary_outstanding,
-          summary_invoice_count: rows[0].summary_invoice_count,
-          summary_gross_cad: rows[0].summary_gross_cad,
-          summary_net_cad: rows[0].summary_net_cad,
-          summary_tax_cad: rows[0].summary_tax_cad,
+          total_count: rows[0].total_count ?? 0,
+          summary_total_gross: rows[0].summary_total_gross ?? 0,
+          summary_total_paid: rows[0].summary_total_paid ?? 0,
+          summary_outstanding: rows[0].summary_outstanding ?? 0,
+          summary_invoice_count: rows[0].summary_invoice_count ?? 0,
+          summary_gross_cad: rows[0].summary_gross_cad ?? 0,
+          summary_net_cad: rows[0].summary_net_cad ?? 0,
+          summary_tax_cad: rows[0].summary_tax_cad ?? 0,
         });
       } else {
         setSummary({
