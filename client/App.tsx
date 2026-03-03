@@ -34,6 +34,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AcceptInvite from "./pages/AcceptInvite";
 import AIPromptsManagement from "./pages/AIPromptsManagement";
 import ARReceivables from "./pages/ARReceivables";
+import APPayables from "./pages/APPayables";
 import Exports from "./pages/Exports";
 import NotFound from "./pages/NotFound";
 
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/ai-prompts" element={<AIPromptsManagement />} />
           <Route path="/ar-receivables" element={<ARReceivables />} />
+          <Route path="/ap-payables" element={<APPayables />} />
           <Route path="/exports" element={<Exports />} />
           <Route path="/notifications" element={<Notifications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
