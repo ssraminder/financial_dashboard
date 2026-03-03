@@ -333,7 +333,9 @@ const RECEIVABLE_COLUMNS = [
   { key: "invoice_final_number", label: "Invoice #" },
   { key: "vendor_currency", label: "Currency" },
   { key: "amount_gross", label: "Amount (Gross)" },
-  { key: "amount_cad", label: "Amount (CAD)" },
+  { key: "tax_amount", label: "Tax" },
+  { key: "amount_net_cad", label: "Net (CAD)" },
+  { key: "amount_cad", label: "Gross (CAD)" },
   { key: "payment_status", label: "Status" },
   { key: "invoice_date", label: "Invoice Date" },
   { key: "payment_due_date", label: "Due Date" },
@@ -949,28 +951,51 @@ export default function XtrfInvoices() {
 
       if (allRows.length === 0) return;
 
-      const headers = Object.keys(allRows[0]);
-      const csvContent = [
-        headers.join(","),
-        ...allRows.map((row: any) =>
-          headers
-            .map((h) => {
-              const val = row[h];
-              if (val == null) return "";
-              const str = String(val);
-              return str.includes(",") || str.includes('"') || str.includes("\n")
-                ? `"${str.replace(/"/g, '""')}"`
-                : str;
-            })
-            .join(","),
-        ),
-      ].join("\n");
+      const escapeCsvField = (val: unknown) => {
+        if (val == null) return "";
+        const str = String(val);
+        return str.includes(",") || str.includes('"') || str.includes("\n")
+          ? `"${str.replace(/"/g, '""')}"`
+          : str;
+      };
+
+      let csvContent: string;
+
+      if (activeTab === "receivables") {
+        const csvHeaders = [
+          "Invoice #", "Client", "Currency", "Amount (Gross)", "Tax",
+          "Net (CAD)", "Gross (CAD)", "Invoice Date", "Due Date", "Payment Status",
+        ];
+        csvContent = [
+          csvHeaders.join(","),
+          ...allRows.map((row: any) => [
+            escapeCsvField(row.invoice_final_number),
+            escapeCsvField(row.client_name),
+            escapeCsvField(row.currency),
+            escapeCsvField(row.amount_gross),
+            escapeCsvField(row.tax_amount),
+            escapeCsvField(row.amount_net_cad),
+            escapeCsvField(row.amount_cad),
+            escapeCsvField(row.invoice_date),
+            escapeCsvField(row.payment_due_date),
+            escapeCsvField(row.payment_status),
+          ].join(",")),
+        ].join("\n");
+      } else {
+        const headers = Object.keys(allRows[0]);
+        csvContent = [
+          headers.join(","),
+          ...allRows.map((row: any) =>
+            headers.map((h) => escapeCsvField(row[h])).join(","),
+          ),
+        ].join("\n");
+      }
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `xtrf_${activeTab}_${format(new Date(), "yyyy-MM-dd")}.csv`;
+      link.download = `xtrf-${activeTab}-${format(new Date(), "yyyy-MM-dd")}.csv`;
       link.click();
       URL.revokeObjectURL(url);
     } finally {
