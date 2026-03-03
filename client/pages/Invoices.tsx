@@ -63,6 +63,11 @@ function formatCurrency(value: number | null, currencyCode: string = "CAD"): str
   return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyCode}`;
 }
 
+function formatAmount(value: number | null): string {
+  if (value == null) return "\u2014";
+  return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "\u2014";
   try {
@@ -111,7 +116,8 @@ const PAYABLE_COLUMNS = [
   { key: "client_name", label: "Client" },
   { key: "client_branch_name", label: "Branch" },
   { key: "vendor_name", label: "Vendor" },
-  { key: "amount_gross", label: "Amount" },
+  { key: "vendor_currency", label: "Currency" },
+  { key: "amount_gross", label: "Amount (Gross)" },
   { key: "amount_cad", label: "Amount (CAD)" },
   { key: "invoice_date", label: "Invoice Date" },
   { key: "payment_status", label: "Status" },
@@ -123,7 +129,8 @@ const RECEIVABLE_COLUMNS = [
   { key: "invoice_final_number", label: "Invoice #" },
   { key: "client_name", label: "Client" },
   { key: "client_branch_name", label: "Branch" },
-  { key: "amount_gross", label: "Amount" },
+  { key: "vendor_currency", label: "Currency" },
+  { key: "amount_gross", label: "Amount (Gross)" },
   { key: "amount_cad", label: "Amount (CAD)" },
   { key: "invoice_date", label: "Invoice Date" },
   { key: "payment_status", label: "Status" },
@@ -391,24 +398,24 @@ export default function Invoices() {
         ) : "\u2014";
       case "vendor_name":
         return row.vendor_name || "\u2014";
+      case "vendor_currency": {
+        const cur = row.original_currency || row.currency || "CAD";
+        return <span className="font-mono text-xs">{cur}</span>;
+      }
       case "amount_gross": {
-        const invoiceCurrency = row.original_currency || row.currency || "CAD";
         return (
           <span className="text-right block font-medium tabular-nums">
-            {formatCurrency(row.amount_gross, invoiceCurrency)}
+            {formatAmount(row.amount_gross)}
           </span>
         );
       }
       case "amount_cad": {
         const cadVal = displayAmountCAD(row);
-        if (cadVal != null) {
-          return (
-            <span className="text-right block font-medium tabular-nums">
-              ${cadVal.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          );
-        }
-        return <span className="text-right block">{"\u2014"}</span>;
+        return (
+          <span className="text-right block font-medium tabular-nums">
+            {formatAmount(cadVal)}
+          </span>
+        );
       }
       case "payment_status":
         return getStatusBadge(row.payment_status);

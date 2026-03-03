@@ -96,6 +96,11 @@ function formatCurrency(value: number | null, currencyCode: string = "CAD"): str
   return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyCode}`;
 }
 
+function formatAmount(value: number | null): string {
+  if (value == null) return "\u2014";
+  return `$${value.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "\u2014";
   try {
@@ -294,7 +299,8 @@ const PAYABLE_COLUMNS = [
   { key: "vendor_name", label: "Vendor" },
   { key: "language_combination", label: "Language" },
   { key: "invoice_final_number", label: "Invoice #" },
-  { key: "amount_gross", label: "Amount" },
+  { key: "vendor_currency", label: "Currency" },
+  { key: "amount_gross", label: "Amount (Gross)" },
   { key: "amount_cad", label: "Amount (CAD)" },
   { key: "payment_status", label: "Invoice Status" },
   { key: "payable_status", label: "AP Status" },
@@ -310,7 +316,9 @@ const RECEIVABLE_COLUMNS = [
   { key: "client_branch_name", label: "Branch" },
   { key: "language_combination", label: "Language" },
   { key: "invoice_final_number", label: "Invoice #" },
-  { key: "amount_gross", label: "Amount" },
+  { key: "vendor_currency", label: "Currency" },
+  { key: "amount_gross", label: "Amount (Gross)" },
+  { key: "amount_cad", label: "Amount (CAD)" },
   { key: "payment_status", label: "Status" },
   { key: "invoice_date", label: "Invoice Date" },
   { key: "payment_due_date", label: "Due Date" },
@@ -1368,14 +1376,16 @@ export default function XtrfInvoices() {
         return row.invoice_final_number ? (
           <span className="font-mono text-xs">{row.invoice_final_number}</span>
         ) : "\u2014";
-      case "amount_gross": {
-        const invoiceCurrency = row.original_currency || row.currency || "CAD";
+      case "vendor_currency": {
+        const cur = row.original_currency || row.currency || "CAD";
+        return <span className="font-mono text-xs">{cur}</span>;
+      }
+      case "amount_gross":
         return (
           <span className="text-right block font-medium tabular-nums">
-            {formatCurrency(row.amount_gross, invoiceCurrency)}
+            {formatAmount(row.amount_gross)}
           </span>
         );
-      }
       case "amount_cad":
         return formatCadAmount(displayAmountCAD(row), row.payable_status);
       case "payment_status":
