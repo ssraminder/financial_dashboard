@@ -115,11 +115,6 @@ function getStatusBadge(status: PaymentStatus | null) {
   }
 }
 
-function displayAmountCAD(row: any): number | null {
-  if (row.amount_cad) return row.amount_cad;
-  if (row.currency === 'CAD' || row.original_currency === 'CAD') return row.amount_gross;
-  return null;
-}
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -312,7 +307,7 @@ export default function Invoices() {
     if (rows) {
       let total = 0, unpaid = 0, paid = 0;
       rows.forEach((r: any) => {
-        const amt = displayAmountCAD(r) || 0;
+        const amt = r.amount_cad || 0;
         total += amt;
         if (r.payment_status === "NOT_PAID" || r.payment_status === "PARTIALLY_PAID") unpaid += amt;
         if (r.payment_status === "FULLY_PAID") paid += amt;
@@ -377,7 +372,7 @@ export default function Invoices() {
         headers.join(","),
         ...allRows.map((row: any) =>
           headers.map((h) => {
-            const val = h === "amount_cad" ? displayAmountCAD(row) : row[h];
+            const val = row[h];
             if (val == null) return "";
             const str = String(val);
             return str.includes(",") || str.includes('"') || str.includes("\n")
@@ -424,10 +419,9 @@ export default function Invoices() {
         );
       }
       case "amount_cad": {
-        const cadVal = displayAmountCAD(row);
         return (
           <span className="text-right block font-medium tabular-nums">
-            {formatAmount(cadVal, "CAD")}
+            {formatAmount(row.amount_cad, "CAD")}
           </span>
         );
       }
