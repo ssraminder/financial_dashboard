@@ -916,7 +916,7 @@ export default function APPayables() {
                               ) : "—"}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
-                              {inv.tax_cad != null && inv.tax_cad !== 0
+                              {inv.tax_cad != null
                                 ? formatAmount(inv.tax_cad, "CAD")
                                 : "—"}
                             </TableCell>
