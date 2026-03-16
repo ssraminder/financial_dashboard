@@ -46,6 +46,12 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import SyncPaymentsButton from "@/components/SyncPaymentsButton";
 
 const PAGE_SIZE = 50;
 
@@ -485,6 +491,17 @@ export default function ARReceivables() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-1" />
+                    Sync Payments
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[520px] p-0 border-none bg-transparent">
+                  <SyncPaymentsButton />
+                </DialogContent>
+              </Dialog>
               <Button
                 variant="outline"
                 size="sm"
