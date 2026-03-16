@@ -24,10 +24,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ChevronDown,
   Download,
   Loader2,
   RefreshCw,
@@ -175,7 +182,7 @@ export default function ARReceivables() {
   const [loading, setLoading] = useState(true);
 
   // Filters
-  const [branchFilter, setBranchFilter] = useState("all");
+  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
   const [payStatusFilter, setPayStatusFilter] = useState("all");
   const [invStatusFilter, setInvStatusFilter] = useState("all");
   const [currencyFilter, setCurrencyFilter] = useState("all");
@@ -209,7 +216,7 @@ export default function ARReceivables() {
   // Build RPC params from current filter state
   const buildRpcParams = useCallback(
     (page: number, pageSize: number) => ({
-      p_branch_id: branchFilter !== "all" ? parseInt(branchFilter) : null,
+      p_branch_id: selectedBranches.length === 1 ? parseInt(selectedBranches[0]) : null,
       p_customer_id: null,
       p_pay_status: payStatusFilter !== "all" ? payStatusFilter : null,
       p_inv_status: invStatusFilter !== "all" ? invStatusFilter : null,
@@ -222,7 +229,7 @@ export default function ARReceivables() {
       p_sort_col: sortCol,
       p_sort_dir: sortDir,
     }),
-    [branchFilter, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm, sortCol, sortDir],
+    [selectedBranches, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm, sortCol, sortDir],
   );
 
   // Fetch invoices
@@ -237,7 +244,16 @@ export default function ARReceivables() {
 
       if (error) throw error;
 
-      const rows = (data as ARInvoice[]) || [];
+      let rows = (data as ARInvoice[]) || [];
+
+      // Client-side filter when multiple (but not all) branches selected
+      if (selectedBranches.length > 1) {
+        const branchIds = new Set(selectedBranches.map(Number));
+        rows = rows.filter(
+          (r) => r.branch_id != null && branchIds.has(r.branch_id),
+        );
+      }
+
       setInvoices(rows);
 
       if (rows.length > 0) {
@@ -272,7 +288,7 @@ export default function ARReceivables() {
     } finally {
       setLoading(false);
     }
-  }, [user, currentPage, buildRpcParams, toast]);
+  }, [user, currentPage, buildRpcParams, selectedBranches, toast]);
 
   useEffect(() => {
     fetchInvoices();
@@ -281,7 +297,7 @@ export default function ARReceivables() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [branchFilter, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm]);
+  }, [selectedBranches, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm]);
 
   // Search debounce
   useEffect(() => {
@@ -294,7 +310,7 @@ export default function ARReceivables() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const clearFilters = () => {
-    setBranchFilter("all");
+    setSelectedBranches([]);
     setPayStatusFilter("all");
     setInvStatusFilter("all");
     setCurrencyFilter("all");
@@ -305,7 +321,7 @@ export default function ARReceivables() {
   };
 
   const hasActiveFilters =
-    branchFilter !== "all" ||
+    selectedBranches.length > 0 ||
     payStatusFilter !== "all" ||
     invStatusFilter !== "all" ||
     currencyFilter !== "all" ||
@@ -325,7 +341,15 @@ export default function ARReceivables() {
 
       if (error) throw error;
 
-      const rows = (data as ARInvoice[]) || [];
+      let rows = (data as ARInvoice[]) || [];
+
+      // Client-side filter when multiple branches selected
+      if (selectedBranches.length > 1) {
+        const branchIds = new Set(selectedBranches.map(Number));
+        rows = rows.filter(
+          (r) => r.branch_id != null && branchIds.has(r.branch_id),
+        );
+      }
 
       const headers = [
         "Invoice #",
@@ -371,8 +395,10 @@ export default function ARReceivables() {
       ].join("\n");
 
       const branchLabel =
-        branchFilter !== "all"
-          ? branches.find((b) => b.id === parseInt(branchFilter))?.branch_name || branchFilter
+        selectedBranches.length > 0
+          ? selectedBranches
+              .map((id) => branches.find((b) => b.id === parseInt(id))?.branch_name || id)
+              .join("-")
           : "all";
       const fromLabel = dateFrom || "start";
       const toLabel = dateTo || "end";
@@ -400,11 +426,33 @@ export default function ARReceivables() {
     }
   };
 
-  // Active filter label for header
+  // Active filter labels for header
+  const activeBranchLabels =
+    selectedBranches.length > 0
+      ? selectedBranches
+          .map((id) => branches.find((b) => b.id === parseInt(id))?.branch_name)
+          .filter(Boolean) as string[]
+      : [];
+
   const activeBranchLabel =
-    branchFilter !== "all"
-      ? branches.find((b) => b.id === parseInt(branchFilter))?.branch_name
-      : null;
+    activeBranchLabels.length === 1 ? activeBranchLabels[0] : null;
+
+  // Branch toggle handler
+  const toggleBranch = (branchId: string) => {
+    setSelectedBranches((prev) =>
+      prev.includes(branchId)
+        ? prev.filter((id) => id !== branchId)
+        : [...prev, branchId],
+    );
+  };
+
+  // Branch filter display text
+  const branchFilterLabel =
+    selectedBranches.length === 0
+      ? "All Branches"
+      : selectedBranches.length === 1
+        ? activeBranchLabel || "1 Branch"
+        : `${selectedBranches.length} Branches`;
 
   if (authLoading) {
     return (
@@ -429,9 +477,9 @@ export default function ARReceivables() {
                 <p className="text-muted-foreground">
                   Outgoing client invoices
                 </p>
-                {activeBranchLabel && (
+                {activeBranchLabels.length > 0 && (
                   <Badge variant="outline" className="text-xs">
-                    Filtered: {activeBranchLabel}
+                    Filtered: {activeBranchLabels.join(", ")}
                   </Badge>
                 )}
               </div>
@@ -518,19 +566,44 @@ export default function ARReceivables() {
 
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3 mb-6">
-            <Select value={branchFilter} onValueChange={setBranchFilter}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="All Branches" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                {branches.map((b) => (
-                  <SelectItem key={b.id} value={String(b.id)}>
-                    {b.branch_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-[180px] justify-between font-normal"
+                >
+                  <span className="truncate">{branchFilterLabel}</span>
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-2" align="start">
+                <div className="flex items-center justify-between px-2 pb-2 border-b mb-2">
+                  <span className="text-xs font-medium text-muted-foreground">Branches</span>
+                  {selectedBranches.length > 0 && (
+                    <button
+                      onClick={() => setSelectedBranches([])}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-[200px] overflow-y-auto space-y-1">
+                  {branches.map((b) => (
+                    <label
+                      key={b.id}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer text-sm"
+                    >
+                      <Checkbox
+                        checked={selectedBranches.includes(String(b.id))}
+                        onCheckedChange={() => toggleBranch(String(b.id))}
+                      />
+                      {b.branch_name}
+                    </label>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
             <Select value={payStatusFilter} onValueChange={setPayStatusFilter}>
               <SelectTrigger className="w-[160px]">
