@@ -296,20 +296,22 @@ export default function ProjectPL() {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: result, error } = await supabase.rpc("get_project_pl", {
-        p_branch_id: filters.branch_id,
-        p_status: filters.status,
-        p_client_search: filters.client_search || null,
-        p_vendor_search: filters.vendor_search || null,
-        p_source_lang_id: filters.source_lang_id,
-        p_target_lang_id: filters.target_lang_id,
-        p_date_from: filters.date_from,
-        p_date_to: filters.date_to,
+      const params: Record<string, any> = {
         p_page: page,
         p_page_size: PAGE_SIZE,
         p_sort_col: sortCol,
         p_sort_dir: sortDir,
-      });
+      };
+      if (filters.branch_id != null) params.p_branch_id = filters.branch_id;
+      if (filters.status) params.p_status = filters.status;
+      if (filters.client_search) params.p_client_search = filters.client_search;
+      if (filters.vendor_search) params.p_vendor_search = filters.vendor_search;
+      if (filters.source_lang_id != null) params.p_source_lang_id = filters.source_lang_id;
+      if (filters.target_lang_id != null) params.p_target_lang_id = filters.target_lang_id;
+      if (filters.date_from) params.p_date_from = filters.date_from;
+      if (filters.date_to) params.p_date_to = filters.date_to;
+
+      const { data: result, error } = await supabase.rpc("get_project_pl", params);
       if (error) {
         toast({ title: "Error loading data", description: error.message, variant: "destructive" });
         setData([]);
@@ -367,16 +369,17 @@ export default function ProjectPL() {
   const handleExport = async () => {
     setExportLoading(true);
     try {
-      const { data: exportData, error } = await supabase.rpc("export_project_pl", {
-        p_branch_id: filters.branch_id,
-        p_status: filters.status,
-        p_client_search: filters.client_search || null,
-        p_vendor_search: filters.vendor_search || null,
-        p_source_lang_id: filters.source_lang_id,
-        p_target_lang_id: filters.target_lang_id,
-        p_date_from: filters.date_from,
-        p_date_to: filters.date_to,
-      });
+      const exportParams: Record<string, any> = {};
+      if (filters.branch_id != null) exportParams.p_branch_id = filters.branch_id;
+      if (filters.status) exportParams.p_status = filters.status;
+      if (filters.client_search) exportParams.p_client_search = filters.client_search;
+      if (filters.vendor_search) exportParams.p_vendor_search = filters.vendor_search;
+      if (filters.source_lang_id != null) exportParams.p_source_lang_id = filters.source_lang_id;
+      if (filters.target_lang_id != null) exportParams.p_target_lang_id = filters.target_lang_id;
+      if (filters.date_from) exportParams.p_date_from = filters.date_from;
+      if (filters.date_to) exportParams.p_date_to = filters.date_to;
+
+      const { data: exportData, error } = await supabase.rpc("export_project_pl", exportParams);
       if (error) {
         toast({ title: "Export failed", description: error.message, variant: "destructive" });
         return;
