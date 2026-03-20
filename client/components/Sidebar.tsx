@@ -64,6 +64,7 @@ const sidebarSections: SidebarSection[] = [
       { label: "Statement Status", href: "/statements/status" },
       { label: "AR Receivables", href: "/ar-receivables" },
       { label: "AP Payables", href: "/ap-payables" },
+      { label: "Project P&L", href: "/project-pl" },
       { label: "Receipts", href: "/receipts" },
       { label: "Exports", href: "/exports" },
     ],
