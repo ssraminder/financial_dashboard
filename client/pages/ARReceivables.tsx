@@ -222,13 +222,16 @@ export default function ARReceivables() {
     if (user) fetchBranches();
   }, [user]);
 
-  // Fetch company branch options for filter dropdown
+  // Fetch all distinct company branch values for filter dropdown.
+  // Explicit large limit overrides PostgREST default (1000 rows) so
+  // branches that sort later alphabetically are not silently dropped.
   const fetchCompanyBranchOptions = useCallback(async () => {
     const { data } = await supabase
       .from("xtrf_new_ar_invoices")
       .select("company_branch")
       .not("company_branch", "is", null)
-      .order("company_branch", { ascending: true });
+      .order("company_branch", { ascending: true })
+      .limit(100000);
     if (data) {
       const unique = [...new Set(data.map((r: { company_branch: string }) => r.company_branch))];
       setCompanyBranchOptions(unique);
