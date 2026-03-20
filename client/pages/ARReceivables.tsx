@@ -193,6 +193,8 @@ export default function ARReceivables() {
   const [payStatusFilter, setPayStatusFilter] = useState("all");
   const [invStatusFilter, setInvStatusFilter] = useState("all");
   const [currencyFilter, setCurrencyFilter] = useState("all");
+  const [selectedCompanyBranch, setSelectedCompanyBranch] = useState<string | null>(null);
+  const [companyBranchOptions, setCompanyBranchOptions] = useState<string[]>([]);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -220,6 +222,23 @@ export default function ARReceivables() {
     if (user) fetchBranches();
   }, [user]);
 
+  // Fetch company branch options for filter dropdown
+  const fetchCompanyBranchOptions = useCallback(async () => {
+    const { data } = await supabase
+      .from("xtrf_new_ar_invoices")
+      .select("company_branch")
+      .not("company_branch", "is", null)
+      .order("company_branch", { ascending: true });
+    if (data) {
+      const unique = [...new Set(data.map((r: { company_branch: string }) => r.company_branch))];
+      setCompanyBranchOptions(unique);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) fetchCompanyBranchOptions();
+  }, [user, fetchCompanyBranchOptions]);
+
   // Build RPC params from current filter state
   const buildRpcParams = useCallback(
     (page: number, pageSize: number) => ({
@@ -231,12 +250,13 @@ export default function ARReceivables() {
       p_date_to: dateTo || null,
       p_currency_id: currencyFilter !== "all" ? parseInt(currencyFilter) : null,
       p_search: searchTerm || null,
+      p_company_branch: selectedCompanyBranch,
       p_page: page,
       p_page_size: pageSize,
       p_sort_col: sortCol,
       p_sort_dir: sortDir,
     }),
-    [selectedBranches, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm, sortCol, sortDir],
+    [selectedBranches, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm, selectedCompanyBranch, sortCol, sortDir],
   );
 
   // Fetch invoices
@@ -304,7 +324,7 @@ export default function ARReceivables() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedBranches, payStatusFilter, invStatusFilter, currencyFilter, dateFrom, dateTo, searchTerm]);
+  }, [selectedBranches, payStatusFilter, invStatusFilter, currencyFilter, selectedCompanyBranch, dateFrom, dateTo, searchTerm]);
 
   // Search debounce
   useEffect(() => {
@@ -321,6 +341,7 @@ export default function ARReceivables() {
     setPayStatusFilter("all");
     setInvStatusFilter("all");
     setCurrencyFilter("all");
+    setSelectedCompanyBranch(null);
     setDateFrom("");
     setDateTo("");
     setSearchInput("");
@@ -332,6 +353,7 @@ export default function ARReceivables() {
     payStatusFilter !== "all" ||
     invStatusFilter !== "all" ||
     currencyFilter !== "all" ||
+    selectedCompanyBranch !== null ||
     dateFrom !== "" ||
     dateTo !== "" ||
     searchTerm !== "";
@@ -528,6 +550,19 @@ export default function ARReceivables() {
             </div>
           </div>
 
+          {/* Active Company Branch filter label */}
+          {selectedCompanyBranch && (
+            <div className="mb-4 inline-flex items-center gap-2 rounded-md border bg-muted/50 px-4 py-2 text-sm">
+              <span className="font-medium">Company Branch:</span> {selectedCompanyBranch}
+              <button
+                onClick={() => setSelectedCompanyBranch(null)}
+                className="ml-1 rounded-full p-0.5 hover:bg-muted"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card>
@@ -660,6 +695,24 @@ export default function ARReceivables() {
                 <SelectItem value="3">USD</SelectItem>
                 <SelectItem value="2">GBP</SelectItem>
                 <SelectItem value="1">EUR</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={selectedCompanyBranch ?? "all"}
+              onValueChange={(v) => setSelectedCompanyBranch(v === "all" ? null : v)}
+              onOpenChange={(open) => { if (open) fetchCompanyBranchOptions(); }}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="All Company Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Company Branches</SelectItem>
+                {companyBranchOptions.map((branch) => (
+                  <SelectItem key={branch} value={branch}>
+                    {branch}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
