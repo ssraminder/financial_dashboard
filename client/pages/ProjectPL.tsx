@@ -393,6 +393,7 @@ export default function ProjectPL() {
         "Project Name",
         "Client",
         "Branch",
+        "Product Co. Branch",
         "Status",
         "Order Date",
         "Source Lang",
@@ -415,6 +416,7 @@ export default function ProjectPL() {
           r.project_name,
           r.client_name,
           r.branch_name,
+          r.product_company_branch,
           r.project_status,
           r.ordered_on_date,
           r.source_language,
@@ -777,6 +779,7 @@ export default function ProjectPL() {
                       <TableHead className="whitespace-nowrap">Project Name</TableHead>
                       <TableHead className="whitespace-nowrap">Client</TableHead>
                       <TableHead className="whitespace-nowrap">Branch</TableHead>
+                      <TableHead className="whitespace-nowrap">Product Co. Branch</TableHead>
                       <TableHead className="whitespace-nowrap">Source Lang</TableHead>
                       <TableHead className="whitespace-nowrap">Target Lang(s)</TableHead>
                       <SortHeader col="ordered_on" label="Order Date" />
@@ -790,13 +793,13 @@ export default function ProjectPL() {
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-12">
+                        <TableCell colSpan={13} className="text-center py-12">
                           <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                         </TableCell>
                       </TableRow>
                     ) : data.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-12 text-muted-foreground">
+                        <TableCell colSpan={13} className="text-center py-12 text-muted-foreground">
                           No projects found
                         </TableCell>
                       </TableRow>
@@ -843,6 +846,9 @@ export default function ProjectPL() {
                                 </TableCell>
                                 <TableCell>{row.client_name}</TableCell>
                                 <TableCell>{row.branch_name}</TableCell>
+                                <TableCell className="whitespace-nowrap">
+                                  {(row as any).product_company_branch || "—"}
+                                </TableCell>
                                 <TableCell>{row.source_language || "—"}</TableCell>
                                 <TableCell className="max-w-[200px]">
                                   {truncatedTarget !== targetLangs ? (

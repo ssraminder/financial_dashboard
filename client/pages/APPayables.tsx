@@ -446,6 +446,7 @@ export default function APPayables() {
         "Gross CAD",
         "FX Rate",
         "Branch",
+        "Product Co. Branch",
         "Clients",
         "Project Numbers",
       ];
@@ -467,6 +468,7 @@ export default function APPayables() {
         row.gross_cad?.toFixed(2) ?? "",
         row.exchange_rate_to_cad != null ? Number(row.exchange_rate_to_cad).toFixed(4) : "",
         row.branch_name || "",
+        row.product_company_branch || "",
         `"${(row.clients || "").replace(/"/g, '""')}"`,
         `"${(row.project_numbers || "").replace(/"/g, '""')}"`,
       ]);
@@ -859,6 +861,7 @@ export default function APPayables() {
                         {activeBranchLabel && (
                           <TableHead className="whitespace-nowrap">Branch</TableHead>
                         )}
+                        <TableHead className="whitespace-nowrap">Product Co. Branch</TableHead>
                         <TableHead className="whitespace-nowrap">Projects</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -970,6 +973,9 @@ export default function APPayables() {
                                 </Badge>
                               </TableCell>
                             )}
+                            <TableCell className="whitespace-nowrap">
+                              {(inv as any).product_company_branch || "—"}
+                            </TableCell>
                             <TableCell className="whitespace-nowrap">
                               {(inv.branch_project_numbers || []).length > 0 ? (
                                 <Tooltip>

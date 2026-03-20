@@ -374,6 +374,7 @@ export default function ARReceivables() {
         "Due Date",
         "Payment Date",
         "Branch",
+        "Product Co. Branch",
       ];
 
       const csvRows = rows.map((inv) => [
@@ -393,6 +394,7 @@ export default function ARReceivables() {
         inv.payment_due_date || "",
         inv.payment_date || "",
         inv.branch_name,
+        (inv as any).product_company_branch || "",
       ]);
 
       const csvContent = [
@@ -734,6 +736,7 @@ export default function ARReceivables() {
                         <TableHead className="whitespace-nowrap">Due Date</TableHead>
                         <TableHead className="whitespace-nowrap">Payment Date</TableHead>
                         <TableHead className="whitespace-nowrap">Branch</TableHead>
+                        <TableHead className="whitespace-nowrap">Product Co. Branch</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -832,6 +835,9 @@ export default function ARReceivables() {
                               >
                                 {inv.branch_name}
                               </Badge>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {(inv as any).product_company_branch || "—"}
                             </TableCell>
                           </TableRow>
                         );
