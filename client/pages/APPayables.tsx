@@ -29,17 +29,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  ChevronDown,
   Download,
   Loader2,
   RefreshCw,
@@ -76,6 +69,7 @@ interface APInvoice {
   total_paid: number;
   branch_id: number | null;
   branch_name: string | null;
+  product_company_branch: string | null;
   branch_clients: string[] | null;
   branch_project_numbers: string[] | null;
   branch_project_count: number;
@@ -91,11 +85,6 @@ interface APInvoice {
   summary_gross_cad: number;
   summary_net_cad: number;
   summary_tax_cad: number;
-}
-
-interface Branch {
-  id: number;
-  branch_name: string;
 }
 
 interface Currency {
@@ -170,7 +159,7 @@ export default function APPayables() {
 
   // Data
   const [invoices, setInvoices] = useState<APInvoice[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
+  const [companyBranches, setCompanyBranches] = useState<string[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -188,7 +177,7 @@ export default function APPayables() {
   });
 
   // Filters
-  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
+  const [selectedCompanyBranch, setSelectedCompanyBranch] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [currencyFilter, setCurrencyFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
@@ -208,35 +197,38 @@ export default function APPayables() {
     }
   }, [user, authLoading, navigate]);
 
-  // Fetch reference data once
+  // Fetch currency reference data once
   useEffect(() => {
-    const fetchReferenceData = async () => {
-      const [branchRes, currencyRes] = await Promise.all([
-        supabase
-          .from("xtrf_branches")
-          .select("id, branch_name")
-          .order("branch_name"),
-        supabase
-          .from("xtrf_new_dict_currencies")
-          .select("xtrf_id, iso_code, name")
-          .in("xtrf_id", [1, 3, 30, 67]),
-      ]);
-      if (branchRes.data) setBranches(branchRes.data);
-      if (currencyRes.data) setCurrencies(currencyRes.data);
+    const fetchCurrencies = async () => {
+      const { data } = await supabase
+        .from("xtrf_new_dict_currencies")
+        .select("xtrf_id, iso_code, name")
+        .in("xtrf_id", [1, 3, 30, 67]);
+      if (data) setCurrencies(data);
     };
-    if (user) fetchReferenceData();
+    if (user) fetchCurrencies();
   }, [user]);
+
+  // Fetch company branch options dynamically
+  const fetchCompanyBranches = useCallback(async () => {
+    const { data } = await supabase
+      .from("v_ap_invoice_branch_alloc")
+      .select("product_company_branch")
+      .not("product_company_branch", "is", null)
+      .order("product_company_branch", { ascending: true });
+    if (data) {
+      const unique = [...new Set(data.map((r: any) => r.product_company_branch as string))];
+      setCompanyBranches(unique);
+    }
+  }, []);
 
   // Fetch invoices
   const fetchInvoices = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const singleBranchId =
-        selectedBranches.length === 1 ? parseInt(selectedBranches[0]) : null;
-
       const { data, error } = await supabase.rpc("get_ap_invoice_payables", {
-        p_branch_id: singleBranchId,
+        p_company_branch: selectedCompanyBranch,
         p_vendor_id: null,
         p_status: statusFilter !== "all" ? statusFilter : null,
         p_date_from: dateFrom || null,
@@ -253,15 +245,7 @@ export default function APPayables() {
 
       if (error) throw error;
 
-      let rows = (data as APInvoice[]) || [];
-
-      // Client-side filter when multiple (but not all) branches selected
-      if (selectedBranches.length > 1) {
-        const branchIds = new Set(selectedBranches.map(Number));
-        rows = rows.filter(
-          (r) => r.branch_id != null && branchIds.has(r.branch_id),
-        );
-      }
+      const rows = (data as APInvoice[]) || [];
 
       setInvoices(rows);
 
@@ -301,7 +285,7 @@ export default function APPayables() {
   }, [
     user,
     currentPage,
-    selectedBranches,
+    selectedCompanyBranch,
     statusFilter,
     currencyFilter,
     dateFrom,
@@ -321,7 +305,7 @@ export default function APPayables() {
   // Reset page when filters/sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedBranches, statusFilter, currencyFilter, dateFrom, dateTo, paymentDateFrom, paymentDateTo, searchTerm, sortCol, sortDir]);
+  }, [selectedCompanyBranch, statusFilter, currencyFilter, dateFrom, dateTo, paymentDateFrom, paymentDateTo, searchTerm, sortCol, sortDir]);
 
   // Search debounce (400ms)
   useEffect(() => {
@@ -334,7 +318,7 @@ export default function APPayables() {
   const totalPages = Math.ceil(summary.total_count / PAGE_SIZE);
 
   const clearFilters = () => {
-    setSelectedBranches([]);
+    setSelectedCompanyBranch(null);
     setStatusFilter("all");
     setCurrencyFilter("all");
     setDateFrom("");
@@ -353,7 +337,7 @@ export default function APPayables() {
   };
 
   const hasActiveFilters =
-    selectedBranches.length > 0 ||
+    selectedCompanyBranch !== null ||
     statusFilter !== "all" ||
     currencyFilter !== "all" ||
     dateFrom !== "" ||
@@ -385,16 +369,8 @@ export default function APPayables() {
     try {
       toast({ title: "Exporting...", description: "Fetching all filtered records." });
 
-      // When multiple branches are selected, call the export RPC once per
-      // branch and merge the results. The export RPC does not return
-      // branch_id, so client-side filtering on that field yields no rows.
-      const branchIdsToExport =
-        selectedBranches.length > 0
-          ? selectedBranches.map((id) => parseInt(id))
-          : [null as unknown as number]; // null = all branches
-
-      const exportParams = (branchId: number | null) => ({
-        p_branch_id: branchId,
+      const { data: rows, error } = await supabase.rpc("export_ap_invoice_payables", {
+        p_company_branch: selectedCompanyBranch,
         p_vendor_id: null,
         p_status: statusFilter !== "all" ? statusFilter : null,
         p_date_from: dateFrom || null,
@@ -407,32 +383,13 @@ export default function APPayables() {
         p_sort_dir: sortDir,
       });
 
-      const results = await Promise.all(
-        branchIdsToExport.map((bid) =>
-          supabase.rpc("export_ap_invoice_payables", exportParams(bid)),
-        ),
-      );
-
-      // Collect rows, throw on first error
-      let rows: any[] = [];
-      for (const res of results) {
-        if (res.error) throw res.error;
-        if (res.data) rows = rows.concat(res.data);
-      }
-
-      // Deduplicate by invoice identifier in case branches overlap
-      const seen = new Set<string>();
-      rows = rows.filter((r: any) => {
-        const key = `${r.internal_number}|${r.final_number}|${r.vendor_name}|${r.invoice_date}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
+      if (error) throw error;
 
       const headers = [
         "Internal #",
         "Invoice #",
         "Vendor",
+        "Company Branch",
         "Currency",
         "Invoice Total",
         "Branch Amount",
@@ -445,15 +402,15 @@ export default function APPayables() {
         "Tax CAD",
         "Gross CAD",
         "FX Rate",
-        "Branch",
         "Clients",
         "Project Numbers",
       ];
 
-      const csvRows = rows.map((row) => [
+      const csvRows = (rows || []).map((row: any) => [
         row.internal_number || "",
         row.final_number || "",
         `"${(row.vendor_name || "").replace(/"/g, '""')}"`,
+        `"${(row.product_company_branch || "").replace(/"/g, '""')}"`,
         row.currency || "",
         row.invoice_total?.toFixed(2) ?? "",
         row.branch_amount?.toFixed(2) ?? "",
@@ -466,7 +423,6 @@ export default function APPayables() {
         row.tax_cad?.toFixed(2) ?? "",
         row.gross_cad?.toFixed(2) ?? "",
         row.exchange_rate_to_cad != null ? Number(row.exchange_rate_to_cad).toFixed(4) : "",
-        row.branch_name || "",
         `"${(row.clients || "").replace(/"/g, '""')}"`,
         `"${(row.project_numbers || "").replace(/"/g, '""')}"`,
       ]);
@@ -477,7 +433,10 @@ export default function APPayables() {
       ].join("\n");
 
       const today = new Date().toISOString().slice(0, 10);
-      const filename = `ap-payables-export-${today}.csv`;
+      const branchSlug = selectedCompanyBranch
+        ? selectedCompanyBranch.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/_+$/, "")
+        : "all";
+      const filename = `ap_invoices_${branchSlug}_${today}.csv`;
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -489,7 +448,7 @@ export default function APPayables() {
 
       toast({
         title: "Export complete",
-        description: `Exported ${rows.length} invoices to ${filename}`,
+        description: `Exported ${(rows || []).length} invoices to ${filename}`,
       });
     } catch (err: any) {
       console.error("Export error:", err);
@@ -503,39 +462,10 @@ export default function APPayables() {
     }
   };
 
-  // Active branch labels
-  const activeBranchLabels =
-    selectedBranches.length > 0
-      ? selectedBranches
-          .map((id) => branches.find((b) => b.id === parseInt(id))?.branch_name)
-          .filter(Boolean) as string[]
-      : [];
-
-  const activeBranchLabel =
-    activeBranchLabels.length === 1 ? activeBranchLabels[0] : null;
-
   // Amount column header
-  const amountHeader =
-    selectedBranches.length === 1 && activeBranchLabel
-      ? `${activeBranchLabel} Amount`
-      : "Invoice Total";
-
-  // Branch toggle handler
-  const toggleBranch = (branchId: string) => {
-    setSelectedBranches((prev) =>
-      prev.includes(branchId)
-        ? prev.filter((id) => id !== branchId)
-        : [...prev, branchId],
-    );
-  };
-
-  // Branch filter display text
-  const branchFilterLabel =
-    selectedBranches.length === 0
-      ? "All Branches"
-      : selectedBranches.length === 1
-        ? activeBranchLabel || "1 Branch"
-        : `${selectedBranches.length} Branches`;
+  const amountHeader = selectedCompanyBranch
+    ? `${selectedCompanyBranch} Amount`
+    : "Invoice Total";
 
   // Currency display helper — remap symbols to ISO codes for clarity
   const getCurrencyDisplay = (c: Currency) => {
@@ -562,17 +492,9 @@ export default function APPayables() {
               <h1 className="text-3xl font-bold text-foreground">
                 AP Invoice Payables
               </h1>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-muted-foreground">
-                  Vendor invoices &amp; payables
-                </p>
-                {activeBranchLabels.length > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    Filtered: {activeBranchLabels.join(", ")}
-                    {selectedBranches.length === 1 && " — showing branch share only"}
-                  </Badge>
-                )}
-              </div>
+              <p className="text-muted-foreground mt-1">
+                Vendor invoices &amp; payables
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Dialog>
@@ -608,6 +530,22 @@ export default function APPayables() {
               </Button>
             </div>
           </div>
+
+          {/* Active Company Branch Banner */}
+          {selectedCompanyBranch && (
+            <div className="flex items-center gap-2 mb-4 px-4 py-2.5 rounded-lg border bg-muted/50">
+              <span className="text-sm font-medium">Company Branch: {selectedCompanyBranch}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 ml-1"
+                onClick={() => setSelectedCompanyBranch(null)}
+              >
+                <X className="h-3.5 w-3.5 mr-0.5" />
+                Clear
+              </Button>
+            </div>
+          )}
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -667,44 +605,23 @@ export default function APPayables() {
 
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3 mb-6">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-[180px] justify-between font-normal"
-                >
-                  <span className="truncate">{branchFilterLabel}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-2" align="start">
-                <div className="flex items-center justify-between px-2 pb-2 border-b mb-2">
-                  <span className="text-xs font-medium text-muted-foreground">Branches</span>
-                  {selectedBranches.length > 0 && (
-                    <button
-                      onClick={() => setSelectedBranches([])}
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-                <div className="max-h-[200px] overflow-y-auto space-y-1">
-                  {branches.map((b) => (
-                    <label
-                      key={b.id}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer text-sm"
-                    >
-                      <Checkbox
-                        checked={selectedBranches.includes(String(b.id))}
-                        onCheckedChange={() => toggleBranch(String(b.id))}
-                      />
-                      {b.branch_name}
-                    </label>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+            <Select
+              value={selectedCompanyBranch ?? "__all__"}
+              onValueChange={(val) => setSelectedCompanyBranch(val === "__all__" ? null : val)}
+              onOpenChange={(open) => { if (open) fetchCompanyBranches(); }}
+            >
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All Branches</SelectItem>
+                {companyBranches.map((branch) => (
+                  <SelectItem key={branch} value={branch}>
+                    {branch}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
@@ -826,6 +743,7 @@ export default function APPayables() {
                         >
                           Vendor{sortIndicator("vendor_name")}
                         </TableHead>
+                        <TableHead className="whitespace-nowrap" style={{ width: "160px" }}>Company Branch</TableHead>
                         <TableHead className="whitespace-nowrap">CCY</TableHead>
                         <TableHead
                           className="whitespace-nowrap text-right cursor-pointer select-none"
@@ -856,17 +774,17 @@ export default function APPayables() {
                         >
                           Due Date{sortIndicator("payment_due_date")}
                         </TableHead>
-                        {activeBranchLabel && (
-                          <TableHead className="whitespace-nowrap">Branch</TableHead>
-                        )}
                         <TableHead className="whitespace-nowrap">Projects</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {invoices.map((inv) => {
                         const statusBadge = getStatusBadge(inv);
+                        const displayAmount = selectedCompanyBranch !== null
+                          ? inv.branch_amount
+                          : inv.invoice_total;
                         const isSplit =
-                          activeBranchLabel &&
+                          selectedCompanyBranch !== null &&
                           inv.branch_amount !== inv.invoice_total &&
                           inv.invoice_total > 0;
 
@@ -888,6 +806,9 @@ export default function APPayables() {
                             >
                               {inv.vendor_name || "—"}
                             </TableCell>
+                            <TableCell className="whitespace-nowrap text-sm" style={{ width: "160px" }}>
+                              {inv.product_company_branch || "—"}
+                            </TableCell>
                             <TableCell className="whitespace-nowrap">
                               <span className="text-xs font-medium text-muted-foreground">
                                 {inv.currency}
@@ -896,7 +817,7 @@ export default function APPayables() {
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
                               <div>
                                 <span className="font-medium">
-                                  {formatAmount(inv.branch_amount, inv.currency)}
+                                  {formatAmount(displayAmount, inv.currency)}
                                 </span>
                                 {isSplit && (
                                   <div className="text-xs text-muted-foreground">
@@ -917,18 +838,9 @@ export default function APPayables() {
                               {inv.payment_date ? formatDate(inv.payment_date) : "—"}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
-                              {inv.amount_cad != null ? (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span>{formatAmount(inv.amount_cad, "CAD")}</span>
-                                  </TooltipTrigger>
-                                  {activeBranchLabel && (
-                                    <TooltipContent side="top">
-                                      <span className="text-xs">Full invoice CAD value</span>
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-                              ) : "—"}
+                              {inv.amount_cad != null
+                                ? formatAmount(inv.amount_cad, "CAD")
+                                : "—"}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
                               {inv.tax_cad != null && inv.tax_cad !== 0
@@ -936,18 +848,9 @@ export default function APPayables() {
                                 : "—"}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums font-medium">
-                              {inv.gross_cad != null ? (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span>{formatAmount(inv.gross_cad, "CAD")}</span>
-                                  </TooltipTrigger>
-                                  {activeBranchLabel && (
-                                    <TooltipContent side="top">
-                                      <span className="text-xs">Full invoice CAD value</span>
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-                              ) : "—"}
+                              {inv.gross_cad != null
+                                ? formatAmount(inv.gross_cad, "CAD")
+                                : "—"}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums text-sm text-muted-foreground">
                               {inv.exchange_rate_to_cad != null
@@ -960,16 +863,6 @@ export default function APPayables() {
                             <TableCell className="whitespace-nowrap text-sm">
                               {inv.payment_due_date ? formatDate(inv.payment_due_date) : "—"}
                             </TableCell>
-                            {activeBranchLabel && (
-                              <TableCell className="whitespace-nowrap">
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs font-normal"
-                                >
-                                  {inv.branch_name || "—"}
-                                </Badge>
-                              </TableCell>
-                            )}
                             <TableCell className="whitespace-nowrap">
                               {(inv.branch_project_numbers || []).length > 0 ? (
                                 <Tooltip>
