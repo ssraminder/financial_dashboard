@@ -59,6 +59,7 @@ interface ARInvoice {
   invoice_xtrf_id: number;
   invoice_number: string | null;
   customer_name: string | null;
+  product_company_branch: string | null;
   currency: string;
   invoice_total: number;
   payment_status: string | null;
@@ -360,6 +361,7 @@ export default function ARReceivables() {
       const headers = [
         "Invoice #",
         "Customer",
+        "Company Branch",
         "Currency",
         "Invoice Total",
         "Total Paid",
@@ -379,6 +381,7 @@ export default function ARReceivables() {
       const csvRows = rows.map((inv) => [
         inv.invoice_number || "",
         `"${(inv.customer_name || "").replace(/"/g, '""')}"`,
+        `"${(inv.product_company_branch || "").replace(/"/g, '""')}"`,
         inv.currency,
         inv.invoice_total?.toFixed(2) ?? "",
         inv.total_paid?.toFixed(2) ?? "",
@@ -720,6 +723,7 @@ export default function ARReceivables() {
                       <TableRow>
                         <TableHead className="whitespace-nowrap">Invoice #</TableHead>
                         <TableHead className="whitespace-nowrap">Customer</TableHead>
+                        <TableHead className="whitespace-nowrap" style={{ width: 160 }}>Company Branch</TableHead>
                         <TableHead className="whitespace-nowrap">CCY</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Invoice Total</TableHead>
                         <TableHead className="whitespace-nowrap text-right">Total Paid</TableHead>
@@ -761,6 +765,13 @@ export default function ARReceivables() {
                               title={inv.customer_name || ""}
                             >
                               {inv.customer_name || "—"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {inv.product_company_branch ? (
+                                inv.product_company_branch
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
                               <span className="text-xs font-medium text-muted-foreground">
