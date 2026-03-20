@@ -385,11 +385,16 @@ export default function APPayables() {
     try {
       toast({ title: "Exporting...", description: "Fetching all filtered records." });
 
-      const exportBranchId =
-        selectedBranches.length === 1 ? parseInt(selectedBranches[0]) : null;
+      // When multiple branches are selected, call the export RPC once per
+      // branch and merge the results. The export RPC does not return
+      // branch_id, so client-side filtering on that field yields no rows.
+      const branchIdsToExport =
+        selectedBranches.length > 0
+          ? selectedBranches.map((id) => parseInt(id))
+          : [null as unknown as number]; // null = all branches
 
-      const { data, error } = await supabase.rpc("export_ap_invoice_payables", {
-        p_branch_id: exportBranchId,
+      const exportParams = (branchId: number | null) => ({
+        p_branch_id: branchId,
         p_vendor_id: null,
         p_status: statusFilter !== "all" ? statusFilter : null,
         p_date_from: dateFrom || null,
@@ -402,17 +407,27 @@ export default function APPayables() {
         p_sort_dir: sortDir,
       });
 
-      if (error) throw error;
+      const results = await Promise.all(
+        branchIdsToExport.map((bid) =>
+          supabase.rpc("export_ap_invoice_payables", exportParams(bid)),
+        ),
+      );
 
-      let rows = (data as any[]) || [];
-
-      // Client-side filter when multiple branches selected
-      if (selectedBranches.length > 1) {
-        const branchIds = new Set(selectedBranches.map(Number));
-        rows = rows.filter(
-          (r: any) => r.branch_id != null && branchIds.has(r.branch_id),
-        );
+      // Collect rows, throw on first error
+      let rows: any[] = [];
+      for (const res of results) {
+        if (res.error) throw res.error;
+        if (res.data) rows = rows.concat(res.data);
       }
+
+      // Deduplicate by invoice identifier in case branches overlap
+      const seen = new Set<string>();
+      rows = rows.filter((r: any) => {
+        const key = `${r.internal_number}|${r.final_number}|${r.vendor_name}|${r.invoice_date}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
 
       const headers = [
         "Internal #",
