@@ -51,7 +51,21 @@ import {
 } from "@/components/ui/dialog";
 import SyncPaymentsButton from "@/components/SyncPaymentsButton";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
+
+function getWeekRange(): { from: string; to: string } {
+  const now = new Date();
+  const day = now.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return {
+    from: monday.toISOString().slice(0, 10),
+    to: sunday.toISOString().slice(0, 10),
+  };
+}
 
 interface APInvoice {
   invoice_xtrf_id: number;
@@ -180,13 +194,14 @@ export default function APPayables() {
   const [selectedCompanyBranch, setSelectedCompanyBranch] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [currencyFilter, setCurrencyFilter] = useState("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateFrom, setDateFrom] = useState(() => getWeekRange().from);
+  const [dateTo, setDateTo] = useState(() => getWeekRange().to);
   const [paymentDateFrom, setPaymentDateFrom] = useState("");
   const [paymentDateTo, setPaymentDateTo] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [sortCol, setSortCol] = useState<SortCol>("invoice_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -240,7 +255,7 @@ export default function APPayables() {
         p_currency_id: currencyFilter !== "all" ? parseInt(currencyFilter) : null,
         p_search: searchTerm || null,
         p_page: currentPage,
-        p_page_size: PAGE_SIZE,
+        p_page_size: pageSize,
         p_sort_col: sortCol,
         p_sort_dir: sortDir,
       });
@@ -287,6 +302,7 @@ export default function APPayables() {
   }, [
     user,
     currentPage,
+    pageSize,
     selectedCompanyBranch,
     statusFilter,
     currencyFilter,
@@ -317,14 +333,15 @@ export default function APPayables() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const totalPages = Math.ceil(summary.total_count / PAGE_SIZE);
+  const totalPages = Math.ceil(summary.total_count / pageSize);
 
   const clearFilters = () => {
     setSelectedCompanyBranch(null);
     setStatusFilter("all");
     setCurrencyFilter("all");
-    setDateFrom("");
-    setDateTo("");
+    const week = getWeekRange();
+    setDateFrom(week.from);
+    setDateTo(week.to);
     setPaymentDateFrom("");
     setPaymentDateTo("");
     setSearchInput("");
@@ -902,15 +919,32 @@ export default function APPayables() {
 
               {/* Pagination */}
               <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Showing{" "}
-                  {((currentPage - 1) * PAGE_SIZE + 1).toLocaleString()}–
-                  {Math.min(
-                    currentPage * PAGE_SIZE,
-                    summary.total_count,
-                  ).toLocaleString()}{" "}
-                  of {summary.total_count.toLocaleString()}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Showing{" "}
+                    {((currentPage - 1) * pageSize + 1).toLocaleString()}–
+                    {Math.min(
+                      currentPage * pageSize,
+                      summary.total_count,
+                    ).toLocaleString()}{" "}
+                    of {summary.total_count.toLocaleString()}
+                  </p>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}
+                  >
+                    <SelectTrigger className="w-[100px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAGE_SIZE_OPTIONS.map((size) => (
+                        <SelectItem key={size} value={String(size)}>
+                          {size} / page
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex items-center gap-1">
                   <Button
                     variant="outline"

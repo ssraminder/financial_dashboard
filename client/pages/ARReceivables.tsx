@@ -53,7 +53,21 @@ import {
 } from "@/components/ui/dialog";
 import SyncPaymentsButton from "@/components/SyncPaymentsButton";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
+
+function getWeekRange(): { from: string; to: string } {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return {
+    from: monday.toISOString().slice(0, 10),
+    to: sunday.toISOString().slice(0, 10),
+  };
+}
 
 interface ARInvoice {
   invoice_xtrf_id: number;
@@ -195,11 +209,12 @@ export default function ARReceivables() {
   const [currencyFilter, setCurrencyFilter] = useState("all");
   const [selectedCompanyBranch, setSelectedCompanyBranch] = useState<string | null>(null);
   const [companyBranchOptions, setCompanyBranchOptions] = useState<string[]>([]);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateFrom, setDateFrom] = useState(() => getWeekRange().from);
+  const [dateTo, setDateTo] = useState(() => getWeekRange().to);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [sortCol, setSortCol] = useState("invoice_date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -263,7 +278,7 @@ export default function ARReceivables() {
     try {
       const { data, error } = await supabase.rpc(
         "get_ar_invoice_receivables",
-        buildRpcParams(currentPage, PAGE_SIZE),
+        buildRpcParams(currentPage, pageSize),
       );
 
       if (error) throw error;
@@ -312,7 +327,7 @@ export default function ARReceivables() {
     } finally {
       setLoading(false);
     }
-  }, [user, currentPage, buildRpcParams, selectedBranches, toast]);
+  }, [user, currentPage, pageSize, buildRpcParams, selectedBranches, toast]);
 
   useEffect(() => {
     fetchInvoices();
@@ -331,7 +346,7 @@ export default function ARReceivables() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   const clearFilters = () => {
     setSelectedBranches([]);
@@ -339,8 +354,9 @@ export default function ARReceivables() {
     setInvStatusFilter("all");
     setCurrencyFilter("all");
     setSelectedCompanyBranch(null);
-    setDateFrom("");
-    setDateTo("");
+    const week = getWeekRange();
+    setDateFrom(week.from);
+    setDateTo(week.to);
     setSearchInput("");
     setSearchTerm("");
   };
@@ -904,15 +920,32 @@ export default function ARReceivables() {
 
               {/* Pagination */}
               <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Showing{" "}
-                  {((currentPage - 1) * PAGE_SIZE + 1).toLocaleString()}–
-                  {Math.min(
-                    currentPage * PAGE_SIZE,
-                    totalCount,
-                  ).toLocaleString()}{" "}
-                  of {totalCount.toLocaleString()}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Showing{" "}
+                    {((currentPage - 1) * pageSize + 1).toLocaleString()}–
+                    {Math.min(
+                      currentPage * pageSize,
+                      totalCount,
+                    ).toLocaleString()}{" "}
+                    of {totalCount.toLocaleString()}
+                  </p>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}
+                  >
+                    <SelectTrigger className="w-[100px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAGE_SIZE_OPTIONS.map((size) => (
+                        <SelectItem key={size} value={String(size)}>
+                          {size} / page
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
