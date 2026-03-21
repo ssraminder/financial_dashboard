@@ -222,19 +222,13 @@ export default function ARReceivables() {
     if (user) fetchBranches();
   }, [user]);
 
-  // Fetch all distinct company branch values for filter dropdown.
-  // Explicit large limit overrides PostgREST default (1000 rows) so
-  // branches that sort later alphabetically are not silently dropped.
+  // Fetch company branch options via dedicated RPC (no params).
   const fetchCompanyBranchOptions = useCallback(async () => {
-    const { data } = await supabase
-      .from("xtrf_new_ar_invoices")
-      .select("company_branch")
-      .not("company_branch", "is", null)
-      .order("company_branch", { ascending: true })
-      .limit(100000);
+    const { data } = await supabase.rpc("get_ar_company_branches");
     if (data) {
-      const unique = [...new Set(data.map((r: { company_branch: string }) => r.company_branch))];
-      setCompanyBranchOptions(unique);
+      setCompanyBranchOptions(
+        (data as { company_branch: string }[]).map((r) => r.company_branch),
+      );
     }
   }, []);
 
@@ -704,7 +698,6 @@ export default function ARReceivables() {
             <Select
               value={selectedCompanyBranch ?? "all"}
               onValueChange={(v) => setSelectedCompanyBranch(v === "all" ? null : v)}
-              onOpenChange={(open) => { if (open) fetchCompanyBranchOptions(); }}
             >
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="All Company Branches" />

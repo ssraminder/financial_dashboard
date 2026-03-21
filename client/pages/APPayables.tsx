@@ -209,18 +209,20 @@ export default function APPayables() {
     if (user) fetchCurrencies();
   }, [user]);
 
-  // Fetch company branch options dynamically
+  // Fetch company branch options via dedicated RPC (no params).
   const fetchCompanyBranches = useCallback(async () => {
-    const { data } = await supabase
-      .from("v_ap_invoice_branch_alloc")
-      .select("product_company_branch")
-      .not("product_company_branch", "is", null)
-      .order("product_company_branch", { ascending: true });
+    const { data } = await supabase.rpc("get_ap_company_branches");
     if (data) {
-      const unique = [...new Set(data.map((r: any) => r.product_company_branch as string))];
-      setCompanyBranches(unique);
+      setCompanyBranches(
+        (data as { company_branch: string }[]).map((r) => r.company_branch),
+      );
     }
   }, []);
+
+  // Fetch company branches on mount
+  useEffect(() => {
+    if (user) fetchCompanyBranches();
+  }, [user, fetchCompanyBranches]);
 
   // Fetch invoices
   const fetchInvoices = useCallback(async () => {
@@ -608,7 +610,6 @@ export default function APPayables() {
             <Select
               value={selectedCompanyBranch ?? "__all__"}
               onValueChange={(val) => setSelectedCompanyBranch(val === "__all__" ? null : val)}
-              onOpenChange={(open) => { if (open) fetchCompanyBranches(); }}
             >
               <SelectTrigger className="w-[220px]">
                 <SelectValue placeholder="All Branches" />
