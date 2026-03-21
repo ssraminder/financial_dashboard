@@ -704,6 +704,7 @@ export default function ARReceivables() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Company Branches</SelectItem>
+                <SelectItem value="__null__">No Branch (Unassigned)</SelectItem>
                 {companyBranchOptions.map((branch) => (
                   <SelectItem key={branch} value={branch}>
                     {branch}
