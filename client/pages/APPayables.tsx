@@ -616,6 +616,7 @@ export default function APPayables() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">All Branches</SelectItem>
+                <SelectItem value="__null__">No Branch (Unassigned)</SelectItem>
                 {companyBranches.map((branch) => (
                   <SelectItem key={branch} value={branch}>
                     {branch}
