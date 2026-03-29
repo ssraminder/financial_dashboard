@@ -857,7 +857,7 @@ export default function ARReceivables() {
                               {formatCurrency(inv.amount_cad)}
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap tabular-nums">
-                              {inv.tax_cad && inv.tax_cad !== 0
+                              {inv.tax_cad != null
                                 ? formatCurrency(inv.tax_cad)
                                 : "—"}
                             </TableCell>
